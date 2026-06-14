@@ -24,15 +24,37 @@ export default function Login() {
       return
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', data.user.id)
-      .single()
+    if (!data.user) {
+      setError('Login failed. Please try again.')
+      setLoading(false)
+      return
+    }
 
-    if (profile?.role === 'influencer') router.push('/dashboard/influencer')
-    else if (profile?.role === 'brand') router.push('/dashboard/brand')
-    else router.push('/')
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single()
+
+      if (profileError || !profile) {
+        setError('Profile not found. Please contact support.')
+        setLoading(false)
+        return
+      }
+
+      if (profile.role === 'influencer') {
+        window.location.href = '/dashboard/influencer'
+      } else if (profile.role === 'brand') {
+        window.location.href = '/dashboard/brand'
+      } else {
+        setError('Unknown role: ' + profile.role)
+        setLoading(false)
+      }
+    } catch (err) {
+      setError('Something went wrong. Please try again.')
+      setLoading(false)
+    }
   }
 
   return (
@@ -59,7 +81,7 @@ export default function Login() {
               onChange={e => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
-              className="w-full px-4 py-3 rounded-xl text-white outline-none focus:border-purple-500 transition-all"
+              className="w-full px-4 py-3 rounded-xl text-white outline-none"
               style={{background: '#1e1e2e', border: '1px solid #2a2a3a'}}
             />
           </div>
@@ -71,7 +93,7 @@ export default function Login() {
               onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
               required
-              className="w-full px-4 py-3 rounded-xl text-white outline-none focus:border-purple-500 transition-all"
+              className="w-full px-4 py-3 rounded-xl text-white outline-none"
               style={{background: '#1e1e2e', border: '1px solid #2a2a3a'}}
             />
           </div>
