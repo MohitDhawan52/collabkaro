@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import ThemeToggle from '@/components/ThemeToggle'
 
 export default function Register() {
   const router = useRouter()
@@ -16,106 +17,81 @@ export default function Register() {
     e.preventDefault()
     setLoading(true)
     setError('')
-
     const { data, error } = await supabase.auth.signUp({ email, password })
-
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-      return
-    }
-
+    if (error) { setError(error.message); setLoading(false); return }
     if (data.user) {
-      await supabase.from('profiles').insert({
-        id: data.user.id,
-        email,
-        role
-      })
-
+      await supabase.from('profiles').insert({ id: data.user.id, email, role })
       if (role === 'influencer') router.push('/onboarding/influencer')
       else router.push('/onboarding/brand')
     }
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4" style={{background: 'linear-gradient(135deg, #0a0a0f 0%, #13131a 100%)'}}>
-      <div className="card p-10 w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="text-2xl font-bold gradient-text">CollabSphere</Link>
-          <h1 className="text-3xl font-bold mt-4 mb-2">Create Account</h1>
-          <p style={{color: '#9ca3af'}}>Join CollabSphere for free</p>
-        </div>
-
-        {/* Role Selector */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <button
-            onClick={() => setRole('influencer')}
-            className={`p-4 rounded-xl text-center transition-all ${role === 'influencer' ? 'gradient-bg text-white' : 'text-gray-400 hover:border-purple-500'}`}
-            style={role !== 'influencer' ? {background: '#1e1e2e', border: '1px solid #2a2a3a'} : {}}
-          >
-            <div className="text-2xl mb-1">🎭</div>
-            <div className="font-semibold">Influencer</div>
-            <div className="text-xs mt-1 opacity-75">I create content</div>
-          </button>
-          <button
-            onClick={() => setRole('brand')}
-            className={`p-4 rounded-xl text-center transition-all ${role === 'brand' ? 'gradient-bg text-white' : 'text-gray-400 hover:border-purple-500'}`}
-            style={role !== 'brand' ? {background: '#1e1e2e', border: '1px solid #2a2a3a'} : {}}
-          >
-            <div className="text-2xl mb-1">🏢</div>
-            <div className="font-semibold">Brand</div>
-            <div className="text-xs mt-1 opacity-75">I want to advertise</div>
-          </button>
-        </div>
-
-        {error && (
-          <div className="mb-6 p-4 rounded-xl text-red-400 text-sm" style={{background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)'}}>
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleRegister} className="flex flex-col gap-5">
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{color: '#9ca3af'}}>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-              className="w-full px-4 py-3 rounded-xl text-white outline-none transition-all"
-              style={{background: '#1e1e2e', border: '1px solid #2a2a3a'}}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{color: '#9ca3af'}}>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              minLength={6}
-              className="w-full px-4 py-3 rounded-xl text-white outline-none transition-all"
-              style={{background: '#1e1e2e', border: '1px solid #2a2a3a'}}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-xl text-white font-semibold gradient-bg hover:opacity-90 transition-all mt-2"
-          >
-            {loading ? 'Creating account...' : `Join as ${role === 'influencer' ? 'Influencer' : 'Brand'}`}
-          </button>
-        </form>
-
-        <p className="text-center mt-6" style={{color: '#9ca3af'}}>
-          Already have an account?{' '}
-          <Link href="/auth/login" className="text-purple-400 hover:text-purple-300 font-medium">
-            Sign in
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+      <nav className="navbar">
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #6c47ff, #ff47a3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⚡</div>
+            <span style={{ fontSize: '20px', fontWeight: '800' }} className="gradient-text">CollabSphere</span>
           </Link>
-        </p>
+          <ThemeToggle />
+        </div>
+      </nav>
+
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
+        <div className="animate-scaleIn" style={{ width: '100%', maxWidth: '440px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <h1 style={{ fontSize: '28px', fontWeight: '800', letterSpacing: '-0.5px', marginBottom: '8px' }}>Create your account</h1>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '15px' }}>Join CollabSphere for free</p>
+          </div>
+
+          {/* Role selector */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+            {([
+              { value: 'influencer', icon: '🎭', title: 'Creator', sub: 'I create content' },
+              { value: 'brand', icon: '🏢', title: 'Brand', sub: 'I want to advertise' },
+            ] as const).map(r => (
+              <button key={r.value} onClick={() => setRole(r.value)}
+                className="card"
+                style={{
+                  padding: '20px 16px', textAlign: 'center', cursor: 'pointer', border: role === r.value ? '2px solid #6c47ff' : '1px solid var(--border)',
+                  background: role === r.value ? 'var(--primary-light)' : 'var(--surface)', transition: 'all 0.2s'
+                }}>
+                <div style={{ fontSize: '28px', marginBottom: '8px' }}>{r.icon}</div>
+                <div style={{ fontWeight: '700', fontSize: '15px' }}>{r.title}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{r.sub}</div>
+              </button>
+            ))}
+          </div>
+
+          {error && (
+            <div style={{ padding: '12px 16px', borderRadius: '10px', marginBottom: '16px', fontSize: '14px', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.08)' }}>
+              {error}
+            </div>
+          )}
+
+          <div className="card" style={{ padding: '32px' }}>
+            <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>Email</label>
+                <input className="input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>Password</label>
+                <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 6 characters" required minLength={6} />
+              </div>
+              <button type="submit" disabled={loading} className="btn btn-primary" style={{ width: '100%', padding: '13px', fontSize: '15px', borderRadius: '10px', marginTop: '4px' }}>
+                {loading ? 'Creating account...' : `Join as ${role === 'influencer' ? 'Creator' : 'Brand'} →`}
+              </button>
+            </form>
+          </div>
+
+          <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+            Already have an account?{' '}
+            <Link href="/auth/login" style={{ color: '#6c47ff', fontWeight: '600', textDecoration: 'none' }}>Sign in</Link>
+          </p>
+        </div>
       </div>
-    </main>
+    </div>
   )
 }
