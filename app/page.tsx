@@ -31,7 +31,7 @@ export default function HomePage() {
 
   const testimonials = [
     { name: 'Priya Sharma', role: 'Beauty Influencer, 280K followers', text: 'CollabSphere cut my deal-closing time from 2 weeks to 2 days. The payment protection alone is worth it.', avatar: 'PS', color: 'avatar-a' },
-    { name: 'Rohan Mehta', role: 'Co-founder, Aura Skincare', text: 'Found 8 perfect influencers in a single afternoon. The analytics dashboard shows exactly what's working.', avatar: 'RM', color: 'avatar-b' },
+    { name: 'Rohan Mehta', role: 'Co-founder, Aura Skincare', text: 'Found 8 perfect influencers in a single afternoon. The analytics dashboard shows exactly what is working.', avatar: 'RM', color: 'avatar-b' },
     { name: 'Ananya Kapoor', role: 'Lifestyle Creator, 510K followers', text: 'Finally a platform that actually protects creators. Payments on time, every time.', avatar: 'AK', color: 'avatar-c' },
   ]
 

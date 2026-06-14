@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
 const NAV_ITEMS = [
@@ -18,7 +18,7 @@ export default function InfluencerDashboard() {
   const router = useRouter()
 
   useEffect(() => {
-    const supabase = createClient()
+    
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) router.push('/auth/login')
       else setUser(data.user)
