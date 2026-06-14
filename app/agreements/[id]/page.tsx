@@ -1,11 +1,10 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-export default function AgreementPage({ params }: { params: { id: string } }) {
-  const router = useRouter()
+export default function AgreementPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const [agreement, setAgreement] = useState<any>(null)
   const [brand, setBrand] = useState<any>(null)
   const [influencer, setInfluencer] = useState<any>(null)
@@ -28,12 +27,12 @@ export default function AgreementPage({ params }: { params: { id: string } }) {
       setUserRole(profile?.role || '')
 
       const { data: agr, error: agrError } = await supabase
-        .from('agreements').select('*').eq('id', params.id).single()
-      
-      if (agrError || !agr) { 
+        .from('agreements').select('*').eq('id', id).single()
+
+      if (agrError || !agr) {
         setError('Agreement not found')
         setLoading(false)
-        return 
+        return
       }
       setAgreement(agr)
 
@@ -59,16 +58,16 @@ export default function AgreementPage({ params }: { params: { id: string } }) {
         ? { signed_by_brand: true }
         : { signed_by_influencer: true }
 
-      const willBeFullySigned = 
+      const willBeFullySigned =
         (userRole === 'brand' && agreement.signed_by_influencer) ||
         (userRole === 'influencer' && agreement.signed_by_brand)
 
       if (willBeFullySigned) updateData.status = 'signed'
 
-      await supabase.from('agreements').update(updateData).eq('id', params.id)
+      await supabase.from('agreements').update(updateData).eq('id', id)
 
       if (willBeFullySigned && agreement.collab_type !== 'barter') {
-        window.location.href = `/payments/${params.id}`
+        window.location.href = `/payments/${id}`
       } else {
         await loadData()
       }
@@ -79,10 +78,10 @@ export default function AgreementPage({ params }: { params: { id: string } }) {
   }
 
   const handleComplete = async () => {
-    await supabase.from('agreements').update({ status: 'completed' }).eq('id', params.id)
+    await supabase.from('agreements').update({ status: 'completed' }).eq('id', id)
     await supabase.from('payments')
       .update({ status: 'released', released_at: new Date().toISOString() })
-      .eq('agreement_id', params.id)
+      .eq('agreement_id', id)
     await loadData()
   }
 
@@ -134,7 +133,7 @@ export default function AgreementPage({ params }: { params: { id: string } }) {
             <div className="text-4xl mb-3">📄</div>
             <h1 className="text-3xl font-bold gradient-text">Collaboration Agreement</h1>
             <p className="mt-2 text-sm" style={{ color: '#9ca3af' }}>
-              Agreement ID: {params.id.slice(0, 8)}...
+              Agreement ID: {id.slice(0, 8)}...
             </p>
           </div>
 

@@ -1,11 +1,10 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-export default function PaymentPage({ params }: { params: { id: string } }) {
-  const router = useRouter()
+export default function PaymentPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const [agreement, setAgreement] = useState<any>(null)
   const [brand, setBrand] = useState<any>(null)
   const [influencer, setInfluencer] = useState<any>(null)
@@ -17,16 +16,18 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
   useEffect(() => { loadData() }, [])
 
   const loadData = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/auth/login'); return }
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { window.location.href = '/auth/login'; return }
+
+    const user = session.user
 
     const { data: profile } = await supabase
       .from('profiles').select('role').eq('id', user.id).single()
     setUserRole(profile?.role || '')
 
     const { data: agr } = await supabase
-      .from('agreements').select('*').eq('id', params.id).single()
-    if (!agr) { router.push('/'); return }
+      .from('agreements').select('*').eq('id', id).single()
+    if (!agr) { window.location.href = '/'; return }
     setAgreement(agr)
 
     const { data: brandData } = await supabase
@@ -38,7 +39,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
     setInfluencer(infData)
 
     const { data: payData } = await supabase
-      .from('payments').select('*').eq('agreement_id', params.id).single()
+      .from('payments').select('*').eq('agreement_id', id).single()
     setPayment(payData)
 
     setLoading(false)
@@ -46,14 +47,13 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 
   const handlePayment = async () => {
     setPaying(true)
-
     if (payment) {
       await supabase.from('payments')
         .update({ status: 'held', paid_at: new Date().toISOString() })
         .eq('id', payment.id)
     } else {
       await supabase.from('payments').insert({
-        agreement_id: params.id,
+        agreement_id: id,
         brand_id: agreement.brand_id,
         influencer_id: agreement.influencer_id,
         amount: agreement.amount,
@@ -61,19 +61,14 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
         paid_at: new Date().toISOString(),
       })
     }
-
     await loadData()
     setPaying(false)
   }
 
   const handleRefund = async () => {
     if (!confirm('Are you sure you want to cancel and request a refund?')) return
-    await supabase.from('payments')
-      .update({ status: 'refunded' })
-      .eq('agreement_id', params.id)
-    await supabase.from('agreements')
-      .update({ status: 'cancelled' })
-      .eq('id', params.id)
+    await supabase.from('payments').update({ status: 'refunded' }).eq('agreement_id', id)
+    await supabase.from('agreements').update({ status: 'cancelled' }).eq('id', id)
     await loadData()
   }
 
@@ -131,9 +126,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
           <div className="text-center mb-8">
             <p className="text-sm mb-2" style={{ color: '#9ca3af' }}>Total Amount</p>
             <p className="text-5xl font-bold gradient-text">₹{agreement?.amount?.toLocaleString()}</p>
-            <p className="text-sm mt-2" style={{ color: '#9ca3af' }}>
-              {agreement?.collab_type} collaboration
-            </p>
+            <p className="text-sm mt-2" style={{ color: '#9ca3af' }}>{agreement?.collab_type} collaboration</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-6">
@@ -159,7 +152,6 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {/* Payment Status */}
           {payment && (
             <div className="p-4 rounded-xl mb-6 text-center" style={{
               background: payment.status === 'held' ? 'rgba(234,179,8,0.1)' :
@@ -183,13 +175,12 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
             </div>
           )}
 
-          {/* Actions for Brand */}
           {userRole === 'brand' && (
             <div className="flex flex-col gap-3">
               {!payment || payment.status === 'refunded' ? (
                 <button onClick={handlePayment} disabled={paying}
                   className="w-full py-4 rounded-xl text-white font-semibold gradient-bg hover:opacity-90 transition-all text-lg">
-                  {paying ? 'Processing...' : '💳 Pay ₹' + agreement?.amount?.toLocaleString() + ' (Escrow)'}
+                  {paying ? 'Processing...' : `💳 Pay ₹${agreement?.amount?.toLocaleString()} (Escrow)`}
                 </button>
               ) : payment.status === 'held' ? (
                 <>
@@ -198,7 +189,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
                       ⏳ Waiting for influencer to deliver content. Once done, go to the agreement page to approve and release payment.
                     </p>
                   </div>
-                  <Link href={`/agreements/${params.id}`}
+                  <Link href={`/agreements/${id}`}
                     className="w-full py-3 rounded-xl text-white font-semibold text-center transition-all"
                     style={{ background: '#10b981' }}>
                     ✅ Approve Delivery & Release Payment
@@ -213,26 +204,18 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
             </div>
           )}
 
-          {/* Info for Influencer */}
           {userRole === 'influencer' && (
-            <div className="p-4 rounded-xl text-center" style={{
-              background: 'rgba(108,71,255,0.1)',
-              border: '1px solid rgba(108,71,255,0.3)'
-            }}>
+            <div className="p-4 rounded-xl text-center" style={{ background: 'rgba(108,71,255,0.1)', border: '1px solid rgba(108,71,255,0.3)' }}>
               <p className="text-sm" style={{ color: '#8b6dff' }}>
-                {!payment
-                  ? '⏳ Waiting for brand to make payment before work begins.'
-                  : payment.status === 'held'
-                    ? '✅ Payment is secured in escrow. Deliver your content and the brand will release payment.'
-                    : payment.status === 'released'
-                      ? '🎉 Payment has been released to you!'
-                      : '↩️ This collaboration was cancelled and payment was refunded.'}
+                {!payment ? '⏳ Waiting for brand to make payment before work begins.'
+                  : payment.status === 'held' ? '✅ Payment is secured in escrow. Deliver your content and the brand will release payment.'
+                  : payment.status === 'released' ? '🎉 Payment has been released to you!'
+                  : '↩️ This collaboration was cancelled and payment was refunded.'}
               </p>
             </div>
           )}
         </div>
 
-        {/* Protection Notice */}
         <div className="card p-6 text-center">
           <p className="text-sm" style={{ color: '#9ca3af' }}>
             🛡️ <strong style={{ color: 'white' }}>CollabSphere Protection:</strong> Your payment is held securely.
