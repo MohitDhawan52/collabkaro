@@ -4,7 +4,6 @@ const nextConfig = {
     workerThreads: false,
     cpus: 1,
   },
-  swcMinify: true,
 }
 
 module.exports = nextConfig
