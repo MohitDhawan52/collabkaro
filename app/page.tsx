@@ -1,178 +1,143 @@
 'use client'
+export const dynamic = 'force-dynamic'
+
+import { useState } from 'react'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
 
-function ThemeToggle() {
-  const [dark, setDark] = useState(true)
+export default function HomePage() {
+  const [darkMode, setDarkMode] = useState(false)
 
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark)
-  }, [dark])
+  const stats = [
+    { label: 'Active Brands', value: '2,400+', color: 'stat-purple', icon: '🏢' },
+    { label: 'Influencers', value: '18,000+', color: 'stat-green', icon: '⭐' },
+    { label: 'Deals Closed', value: '94,000+', color: 'stat-yellow', icon: '🤝' },
+    { label: 'Paid Out', value: '₹12Cr+', color: 'stat-blue', icon: '💰' },
+  ]
 
-  return (
-    <button
-      onClick={() => setDark(!dark)}
-      className="btn btn-ghost"
-      style={{ padding: '8px 12px', borderRadius: '10px' }}
-    >
-      {dark ? (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="5"/>
-          <line x1="12" y1="1" x2="12" y2="3"/>
-          <line x1="12" y1="21" x2="12" y2="23"/>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-          <line x1="1" y1="12" x2="3" y2="12"/>
-          <line x1="21" y1="12" x2="23" y2="12"/>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-        </svg>
-      ) : (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
-      )}
-    </button>
-  )
-}
+  const features = [
+    { icon: '🔍', title: 'Smart Discovery', desc: 'Find the perfect influencer match with advanced filters by niche, audience size, engagement rate, and location.' },
+    { icon: '📄', title: 'Digital Agreements', desc: 'Create, sign, and store collaboration agreements in minutes. No PDFs, no lawyers needed for standard deals.' },
+    { icon: '💳', title: 'Secure Payments', desc: 'Escrow-protected payments ensure brands only pay when work is delivered and approved.' },
+    { icon: '📊', title: 'Live Analytics', desc: 'Track campaign performance, reach, and ROI in a single dashboard. No more spreadsheets.' },
+    { icon: '🤝', title: 'Dispute Resolution', desc: 'Built-in mediation for when things go sideways. Fair outcomes for both sides.' },
+    { icon: '🔔', title: 'Real-time Alerts', desc: 'Stay on top of every deal with instant notifications for messages, payments, and milestones.' },
+  ]
 
-export default function Home() {
-  useEffect(() => {
-    document.documentElement.classList.add('dark')
-  }, [])
+  const steps = [
+    { num: '01', title: 'Create your profile', desc: 'Set up as a brand or influencer in under 5 minutes.' },
+    { num: '02', title: 'Discover & connect', desc: 'Browse matches or get inbound requests from interested parties.' },
+    { num: '03', title: 'Sign & get paid', desc: 'Close the deal with a digital agreement and secure payment.' },
+  ]
+
+  const testimonials = [
+    { name: 'Priya Sharma', role: 'Beauty Influencer, 280K followers', text: 'CollabSphere cut my deal-closing time from 2 weeks to 2 days. The payment protection alone is worth it.', avatar: 'PS', color: 'avatar-a' },
+    { name: 'Rohan Mehta', role: 'Co-founder, Aura Skincare', text: 'Found 8 perfect influencers in a single afternoon. The analytics dashboard shows exactly what's working.', avatar: 'RM', color: 'avatar-b' },
+    { name: 'Ananya Kapoor', role: 'Lifestyle Creator, 510K followers', text: 'Finally a platform that actually protects creators. Payments on time, every time.', avatar: 'AK', color: 'avatar-c' },
+  ]
 
   return (
-    <div style={{ background: 'var(--bg)', minHeight: '100vh', transition: 'background 0.3s' }}>
-
-      {/* Navbar */}
-      <nav className="navbar">
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg, #6c47ff, #ff47a3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>⚡</div>
-            <span style={{ fontSize: '20px', fontWeight: '800', letterSpacing: '-0.5px' }} className="gradient-text">CollabSphere</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <ThemeToggle />
-            <Link href="/auth/login" className="btn btn-ghost" style={{ fontSize: '14px' }}>Sign In</Link>
-            <Link href="/auth/register" className="btn btn-primary" style={{ fontSize: '14px', borderRadius: '10px' }}>Get Started</Link>
-          </div>
+    <div style={{ background: darkMode ? '#0f1117' : '#f0f2f7', minHeight: '100vh', transition: 'background 0.3s' }}>
+      {/* Nav */}
+      <nav style={{
+        background: darkMode ? '#1a1d2e' : '#ffffff',
+        borderBottom: `1px solid ${darkMode ? '#2d3148' : '#e5e7eb'}`,
+        padding: '0 40px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        height: '64px',
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #7c3aed, #9f67ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 14 }}>C</div>
+          <span style={{ fontWeight: 700, fontSize: 18, color: darkMode ? '#fff' : '#1a1d23' }}>CollabSphere</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            style={{ background: darkMode ? '#2d3148' : '#f0f2f7', border: 'none', borderRadius: 8, padding: '8px 12px', cursor: 'pointer', fontSize: 16 }}
+          >{darkMode ? '☀️' : '🌙'}</button>
+          <Link href="/auth/login" style={{ padding: '8px 16px', borderRadius: 8, border: `1px solid ${darkMode ? '#3d4270' : '#e5e7eb'}`, color: darkMode ? '#c4c9ef' : '#374151', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Log in</Link>
+          <Link href="/auth/register" style={{ padding: '8px 16px', borderRadius: 8, background: '#7c3aed', color: 'white', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>Get started</Link>
         </div>
       </nav>
 
       {/* Hero */}
-      <section style={{ maxWidth: '1100px', margin: '0 auto', padding: '110px 24px 80px', textAlign: 'center' }}>
-        <div className="animate-fadeInUp" style={{ marginBottom: '24px' }}>
-          <span className="badge badge-purple" style={{ fontSize: '13px', padding: '6px 16px' }}>
-            🇮🇳 India's #1 Influencer-Brand Platform
-          </span>
+      <section style={{ padding: '80px 40px 60px', maxWidth: 900, margin: '0 auto', textAlign: 'center' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: darkMode ? '#2d2060' : '#ede9fe', padding: '6px 14px', borderRadius: 20, marginBottom: 24 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: '#7c3aed' }}>🚀 NOW IN BETA — FREE TO JOIN</span>
         </div>
-
-        <h1 className="animate-fadeInUp delay-1" style={{ fontSize: 'clamp(36px, 6vw, 72px)', fontWeight: '900', lineHeight: '1.08', letterSpacing: '-2px', marginBottom: '24px', color: 'var(--text-primary)' }}>
-          Where <span className="gradient-text">Creators</span> Meet<br />
-          <span className="gradient-text">Brands</span> That Matter
+        <h1 style={{ fontSize: 'clamp(36px, 5vw, 60px)', fontWeight: 800, color: darkMode ? '#fff' : '#1a1d23', lineHeight: 1.15, marginBottom: 20 }}>
+          Where Brands Meet<br />
+          <span style={{ background: 'linear-gradient(90deg, #7c3aed, #ec4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>The Right Creators</span>
         </h1>
-
-        <p className="animate-fadeInUp delay-2" style={{ fontSize: '18px', color: 'var(--text-secondary)', maxWidth: '540px', margin: '0 auto 40px', lineHeight: '1.75' }}>
-          Smart matchmaking, auto agreements, and secure escrow payments — everything you need to collab.
+        <p style={{ fontSize: 18, color: darkMode ? '#9ca3af' : '#6b7280', maxWidth: 560, margin: '0 auto 36px', lineHeight: 1.7 }}>
+          CollabSphere connects brands with influencers through smart matching, legal agreements, and escrow payments — all in one place.
         </p>
-
-        <div className="animate-fadeInUp delay-3" style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '72px' }}>
-          <Link href="/auth/register" className="btn btn-primary" style={{ padding: '14px 32px', fontSize: '15px', borderRadius: '12px' }}>
-            🎭 Join as Creator
-          </Link>
-          <Link href="/auth/register" className="btn btn-secondary" style={{ padding: '14px 32px', fontSize: '15px', borderRadius: '12px' }}>
-            🏢 Join as Brand
-          </Link>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Link href="/auth/register" style={{ padding: '14px 28px', borderRadius: 10, background: '#7c3aed', color: 'white', textDecoration: 'none', fontSize: 16, fontWeight: 700, boxShadow: '0 4px 14px rgba(124,58,237,0.4)' }}>Start for free →</Link>
+          <Link href="/discover" style={{ padding: '14px 28px', borderRadius: 10, background: darkMode ? '#1e2235' : '#fff', color: darkMode ? '#e5e7eb' : '#374151', textDecoration: 'none', fontSize: 16, fontWeight: 600, border: `1px solid ${darkMode ? '#3d4270' : '#e5e7eb'}` }}>Browse creators</Link>
         </div>
+      </section>
 
-        {/* Stats */}
-        <div className="animate-fadeInUp delay-4" style={{ display: 'flex', gap: '48px', justifyContent: 'center', flexWrap: 'wrap' }}>
-          {[
-            { value: '10K+', label: 'Creators' },
-            { value: '2K+', label: 'Brands' },
-            { value: '₹5Cr+', label: 'Paid Out' },
-            { value: '98%', label: 'Success Rate' },
-          ].map((s, i) => (
-            <div key={i} style={{ textAlign: 'center' }}>
-              <div className="gradient-text" style={{ fontSize: '30px', fontWeight: '900', letterSpacing: '-1px' }}>{s.value}</div>
-              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: '500' }}>{s.label}</div>
+      {/* Stats */}
+      <section style={{ padding: '0 40px 60px', maxWidth: 1000, margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+          {stats.map((s) => (
+            <div key={s.label} className={s.color} style={{ borderRadius: 12, padding: '24px', color: 'white' }}>
+              <div style={{ fontSize: 28, marginBottom: 8 }}>{s.icon}</div>
+              <div style={{ fontSize: 28, fontWeight: 800, marginBottom: 4 }}>{s.value}</div>
+              <div style={{ fontSize: 13, opacity: 0.85 }}>{s.label}</div>
             </div>
           ))}
         </div>
       </section>
 
       {/* Features */}
-      <section style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 24px 100px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '56px' }}>
-          <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: '800', letterSpacing: '-1px', marginBottom: '12px', color: 'var(--text-primary)' }}>
-            Everything to <span className="gradient-text">Collaborate</span>
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '16px' }}>Built for the Indian creator economy</p>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-          {[
-            { icon: '🎯', title: 'Smart Matchmaking', desc: 'AI-powered matching based on niche, followers, and engagement rate.' },
-            { icon: '📄', title: 'Auto Agreements', desc: 'Legally sound agreements generated instantly with all T&Cs included.' },
-            { icon: '🔒', title: 'Escrow Payments', desc: 'Brand pays first, funds held safely, released only after delivery.' },
-            { icon: '📊', title: 'Verified Stats', desc: 'Instagram, YouTube & Facebook stats verified for brand confidence.' },
-            { icon: '🚀', title: 'Pitch System', desc: 'Brands pitch influencers directly. Accept or decline in one click.' },
-            { icon: '🛡️', title: 'Full Protection', desc: 'Both sides protected. Refund guaranteed if collaboration fails.' },
-          ].map((f, i) => (
-            <div key={i} className="card card-hover" style={{ padding: '32px 28px' }}>
-              <div style={{ fontSize: '36px', marginBottom: '16px' }}>{f.icon}</div>
-              <h3 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '10px', color: 'var(--text-primary)' }}>{f.title}</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.7' }}>{f.desc}</p>
+      <section style={{ padding: '0 40px 60px', maxWidth: 1000, margin: '0 auto' }}>
+        <h2 style={{ fontSize: 30, fontWeight: 700, color: darkMode ? '#fff' : '#1a1d23', textAlign: 'center', marginBottom: 8 }}>Everything you need to collaborate</h2>
+        <p style={{ color: '#9ca3af', textAlign: 'center', marginBottom: 40 }}>From discovery to payment — handled.</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+          {features.map((f) => (
+            <div key={f.title} style={{ background: darkMode ? '#1a1d2e' : '#fff', borderRadius: 12, padding: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+              <div style={{ fontSize: 28, marginBottom: 12 }}>{f.icon}</div>
+              <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 8, color: darkMode ? '#fff' : '#1a1d23' }}>{f.title}</div>
+              <div style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>{f.desc}</div>
             </div>
           ))}
         </div>
       </section>
 
       {/* How it works */}
-      <section style={{ background: 'var(--bg-secondary)', padding: '80px 24px' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
-          <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: '800', letterSpacing: '-1px', marginBottom: '12px', color: 'var(--text-primary)' }}>
-            How It <span className="gradient-text">Works</span>
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '56px', fontSize: '16px' }}>4 simple steps to your first collab</p>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px' }}>
-            {[
-              { step: '01', title: 'Sign Up', desc: 'Create your profile as a creator or brand in minutes' },
-              { step: '02', title: 'Connect', desc: 'Brand discovers and pitches the perfect influencer' },
-              { step: '03', title: 'Agree', desc: 'Both sign the auto-generated legal agreement' },
-              { step: '04', title: 'Get Paid', desc: 'Deliver the content and receive secure payment' },
-            ].map((s, i) => (
-              <div key={i} className="card" style={{ padding: '32px 20px', textAlign: 'center' }}>
-                <div className="gradient-text" style={{ fontSize: '40px', fontWeight: '900', letterSpacing: '-2px', marginBottom: '14px' }}>{s.step}</div>
-                <h3 style={{ fontWeight: '700', marginBottom: '10px', color: 'var(--text-primary)' }}>{s.title}</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.7' }}>{s.desc}</p>
-              </div>
-            ))}
-          </div>
+      <section style={{ padding: '0 40px 60px', maxWidth: 900, margin: '0 auto' }}>
+        <h2 style={{ fontSize: 30, fontWeight: 700, color: darkMode ? '#fff' : '#1a1d23', textAlign: 'center', marginBottom: 8 }}>Three steps to your next campaign</h2>
+        <p style={{ color: '#9ca3af', textAlign: 'center', marginBottom: 40 }}>No calls with account managers. No contracts with lawyers.</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24 }}>
+          {steps.map((s) => (
+            <div key={s.num} style={{ textAlign: 'center', padding: '32px 24px', background: darkMode ? '#1a1d2e' : '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+              <div style={{ fontSize: 48, fontWeight: 800, color: '#7c3aed', opacity: 0.2, lineHeight: 1, marginBottom: 16 }}>{s.num}</div>
+              <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 8, color: darkMode ? '#fff' : '#1a1d23' }}>{s.title}</div>
+              <div style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>{s.desc}</div>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* Testimonials */}
-      <section style={{ maxWidth: '1100px', margin: '0 auto', padding: '80px 24px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: '800', letterSpacing: '-1px', color: 'var(--text-primary)' }}>
-            Loved by <span className="gradient-text">Creators & Brands</span>
-          </h2>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-          {[
-            { name: 'Priya S.', role: 'Fashion Influencer, Mumbai', text: 'Got my first brand deal within a week. The escrow payment gave me full confidence!', avatar: 'P' },
-            { name: 'Rahul M.', role: 'Brand Manager, Delhi', text: 'Found the perfect influencer for our campaign. The agreement system saved us so much time.', avatar: 'R' },
-            { name: 'Ananya K.', role: 'Beauty Creator, Bangalore', text: 'CollabSphere is a game changer. Professional, fast, and the payments are always on time.', avatar: 'A' },
-          ].map((t, i) => (
-            <div key={i} className="card" style={{ padding: '28px' }}>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.7', marginBottom: '20px' }}>"{t.text}"</p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div className="avatar" style={{ width: '40px', height: '40px', fontSize: '16px' }}>{t.avatar}</div>
+      <section style={{ padding: '0 40px 60px', maxWidth: 1000, margin: '0 auto' }}>
+        <h2 style={{ fontSize: 30, fontWeight: 700, color: darkMode ? '#fff' : '#1a1d23', textAlign: 'center', marginBottom: 40 }}>Creators and brands love CollabSphere</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+          {testimonials.map((t) => (
+            <div key={t.name} style={{ background: darkMode ? '#1a1d2e' : '#fff', borderRadius: 12, padding: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+              <p style={{ fontSize: 15, color: darkMode ? '#d1d5db' : '#374151', lineHeight: 1.7, marginBottom: 20 }}>"{t.text}"</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div className={t.color} style={{ width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14 }}>{t.avatar}</div>
                 <div>
-                  <div style={{ fontWeight: '700', fontSize: '14px', color: 'var(--text-primary)' }}>{t.name}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{t.role}</div>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: darkMode ? '#fff' : '#1a1d23' }}>{t.name}</div>
+                  <div style={{ fontSize: 12, color: '#9ca3af' }}>{t.role}</div>
                 </div>
               </div>
             </div>
@@ -181,25 +146,18 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section style={{ maxWidth: '700px', margin: '0 auto', padding: '0 24px 100px' }}>
-        <div className="card" style={{ padding: '60px 40px', textAlign: 'center', background: 'linear-gradient(135deg, rgba(108,71,255,0.08), rgba(255,71,163,0.08))', borderColor: 'rgba(108,71,255,0.2)' }}>
-          <h2 style={{ fontSize: 'clamp(24px, 4vw, 38px)', fontWeight: '800', letterSpacing: '-1px', marginBottom: '14px', color: 'var(--text-primary)' }}>
-            Ready to <span className="gradient-text">CollabSphere?</span>
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '32px', fontSize: '16px', lineHeight: '1.7' }}>
-            Join thousands of influencers and brands already collaborating across India.
-          </p>
-          <Link href="/auth/register" className="btn btn-primary" style={{ padding: '14px 40px', fontSize: '16px', borderRadius: '12px' }}>
-            Join for Free →
-          </Link>
+      <section style={{ padding: '0 40px 80px', maxWidth: 700, margin: '0 auto', textAlign: 'center' }}>
+        <div style={{ background: 'linear-gradient(135deg, #7c3aed, #9f67ff)', borderRadius: 16, padding: '48px 40px', color: 'white' }}>
+          <h2 style={{ fontSize: 32, fontWeight: 800, marginBottom: 12 }}>Ready to grow together?</h2>
+          <p style={{ opacity: 0.85, fontSize: 16, marginBottom: 28 }}>Join thousands of brands and creators already using CollabSphere.</p>
+          <Link href="/auth/register" style={{ display: 'inline-block', padding: '14px 32px', borderRadius: 10, background: 'white', color: '#7c3aed', textDecoration: 'none', fontSize: 16, fontWeight: 700 }}>Create your free account →</Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer style={{ borderTop: '1px solid var(--border)', padding: '28px 24px', textAlign: 'center' }}>
-        <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>© 2025 CollabSphere. Made with ❤️ for Indian creators.</p>
+      <footer style={{ borderTop: `1px solid ${darkMode ? '#2d3148' : '#e5e7eb'}`, padding: '24px 40px', textAlign: 'center', color: '#9ca3af', fontSize: 14 }}>
+        © 2025 CollabSphere · Built for Indian creators and brands
       </footer>
-
     </div>
   )
 }

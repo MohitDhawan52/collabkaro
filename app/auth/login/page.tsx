@@ -1,74 +1,92 @@
 'use client'
 export const dynamic = 'force-dynamic'
-import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import Link from 'next/link'
-import ThemeToggle from '@/components/ThemeToggle'
 
-export default function Login() {
+import { useState } from 'react'
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+
+export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) { setError(error.message); setLoading(false); return }
-    if (!data.user) { setError('Login failed.'); setLoading(false); return }
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single()
-    if (profile?.role === 'influencer') window.location.href = '/dashboard/influencer'
-    else if (profile?.role === 'brand') window.location.href = '/dashboard/brand'
-    else { setError('Profile not found.'); setLoading(false) }
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+    } else {
+      router.push('/dashboard/brand')
+    }
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
-      <nav className="navbar">
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #6c47ff, #ff47a3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⚡</div>
-            <span style={{ fontSize: '20px', fontWeight: '800' }} className="gradient-text">CollabSphere</span>
-          </Link>
-          <ThemeToggle />
+    <div style={{ minHeight: '100vh', background: '#f0f2f7', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div style={{ width: '100%', maxWidth: 420 }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 12, background: 'linear-gradient(135deg, #7c3aed, #9f67ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', color: 'white', fontWeight: 800, fontSize: 20 }}>C</div>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1a1d23', marginBottom: 4 }}>Welcome back</h1>
+          <p style={{ color: '#6b7280', fontSize: 14 }}>Sign in to your CollabSphere account</p>
         </div>
-      </nav>
 
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
-        <div className="animate-scaleIn" style={{ width: '100%', maxWidth: '420px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <h1 style={{ fontSize: '28px', fontWeight: '800', letterSpacing: '-0.5px', marginBottom: '8px' }}>Welcome back</h1>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '15px' }}>Sign in to your CollabSphere account</p>
-          </div>
-
+        {/* Card */}
+        <div style={{ background: '#ffffff', borderRadius: 16, padding: 32, boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05)' }}>
           {error && (
-            <div className="badge-red" style={{ padding: '12px 16px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', display: 'block', border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.08)' }}>
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 14px', marginBottom: 20, color: '#dc2626', fontSize: 14 }}>
               {error}
             </div>
           )}
-
-          <div className="card" style={{ padding: '32px' }}>
-            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-primary)' }}>Email</label>
-                <input className="input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
+          <form onSubmit={handleLogin}>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Email address</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, color: '#1a1d23', outline: 'none', transition: 'border 0.15s', background: '#fafafa' }}
+                onFocus={e => e.target.style.borderColor = '#7c3aed'}
+                onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+              />
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Password</label>
+                <a href="#" style={{ fontSize: 12, color: '#7c3aed', textDecoration: 'none', fontWeight: 500 }}>Forgot password?</a>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-primary)' }}>Password</label>
-                <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required />
-              </div>
-              <button type="submit" disabled={loading} className="btn btn-primary" style={{ width: '100%', padding: '13px', fontSize: '15px', borderRadius: '10px', marginTop: '4px' }}>
-                {loading ? 'Signing in...' : 'Sign In'}
-              </button>
-            </form>
-          </div>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, color: '#1a1d23', outline: 'none', transition: 'border 0.15s', background: '#fafafa' }}
+                onFocus={e => e.target.style.borderColor = '#7c3aed'}
+                onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              style={{ width: '100%', padding: '11px', borderRadius: 8, background: loading ? '#a78bfa' : '#7c3aed', color: 'white', border: 'none', fontSize: 15, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', transition: 'background 0.15s' }}
+            >
+              {loading ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
 
-          <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+          <div style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: '#6b7280' }}>
             Don't have an account?{' '}
-            <Link href="/auth/register" style={{ color: '#6c47ff', fontWeight: '600', textDecoration: 'none' }}>Sign up free</Link>
-          </p>
+            <Link href="/auth/register" style={{ color: '#7c3aed', fontWeight: 600, textDecoration: 'none' }}>Sign up free</Link>
+          </div>
         </div>
       </div>
     </div>
