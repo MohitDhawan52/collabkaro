@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "node --max-old-space-size=4096 node_modules/.bin/next build",
+    "build": "node --max-old-space-size=4096 node_modules/.bin/next build --no-turbopack",
     "lint": "eslint"
   },
   "dependencies": {
