@@ -9,6 +9,7 @@ export default function BrandDashboard() {
   const [profile, setProfile] = useState<any>(null)
   const [gigs, setGigs] = useState<any[]>([])
   const [pitches, setPitches] = useState<any[]>([])
+  const [agreements, setAgreements] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -16,8 +17,10 @@ export default function BrandDashboard() {
   }, [])
 
   const loadData = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/auth/login'); return }
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { window.location.href = '/auth/login'; return }
+
+    const user = session.user
 
     const { data: prof } = await supabase
       .from('brand_profiles')
@@ -25,7 +28,7 @@ export default function BrandDashboard() {
       .eq('user_id', user.id)
       .single()
 
-    if (!prof) { router.push('/onboarding/brand'); return }
+    if (!prof) { window.location.href = '/onboarding/brand'; return }
     setProfile(prof)
 
     const { data: gigData } = await supabase
@@ -33,7 +36,6 @@ export default function BrandDashboard() {
       .select('*')
       .eq('brand_id', prof.id)
       .order('created_at', { ascending: false })
-
     setGigs(gigData || [])
 
     const { data: pitchData } = await supabase
@@ -41,14 +43,21 @@ export default function BrandDashboard() {
       .select('*, influencer_profiles(*), gigs(*)')
       .eq('brand_id', prof.id)
       .order('created_at', { ascending: false })
-
     setPitches(pitchData || [])
+
+    const { data: agreementData } = await supabase
+      .from('agreements')
+      .select('*')
+      .eq('brand_id', prof.id)
+      .order('created_at', { ascending: false })
+    setAgreements(agreementData || [])
+
     setLoading(false)
   }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    router.push('/')
+    window.location.href = '/'
   }
 
   if (loading) return (
@@ -81,7 +90,7 @@ export default function BrandDashboard() {
             { label: 'Active Gigs', value: gigs.filter(g => g.status === 'active').length, icon: '📢' },
             { label: 'Total Pitches Sent', value: pitches.length, icon: '📨' },
             { label: 'Accepted Pitches', value: pitches.filter(p => p.status === 'accepted').length, icon: '✅' },
-            { label: 'Active Collabs', value: pitches.filter(p => p.status === 'accepted').length, icon: '🤝' },
+            { label: 'Agreements', value: agreements.length, icon: '📄' },
           ].map((stat, i) => (
             <div key={i} className="card p-6 text-center">
               <div className="text-3xl mb-2">{stat.icon}</div>
@@ -181,10 +190,10 @@ export default function BrandDashboard() {
                       </span>
                     </div>
                     {pitch.status === 'accepted' && (
-                      <Link href={`/agreements/create?pitch=${pitch.id}`}
+                      <a href={`/agreements/create?pitch=${pitch.id}`}
                         className="block text-center mt-3 py-2 rounded-xl text-sm font-semibold gradient-bg text-white hover:opacity-90 transition-all">
                         Generate Agreement →
-                      </Link>
+                      </a>
                     )}
                   </div>
                 ))}
@@ -192,6 +201,45 @@ export default function BrandDashboard() {
             )}
           </div>
         </div>
+
+        {/* Agreements */}
+        <div className="mt-10">
+          <h2 className="text-2xl font-bold mb-5">📄 Agreements</h2>
+          {agreements.length === 0 ? (
+            <div className="card p-8 text-center">
+              <div className="text-4xl mb-3">📋</div>
+              <p style={{ color: '#9ca3af' }}>No agreements yet. Generate one from an accepted pitch!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {agreements.map(agr => (
+                <div key={agr.id} className="card p-6">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-bold">Agreement #{agr.id.slice(0, 8)}</h3>
+                    <span className="px-3 py-1 rounded-full text-xs font-medium"
+                      style={{
+                        background: agr.status === 'signed' ? 'rgba(16,185,129,0.15)' :
+                          agr.status === 'completed' ? 'rgba(108,71,255,0.15)' : 'rgba(234,179,8,0.15)',
+                        color: agr.status === 'signed' ? '#10b981' :
+                          agr.status === 'completed' ? '#8b6dff' : '#eab308'
+                      }}>
+                      {agr.status}
+                    </span>
+                  </div>
+                  <p className="text-sm mb-4" style={{ color: '#9ca3af' }}>
+                    Amount: {agr.amount ? `₹${agr.amount.toLocaleString()}` : 'Barter'}
+                  </p>
+                  <a href={`/agreements/${agr.id}`}
+                    className="block text-center py-2 rounded-xl text-sm font-semibold transition-all"
+                    style={{ background: '#1e1e2e', border: '1px solid #2a2a3a', color: '#8b6dff' }}>
+                    View Agreement →
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
       </div>
     </main>
   )

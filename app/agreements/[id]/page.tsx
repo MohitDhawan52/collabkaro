@@ -9,67 +9,81 @@ export default function AgreementPage({ params }: { params: { id: string } }) {
   const [agreement, setAgreement] = useState<any>(null)
   const [brand, setBrand] = useState<any>(null)
   const [influencer, setInfluencer] = useState<any>(null)
-  const [currentUser, setCurrentUser] = useState<any>(null)
   const [userRole, setUserRole] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [signing, setSigning] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => { loadData() }, [])
 
   const loadData = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/auth/login'); return }
-    setCurrentUser(user)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { window.location.href = '/auth/login'; return }
 
-    const { data: profile } = await supabase
-      .from('profiles').select('role').eq('id', user.id).single()
-    setUserRole(profile?.role || '')
+      const user = session.user
 
-    const { data: agr } = await supabase
-      .from('agreements').select('*').eq('id', params.id).single()
-    if (!agr) { router.push('/'); return }
-    setAgreement(agr)
+      const { data: profile } = await supabase
+        .from('profiles').select('role').eq('id', user.id).single()
+      setUserRole(profile?.role || '')
 
-    const { data: brandData } = await supabase
-      .from('brand_profiles').select('*').eq('id', agr.brand_id).single()
-    setBrand(brandData)
+      const { data: agr, error: agrError } = await supabase
+        .from('agreements').select('*').eq('id', params.id).single()
+      
+      if (agrError || !agr) { 
+        setError('Agreement not found')
+        setLoading(false)
+        return 
+      }
+      setAgreement(agr)
 
-    const { data: infData } = await supabase
-      .from('influencer_profiles').select('*').eq('id', agr.influencer_id).single()
-    setInfluencer(infData)
+      const { data: brandData } = await supabase
+        .from('brand_profiles').select('*').eq('id', agr.brand_id).single()
+      setBrand(brandData)
 
-    setLoading(false)
+      const { data: infData } = await supabase
+        .from('influencer_profiles').select('*').eq('id', agr.influencer_id).single()
+      setInfluencer(infData)
+
+      setLoading(false)
+    } catch (err) {
+      setError('Something went wrong. Please refresh.')
+      setLoading(false)
+    }
   }
 
   const handleSign = async () => {
     setSigning(true)
-    const updateData = userRole === 'brand'
-      ? { signed_by_brand: true }
-      : { signed_by_influencer: true }
+    try {
+      const updateData: any = userRole === 'brand'
+        ? { signed_by_brand: true }
+        : { signed_by_influencer: true }
 
-    const newAgreement = { ...agreement, ...updateData }
-    if (newAgreement.signed_by_brand && newAgreement.signed_by_influencer) {
-      (updateData as any).status = 'signed'
-    }
+      const willBeFullySigned = 
+        (userRole === 'brand' && agreement.signed_by_influencer) ||
+        (userRole === 'influencer' && agreement.signed_by_brand)
 
-    await supabase.from('agreements').update(updateData).eq('id', params.id)
+      if (willBeFullySigned) updateData.status = 'signed'
 
-    if (newAgreement.signed_by_brand && newAgreement.signed_by_influencer && agreement.collab_type !== 'barter') {
-      router.push(`/payments/${params.id}`)
-    } else {
-      loadData()
+      await supabase.from('agreements').update(updateData).eq('id', params.id)
+
+      if (willBeFullySigned && agreement.collab_type !== 'barter') {
+        window.location.href = `/payments/${params.id}`
+      } else {
+        await loadData()
+      }
+    } catch (err) {
+      setError('Failed to sign. Please try again.')
     }
     setSigning(false)
   }
 
   const handleComplete = async () => {
     await supabase.from('agreements').update({ status: 'completed' }).eq('id', params.id)
-    if (agreement.collab_type !== 'barter') {
-      await supabase.from('payments')
-        .update({ status: 'released', released_at: new Date().toISOString() })
-        .eq('agreement_id', params.id)
-    }
-    loadData()
+    await supabase.from('payments')
+      .update({ status: 'released', released_at: new Date().toISOString() })
+      .eq('agreement_id', params.id)
+    await loadData()
   }
 
   if (loading) return (
@@ -77,6 +91,18 @@ export default function AgreementPage({ params }: { params: { id: string } }) {
       <div className="text-center">
         <div className="text-4xl mb-4">📄</div>
         <p style={{ color: '#9ca3af' }}>Loading agreement...</p>
+      </div>
+    </main>
+  )
+
+  if (error) return (
+    <main className="min-h-screen flex items-center justify-center" style={{ background: '#0a0a0f' }}>
+      <div className="text-center">
+        <div className="text-4xl mb-4">❌</div>
+        <p style={{ color: '#ef4444' }}>{error}</p>
+        <button onClick={() => window.location.href = '/'} className="mt-4 px-6 py-2 rounded-xl text-white gradient-bg">
+          Go Home
+        </button>
       </div>
     </main>
   )
@@ -103,17 +129,15 @@ export default function AgreementPage({ params }: { params: { id: string } }) {
           </span>
         </div>
 
-        {/* Agreement Document */}
         <div className="card p-10">
           <div className="text-center mb-8">
             <div className="text-4xl mb-3">📄</div>
             <h1 className="text-3xl font-bold gradient-text">Collaboration Agreement</h1>
             <p className="mt-2 text-sm" style={{ color: '#9ca3af' }}>
-              Agreement ID: {params.id}
+              Agreement ID: {params.id.slice(0, 8)}...
             </p>
           </div>
 
-          {/* Parties */}
           <div className="p-6 rounded-xl mb-6" style={{ background: '#1e1e2e' }}>
             <h2 className="font-bold mb-4 text-lg">Parties</h2>
             <div className="grid grid-cols-2 gap-4">
@@ -130,7 +154,6 @@ export default function AgreementPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {/* Details */}
           <div className="p-6 rounded-xl mb-6" style={{ background: '#1e1e2e' }}>
             <h2 className="font-bold mb-4 text-lg">Collaboration Details</h2>
             <div className="grid grid-cols-2 gap-4 mb-4">
@@ -158,7 +181,6 @@ export default function AgreementPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {/* Terms */}
           <div className="p-6 rounded-xl mb-8" style={{ background: '#1e1e2e' }}>
             <h2 className="font-bold mb-4 text-lg">Terms & Conditions</h2>
             <div className="text-sm leading-relaxed whitespace-pre-line" style={{ color: '#9ca3af' }}>
@@ -166,7 +188,6 @@ export default function AgreementPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {/* Signatures */}
           <div className="grid grid-cols-2 gap-4 mb-8">
             <div className="p-4 rounded-xl text-center" style={{
               background: agreement?.signed_by_brand ? 'rgba(16,185,129,0.1)' : '#1e1e2e',
@@ -188,19 +209,24 @@ export default function AgreementPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {/* Actions */}
-          {agreement?.status === 'draft' && !alreadySigned && (
+          {agreement?.status !== 'completed' && !alreadySigned && (
             <button onClick={handleSign} disabled={signing}
-              className="w-full py-4 rounded-xl text-white font-semibold gradient-bg hover:opacity-90 transition-all text-lg">
+              className="w-full py-4 rounded-xl text-white font-semibold gradient-bg hover:opacity-90 transition-all text-lg mb-3">
               {signing ? 'Signing...' : '✍️ Sign Agreement'}
             </button>
+          )}
+
+          {alreadySigned && agreement?.status === 'draft' && (
+            <div className="p-4 rounded-xl text-center mb-3" style={{ background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.3)' }}>
+              <p style={{ color: '#eab308' }}>✅ You signed. Waiting for the other party to sign.</p>
+            </div>
           )}
 
           {agreement?.status === 'signed' && userRole === 'brand' && (
             <button onClick={handleComplete}
               className="w-full py-4 rounded-xl text-white font-semibold transition-all text-lg"
               style={{ background: '#10b981' }}>
-              ✅ Mark as Completed & Release Payment
+              ✅ Mark Completed & Release Payment
             </button>
           )}
 
