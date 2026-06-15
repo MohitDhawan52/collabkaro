@@ -6,11 +6,9 @@
 
 :root {
   --bg: #f0f2f7;
-  --sidebar-bg: #ffffff;
   --card-bg: #ffffff;
   --text-primary: #1a1d23;
   --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
   --border: #e5e7eb;
   --accent-purple: #7c3aed;
   --accent-purple-light: #ede9fe;
@@ -20,22 +18,12 @@
   --accent-yellow-light: #fef3c7;
   --accent-blue: #2563eb;
   --accent-blue-light: #dbeafe;
-  --accent-pink: #db2777;
-  --accent-pink-light: #fce7f3;
-  --sidebar-active: #f5f3ff;
-  --sidebar-active-text: #7c3aed;
-  --nav-icon: #9ca3af;
-  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.05);
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
   --radius: 12px;
   --radius-sm: 8px;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -45,23 +33,12 @@ body {
   line-height: 1.5;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-/* Input base */
-input, textarea, select {
-  font-family: inherit;
-}
+input, textarea, select { font-family: inherit; }
 
-/* Focus ring */
-*:focus-visible {
-  outline: 2px solid var(--accent-purple);
-  outline-offset: 2px;
-}
-
-/* Card utility */
 .card {
   background: var(--card-bg);
   border-radius: var(--radius);
@@ -69,7 +46,6 @@ input, textarea, select {
   padding: 24px;
 }
 
-/* Button utilities */
 .btn-primary {
   background: var(--accent-purple);
   color: white;
@@ -92,25 +68,20 @@ input, textarea, select {
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  transition: opacity 0.15s;
 }
-.btn-secondary:hover { opacity: 0.85; }
 
-/* Stat card colors */
 .stat-purple { background: linear-gradient(135deg, #7c3aed, #9f67ff); }
 .stat-green  { background: linear-gradient(135deg, #059669, #10b981); }
 .stat-yellow { background: linear-gradient(135deg, #d97706, #f59e0b); }
 .stat-blue   { background: linear-gradient(135deg, #2563eb, #3b82f6); }
 .stat-pink   { background: linear-gradient(135deg, #db2777, #ec4899); }
 
-/* Avatar colors */
 .avatar-a { background: #ede9fe; color: #7c3aed; }
 .avatar-b { background: #d1fae5; color: #059669; }
 .avatar-c { background: #dbeafe; color: #2563eb; }
 .avatar-d { background: #fce7f3; color: #db2777; }
 .avatar-e { background: #fef3c7; color: #d97706; }
 
-/* Badge */
 .badge {
   display: inline-flex;
   align-items: center;
