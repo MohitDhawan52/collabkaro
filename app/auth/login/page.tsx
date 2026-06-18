@@ -1,94 +1,151 @@
 'use client'
-export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
+import { Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { createClient } from '@/lib/supabase'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading]   = useState(false)
 
-  const handleLogin = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!email || !password) { toast.error('Please fill in both fields'); return }
     setLoading(true)
-    setError('')
-    
+    const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
-      setError(error.message)
       setLoading(false)
-    } else {
-      router.push('/dashboard/brand')
+      toast.error(error.message === 'Invalid login credentials' ? 'Incorrect email or password' : error.message)
+      return
     }
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: profile }  = await supabase.from('profiles').select('role, status').eq('id', user!.id).single()
+    toast.success('Welcome back!')
+    if (!profile)                           { window.location.href = '/' }
+    else if (profile.status === 'pending')  { window.location.href = profile.role === 'brand' ? '/brand/pending' : '/influencer/pending' }
+    else if (profile.status === 'rejected') { window.location.href = '/rejected' }
+    else if (profile.role === 'brand')      { window.location.href = '/brand/dashboard' }
+    else if (profile.role === 'influencer') { window.location.href = '/influencer/dashboard' }
+    else                                    { window.location.href = '/' }
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f0f2f7', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div style={{ width: '100%', maxWidth: 420 }}>
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: 'linear-gradient(135deg, #7c3aed, #9f67ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', color: 'white', fontWeight: 800, fontSize: 20 }}>C</div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1a1d23', marginBottom: 4 }}>Welcome back</h1>
-          <p style={{ color: '#6b7280', fontSize: 14 }}>Sign in to your CollabSphere account</p>
-        </div>
+    <div className="auth-page">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        className="login-wrapper"
+      >
 
-        {/* Card */}
-        <div style={{ background: '#ffffff', borderRadius: 16, padding: 32, boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05)' }}>
-          {error && (
-            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 14px', marginBottom: 20, color: '#dc2626', fontSize: 14 }}>
-              {error}
+        {/* ── Card ── */}
+        <div className="auth-card login-card">
+
+          {/* Header — logo + title + subtitle */}
+          <div className="login-header">
+            <div className="icon-badge login-badge">
+              <span className="font-display" style={{
+                fontSize: 26,
+                fontWeight: 800,
+                color: '#fff',
+                lineHeight: 1,
+                letterSpacing: '-0.02em',
+              }}>C</span>
             </div>
-          )}
-          <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Email address</label>
+
+            <h1 className="font-display login-title">CollabKaro</h1>
+
+            <p className="login-subtitle">
+              Sign in to manage your collaborations
+            </p>
+          </div>
+
+          {/* ── Form ── */}
+          <form onSubmit={handleSubmit} className="login-form">
+
+            {/* Email field */}
+            <div className="login-field">
+              <label className="field-label">Email</label>
               <input
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                required
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, color: '#1a1d23', outline: 'none', transition: 'border 0.15s', background: '#fafafa' }}
-                onFocus={e => e.target.style.borderColor = '#7c3aed'}
-                onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+                autoComplete="email"
+                className="input"
+                disabled={loading}
               />
             </div>
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <label style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Password</label>
-                <a href="#" style={{ fontSize: 12, color: '#7c3aed', textDecoration: 'none', fontWeight: 500 }}>Forgot password?</a>
+
+            {/* Password field */}
+            <div className="login-field">
+              <label className="field-label">Password</label>
+              <div className="password-wrapper">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••••"
+                  autoComplete="current-password"
+                  className="input password-input"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(v => !v)}
+                  tabIndex={-1}
+                  className="password-toggle"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={16} strokeWidth={1.8} /> : <Eye size={16} strokeWidth={1.8} />}
+                </button>
               </div>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, color: '#1a1d23', outline: 'none', transition: 'border 0.15s', background: '#fafafa' }}
-                onFocus={e => e.target.style.borderColor = '#7c3aed'}
-                onBlur={e => e.target.style.borderColor = '#e5e7eb'}
-              />
             </div>
+
+            {/* Submit button */}
             <button
               type="submit"
               disabled={loading}
-              style={{ width: '100%', padding: '11px', borderRadius: 8, background: loading ? '#a78bfa' : '#7c3aed', color: 'white', border: 'none', fontSize: 15, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', transition: 'background 0.15s' }}
+              className="btn btn-primary login-submit"
             >
-              {loading ? 'Signing in…' : 'Sign in'}
+              {loading ? (
+                <>
+                  <Loader2 size={16} strokeWidth={2} className="animate-spin" />
+                  <span>Signing in…</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign in</span>
+                  <ArrowRight size={16} strokeWidth={2} />
+                </>
+              )}
             </button>
           </form>
 
-          <div style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: '#6b7280' }}>
-            Don't have an account?{' '}
-            <Link href="/auth/register" style={{ color: '#7c3aed', fontWeight: 600, textDecoration: 'none' }}>Sign up free</Link>
-          </div>
+          {/* ── Divider ── */}
+          <div className="login-divider" />
+
+          {/* Sign up link */}
+          <p className="login-footer-text">
+            New to CollabKaro?{' '}
+            <Link href="/register" className="login-link">
+              Create an account
+            </Link>
+          </p>
         </div>
-      </div>
+
+        {/* Below-card footnote */}
+        <p className="login-footnote">
+          Trusted by 500+ brands &amp; influencers across India
+        </p>
+
+      </motion.div>
     </div>
   )
 }
