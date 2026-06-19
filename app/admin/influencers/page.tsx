@@ -54,7 +54,8 @@ export default function AdminInfluencersPage() {
     const { data: infProfiles } = await supabase
       .from('influencer_profiles').select('user_id, full_name, niche, location, instagram_handle, instagram_followers, youtube_channel, youtube_subscribers, barter_open')
 
-    const infMap: Record<string, typeof infProfiles[0]> = {}
+    type InfProfile = { user_id: string; full_name: string; niche: string[]; location: string | null; instagram_handle: string | null; instagram_followers: number | null; youtube_channel: string | null; youtube_subscribers: number | null; barter_open: boolean }
+    const infMap: Record<string, InfProfile> = {}
     for (const i of infProfiles ?? []) infMap[i.user_id] = i
 
     const rows: InfluencerRow[] = (profiles ?? []).map((p) => ({
