@@ -87,7 +87,8 @@ export default function InfluencerProfilePage() {
   const [saving, setSaving] = useState(false)
 
   const { register, handleSubmit, reset, control, formState: { errors } } = useForm<ProfileForm>({
-    resolver: zodResolver(schema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(schema) as any,
     defaultValues: { niche: [], barter_open: false },
   })
 

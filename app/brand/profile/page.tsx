@@ -34,7 +34,8 @@ export default function BrandProfilePage() {
   const [profileId, setProfileId] = useState<string | null>(null)
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<ProfileForm>({
-    resolver: zodResolver(schema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(schema) as any,
   })
 
   useEffect(() => {
