@@ -26,8 +26,8 @@ const schema = z.object({
   collab_type: z.enum(['paid', 'barter', 'both']),
   niche_required: z.array(z.string()).min(1, 'Select at least one niche'),
   platforms: z.array(z.string()).min(1, 'Select at least one platform'),
-  min_followers: z.coerce.number().min(0).optional().or(z.literal('')),
-  max_budget: z.coerce.number().min(1, 'Please enter a budget').optional().or(z.literal('')),
+  min_followers: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
+  max_budget: z.union([z.coerce.number().min(1, 'Please enter a budget'), z.literal('')]).optional(),
   deliverables: z.string().min(10, 'Please describe what you need from the creator'),
   timeline: z.string().optional(),
 })
