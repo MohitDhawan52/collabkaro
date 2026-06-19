@@ -46,7 +46,8 @@ export default function AdminBrandsPage() {
     const { data: brandProfiles } = await supabase
       .from('brand_profiles').select('user_id, brand_name, industry, location, website, contact_person, contact_phone, description')
 
-    const brandMap: Record<string, typeof brandProfiles[0]> = {}
+    type BrandProfile = { user_id: string; brand_name: string; industry: string | null; location: string | null; website: string | null; contact_person: string | null; contact_phone: string | null; description: string | null }
+    const brandMap: Record<string, BrandProfile> = {}
     for (const b of brandProfiles ?? []) brandMap[b.user_id] = b
 
     const rows: BrandRow[] = (profiles ?? []).map((p) => ({
