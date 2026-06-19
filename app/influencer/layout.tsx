@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { LayoutDashboard, Search, Send, Briefcase, Wallet, User, LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
+import NotificationBell from '@/app/components/NotificationBell'
 
 const NAV_ITEMS = [
   { href: '/influencer/dashboard', label: 'Overview',       icon: LayoutDashboard, iconBg: 'rgba(255,255,255,0.25)', iconColor: '#fff' },
@@ -91,7 +92,12 @@ export default function InfluencerLayout({ children }: { children: React.ReactNo
           Log out
         </button>
       </aside>
-      <main style={{ flex: 1, padding: '32px 36px', minWidth: 0 }}>{children}</main>
+      <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '12px 36px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.5)', position: 'sticky', top: 0, zIndex: 20 }}>
+          <NotificationBell />
+        </div>
+        <div style={{ flex: 1, padding: '28px 36px' }}>{children}</div>
+      </main>
     </div>
   )
 }

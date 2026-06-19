@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Briefcase, Inbox, FileSignature, Upload, CheckCircle2, Clock, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase'
+import { notify } from '@/lib/notifications'
 import type { Collaboration } from '@/types/index'
 
 function formatINR(amount: number | null | undefined) {
@@ -16,23 +17,18 @@ function prettyStatus(status: string) {
 }
 
 const STATUS_STEPS: Collaboration['status'][] = [
-  'agreement_pending',
-  'agreement_signed_influencer',
-  'agreement_signed_brand',
-  'active',
-  'deliverable_submitted',
-  'deliverable_approved',
-  'completed',
+  'agreement_pending', 'agreement_signed_influencer', 'agreement_signed_brand',
+  'active', 'deliverable_submitted', 'deliverable_approved', 'completed',
 ]
 
 function StatusBadge({ status }: { status: Collaboration['status'] }) {
-  const styles: Record<string, React.CSSProperties> = {
+  const map: Record<string, React.CSSProperties> = {
     active: { background: 'rgba(16,185,129,0.15)', color: '#059669', border: '1px solid rgba(16,185,129,0.3)' },
     completed: { background: 'rgba(29,78,216,0.1)', color: '#1d4ed8', border: '1px solid rgba(29,78,216,0.2)' },
     cancelled: { background: 'rgba(239,68,68,0.1)', color: '#dc2626', border: '1px solid rgba(239,68,68,0.2)' },
     disputed: { background: 'rgba(239,68,68,0.1)', color: '#dc2626', border: '1px solid rgba(239,68,68,0.2)' },
   }
-  const s = styles[status] ?? { background: 'rgba(249,115,22,0.1)', color: '#ea580c', border: '1px solid rgba(249,115,22,0.25)' }
+  const s = map[status] ?? { background: 'rgba(249,115,22,0.1)', color: '#ea580c', border: '1px solid rgba(249,115,22,0.25)' }
   return (
     <span style={{ ...s, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
       {status === 'active' && <Zap size={10} />}
@@ -46,6 +42,7 @@ export default function InfluencerCollabsPage() {
   const [collabs, setCollabs] = useState<Collaboration[]>([])
   const [acting, setActing] = useState<string | null>(null)
   const [deliverableLink, setDeliverableLink] = useState<Record<string, string>>({})
+  const [myUserId, setMyUserId] = useState<string | null>(null)
 
   useEffect(() => { load() }, [])
 
@@ -54,6 +51,7 @@ export default function InfluencerCollabsPage() {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+    setMyUserId(user.id)
 
     const { data: influencer } = await supabase
       .from('influencer_profiles').select('id').eq('user_id', user.id).single()
@@ -61,7 +59,7 @@ export default function InfluencerCollabsPage() {
 
     const { data } = await supabase
       .from('collaborations')
-      .select('*, gigs(title, deliverables, timeline), brand_profiles(brand_name, location)')
+      .select('*, gigs(title, deliverables, timeline), brand_profiles(brand_name, location, user_id)')
       .eq('influencer_id', influencer.id)
       .order('created_at', { ascending: false })
 
@@ -72,18 +70,27 @@ export default function InfluencerCollabsPage() {
   async function signAgreement(collab: Collaboration) {
     setActing(collab.id)
     const supabase = createClient()
-    const newStatus: Collaboration['status'] =
-      collab.status === 'agreement_pending' ? 'agreement_signed_influencer' : collab.status
-
     const { error } = await supabase.from('collaborations').update({
-      status: newStatus,
+      status: 'agreement_signed_influencer',
       influencer_signed_at: new Date().toISOString(),
     }).eq('id', collab.id)
 
-    if (error) toast.error('Could not sign agreement')
-    else {
-      toast.success('Agreement signed! Waiting for brand to countersign.')
-      setCollabs(prev => prev.map(c => c.id === collab.id ? { ...c, status: newStatus, influencer_signed_at: new Date().toISOString() } : c))
+    if (error) {
+      toast.error('Could not sign agreement')
+    } else {
+      toast.success('Agreement signed! Waiting for brand to sign and pay.')
+      setCollabs(prev => prev.map(c => c.id === collab.id ? { ...c, status: 'agreement_signed_influencer' } : c))
+
+      // Notify the brand
+      const brandUserId = (collab.brand_profiles as unknown as { user_id?: string })?.user_id
+      if (brandUserId) {
+        await notify({
+          userId: brandUserId,
+          title: 'Influencer Signed the Agreement ✍️',
+          message: `The influencer has signed the agreement for "${collab.gigs?.title ?? 'your gig'}". Go to Collaborations, sign and complete payment to go live.`,
+          type: 'info',
+        })
+      }
     }
     setActing(null)
   }
@@ -99,10 +106,22 @@ export default function InfluencerCollabsPage() {
       deliverable_submitted_at: new Date().toISOString(),
     }).eq('id', collab.id)
 
-    if (error) toast.error('Could not submit deliverable')
-    else {
+    if (error) {
+      toast.error('Could not submit deliverable')
+    } else {
       toast.success('Deliverable submitted! Waiting for brand approval.')
       setCollabs(prev => prev.map(c => c.id === collab.id ? { ...c, status: 'deliverable_submitted', deliverable_link: link } : c))
+
+      // Notify brand
+      const brandUserId = (collab.brand_profiles as unknown as { user_id?: string })?.user_id
+      if (brandUserId) {
+        await notify({
+          userId: brandUserId,
+          title: 'Deliverable Submitted 📦',
+          message: `The influencer has submitted their work for "${collab.gigs?.title ?? 'your gig'}". Go to Collaborations to review and approve.`,
+          type: 'info',
+        })
+      }
     }
     setActing(null)
   }
@@ -119,7 +138,7 @@ export default function InfluencerCollabsPage() {
           <div style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.75)', borderRadius: 20, padding: '48px 24px', textAlign: 'center', backdropFilter: 'blur(14px)' }}>
             <div style={{ width: 52, height: 52, borderRadius: 16, background: 'rgba(29,78,216,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', color: '#1d4ed8' }}><Inbox size={22} /></div>
             <div style={{ fontWeight: 700, fontSize: 16, color: '#0c1445' }}>No collaborations yet</div>
-            <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 5 }}>Once a brand accepts your pitch, the collaboration will appear here.</div>
+            <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 5 }}>Once a brand accepts your pitch, it will appear here.</div>
           </div>
         ) : (
           collabs.map((collab) => {
@@ -167,7 +186,6 @@ export default function InfluencerCollabsPage() {
                   </div>
                 )}
 
-                {/* Deliverables info */}
                 {collab.gigs?.deliverables && (
                   <div style={{ marginTop: 14, padding: '10px 14px', background: 'rgba(29,78,216,0.05)', borderRadius: 10, fontSize: 12.5, color: '#374151', lineHeight: 1.5 }}>
                     <strong>Deliverables:</strong> {collab.gigs.deliverables}
@@ -178,12 +196,10 @@ export default function InfluencerCollabsPage() {
                 {/* ACTION AREA */}
                 <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(0,0,0,0.06)' }}>
 
-                  {/* Step 1: Influencer needs to sign */}
                   {collab.status === 'agreement_pending' && (
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#ea580c' }}>
-                        <Clock size={14} />
-                        Your signature is required to start the collaboration.
+                        <Clock size={14} /> Your signature is required to proceed.
                       </div>
                       <button onClick={() => signAgreement(collab)} disabled={acting === collab.id}
                         style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 20px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#1d4ed8,#06b6d4)', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', boxShadow: '0 4px 12px rgba(29,78,216,0.3)' }}>
@@ -192,19 +208,23 @@ export default function InfluencerCollabsPage() {
                     </div>
                   )}
 
-                  {/* Step 2: Waiting for brand to sign */}
                   {collab.status === 'agreement_signed_influencer' && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#6b7280' }}>
                       <CheckCircle2 size={14} style={{ color: '#10b981' }} />
-                      You've signed. Waiting for the brand to countersign.
+                      You've signed. Waiting for brand to sign and complete payment.
                     </div>
                   )}
 
-                  {/* Step 3: Gig is live — submit deliverable */}
+                  {collab.status === 'agreement_signed_brand' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#ea580c' }}>
+                      <Clock size={14} /> Both parties signed. Waiting for brand to complete payment.
+                    </div>
+                  )}
+
                   {collab.status === 'active' && (
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: '#059669', marginBottom: 12 }}>
-                        <Zap size={14} /> Gig is Live! Submit your deliverable when ready.
+                        <Zap size={14} /> Gig is Live! Payment received. Submit your deliverable when ready.
                       </div>
                       <div style={{ display: 'flex', gap: 10 }}>
                         <input
@@ -221,22 +241,14 @@ export default function InfluencerCollabsPage() {
                     </div>
                   )}
 
-                  {/* Step 4: Deliverable submitted — waiting for approval */}
                   {collab.status === 'deliverable_submitted' && (
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#6b7280' }}>
-                        <CheckCircle2 size={14} style={{ color: '#10b981' }} />
-                        Deliverable submitted. Waiting for brand approval.
-                      </div>
-                      {collab.deliverable_link && (
-                        <a href={collab.deliverable_link} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: '#1d4ed8', marginTop: 6, display: 'block' }}>
-                          View submitted link →
-                        </a>
-                      )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#6b7280' }}>
+                      <CheckCircle2 size={14} style={{ color: '#10b981' }} />
+                      Deliverable submitted. Waiting for brand approval.
+                      {collab.deliverable_link && <a href={collab.deliverable_link} target="_blank" rel="noreferrer" style={{ color: '#1d4ed8', marginLeft: 4 }}>View →</a>}
                     </div>
                   )}
 
-                  {/* Step 5: Approved / Completed */}
                   {collab.status === 'deliverable_approved' && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#059669', fontWeight: 600 }}>
                       <CheckCircle2 size={14} /> Deliverable approved! Payment will be released soon.
@@ -245,7 +257,7 @@ export default function InfluencerCollabsPage() {
 
                   {collab.status === 'completed' && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#1d4ed8', fontWeight: 600 }}>
-                      <CheckCircle2 size={14} /> Collaboration completed. Thank you!
+                      <CheckCircle2 size={14} /> Collaboration completed.
                     </div>
                   )}
                 </div>

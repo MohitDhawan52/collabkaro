@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Users, CheckCircle2, XCircle, AtSign, Play } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
+import { notify } from '@/lib/notifications'
 import type { Pitch } from '@/types/index'
 
 function formatNumber(n: number | null | undefined) {
@@ -78,6 +79,17 @@ export default function BrandPitchesPage() {
           brand_payment_status: 'pending',
           influencer_payment_status: 'pending',
         })
+        // Notify the influencer — look up their user_id from influencer_profiles
+        const { data: infProfile } = await supabase
+          .from('influencer_profiles').select('user_id').eq('id', pitch.influencer_id).single()
+        if (infProfile?.user_id) {
+          await notify({
+            userId: infProfile.user_id,
+            title: 'Pitch Accepted! 🎉',
+            message: `Your pitch for "${pitch.gigs?.title ?? 'a gig'}" has been accepted. Go to Collaborations and sign the agreement to get started.`,
+            type: 'success',
+          })
+        }
       }
     }
     setActing(null)
