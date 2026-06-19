@@ -100,7 +100,8 @@ export default function PostGigPage() {
     trigger,
     formState: { errors },
   } = useForm<GigForm>({
-    resolver: zodResolver(schema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(schema) as any,
     defaultValues: {
       collab_type: 'paid',
       niche_required: [],
