@@ -3,17 +3,18 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, PlusCircle, Briefcase, Users, Wallet, Settings, LogOut } from 'lucide-react'
+import { LayoutDashboard, PlusCircle, Briefcase, Users, Wallet, Settings, LogOut, Search } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import NotificationBell from '@/app/components/NotificationBell'
 
 const NAV_ITEMS = [
-  { href: '/brand/dashboard',  label: 'Overview',         icon: LayoutDashboard, iconBg: 'rgba(255,255,255,0.25)', iconColor: '#fff' },
-  { href: '/brand/gigs',       label: 'My Gigs',          icon: Briefcase,       iconBg: 'rgba(249,115,22,0.5)',  iconColor: '#fff' },
-  { href: '/brand/gigs/new',   label: 'Post a Gig',       icon: PlusCircle,      iconBg: 'rgba(16,185,129,0.5)', iconColor: '#fff' },
-  { href: '/brand/pitches',    label: 'Pitches Received', icon: Users,           iconBg: 'rgba(168,85,247,0.5)', iconColor: '#fff' },
-  { href: '/brand/collabs',    label: 'Collaborations',   icon: Wallet,          iconBg: 'rgba(236,72,153,0.5)', iconColor: '#fff' },
-  { href: '/brand/profile',    label: 'Brand Profile',    icon: Settings,        iconBg: 'rgba(6,182,212,0.5)',  iconColor: '#fff' },
+  { href: '/brand/dashboard',    label: 'Overview',           icon: LayoutDashboard, iconBg: 'rgba(255,255,255,0.25)', iconColor: '#fff' },
+  { href: '/brand/gigs',         label: 'My Gigs',            icon: Briefcase,       iconBg: 'rgba(249,115,22,0.5)',  iconColor: '#fff' },
+  { href: '/brand/gigs/new',     label: 'Post a Gig',         icon: PlusCircle,      iconBg: 'rgba(16,185,129,0.5)', iconColor: '#fff' },
+  { href: '/brand/influencers',  label: 'Browse Influencers', icon: Search,          iconBg: 'rgba(6,182,212,0.5)',  iconColor: '#fff' },
+  { href: '/brand/pitches',      label: 'Pitches Received',   icon: Users,           iconBg: 'rgba(168,85,247,0.5)', iconColor: '#fff' },
+  { href: '/brand/collabs',      label: 'Collaborations',     icon: Wallet,          iconBg: 'rgba(236,72,153,0.5)', iconColor: '#fff' },
+  { href: '/brand/profile',      label: 'Brand Profile',      icon: Settings,        iconBg: 'rgba(6,182,212,0.5)',  iconColor: '#fff' },
 ]
 
 function NavItem({ item, active, onClick }: { item: typeof NAV_ITEMS[0], active: boolean, onClick: () => void }) {
