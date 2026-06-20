@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Briefcase, Inbox, FileSignature, CheckCircle2, Clock, Zap, ExternalLink, ThumbsUp, IndianRupee } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase'
@@ -175,9 +176,14 @@ export default function BrandCollabsPage() {
                     </div>
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 15, color: '#0c1445' }}>{collab.gigs?.title ?? 'Collaboration'}</div>
-                      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                        with {collab.influencer_profiles?.full_name ?? 'Influencer'}
-                        {collab.influencer_profiles?.instagram_handle && ` · @${collab.influencer_profiles.instagram_handle}`}
+                      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        with{' '}
+                        <Link href={`/brand/influencers/${collab.influencer_id}`} style={{ color: '#1d4ed8', fontWeight: 600, textDecoration: 'none' }}
+                          onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
+                          onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}>
+                          {collab.influencer_profiles?.full_name ?? 'Influencer'} ↗
+                        </Link>
+                        {collab.influencer_profiles?.instagram_handle && `· @${collab.influencer_profiles.instagram_handle}`}
                       </div>
                     </div>
                   </div>

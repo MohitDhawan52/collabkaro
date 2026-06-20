@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Users, CheckCircle2, XCircle, AtSign, Play } from 'lucide-react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { notify } from '@/lib/notifications'
 import type { Pitch } from '@/types/index'
@@ -148,22 +149,28 @@ export default function BrandPitchesPage() {
               borderRadius: 18, padding: '20px 22px', boxShadow: 'var(--shadow-card)',
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' }}>
-                {/* Avatar */}
-                <div style={{
-                  width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-                  background: 'var(--brand-accent-light)', color: 'var(--brand-primary-hover)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: 700, fontSize: 18,
-                }}>
-                  {pitch.influencer_profiles?.full_name?.charAt(0)?.toUpperCase() ?? 'I'}
-                </div>
+                {/* Avatar — clickable to profile */}
+                <Link href={`/brand/influencers/${pitch.influencer_id}`} style={{ textDecoration: 'none', flexShrink: 0 }}>
+                  <div style={{
+                    width: 44, height: 44, borderRadius: '50%',
+                    background: 'linear-gradient(135deg,#a855f7,#ec4899)', color: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontWeight: 700, fontSize: 18, cursor: 'pointer',
+                  }}>
+                    {pitch.influencer_profiles?.full_name?.charAt(0)?.toUpperCase() ?? 'I'}
+                  </div>
+                </Link>
 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                    <div className="dash-row-title" style={{ fontSize: 15 }}>
-                      {pitch.influencer_profiles?.full_name ?? 'Influencer'}
-                    </div>
+                    <Link href={`/brand/influencers/${pitch.influencer_id}`} style={{ textDecoration: 'none' }}>
+                      <div className="dash-row-title" style={{ fontSize: 15, color: '#0c1445', cursor: 'pointer' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = '#1d4ed8')}
+                        onMouseLeave={e => (e.currentTarget.style.color = '#0c1445')}>
+                        {pitch.influencer_profiles?.full_name ?? 'Influencer'} ↗
+                      </div>
+                    </Link>
                     <span className={badgeClass(pitch.status)}>{prettyStatus(pitch.status)}</span>
                   </div>
 
