@@ -99,25 +99,25 @@ export default function BrandDashboardPage() {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-        <div>
-          <div style={{ fontSize: 26, fontWeight: 800, color: '#0c1445', fontFamily: 'Plus Jakarta Sans,sans-serif', letterSpacing: -0.4 }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#0c1445', fontFamily: 'Plus Jakarta Sans,sans-serif', letterSpacing: -0.4 }}>
             Welcome back{brandName ? `, ${brandName}` : ''} 👋
           </div>
-          <div style={{ fontSize: 13.5, color: '#6b7280', marginTop: 4 }}>Here's an overview of your campaigns and collaborations.</div>
+          <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>Here's an overview of your campaigns and collaborations.</div>
         </div>
-        <Link href="/brand/gigs/new" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, background: 'linear-gradient(135deg,#1d4ed8,#06b6d4)', color: '#fff', fontWeight: 700, fontSize: 13.5, boxShadow: '0 4px 14px rgba(29,78,216,0.3)', marginTop: 4 }}>
-          <PlusCircle size={16} /> Post a Gig
+        <Link href="/brand/gigs/new" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12, background: 'linear-gradient(135deg,#1d4ed8,#06b6d4)', color: '#fff', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 14px rgba(29,78,216,0.3)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+          <PlusCircle size={15} /> Post a Gig
         </Link>
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginTop: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginTop: 24 }}>
         {stats.map((s, i) => (
-          <div key={s.label} style={{ borderRadius: 18, padding: '18px 20px 20px', position: 'relative', overflow: 'hidden', background: STAT_COLORS[i].gradient, boxShadow: '0 4px 20px rgba(0,0,0,0.13)' }}>
+          <div key={s.label} style={{ borderRadius: 18, padding: '16px 16px 18px', position: 'relative', overflow: 'hidden', background: STAT_COLORS[i].gradient, boxShadow: '0 4px 20px rgba(0,0,0,0.13)' }}>
             <div style={{ position: 'absolute', top: -18, right: -18, width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', pointerEvents: 'none' }} />
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 6 }}>{s.icon} {s.label}</div>
-            <div style={{ fontSize: 34, fontWeight: 800, color: '#fff', marginTop: 10, fontFamily: 'Plus Jakarta Sans,sans-serif', letterSpacing: -1 }}>{loading ? '—' : s.value}</div>
-            <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>{s.sub}</div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 5 }}>{s.icon} {s.label}</div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: '#fff', marginTop: 8, fontFamily: 'Plus Jakarta Sans,sans-serif', letterSpacing: -0.5 }}>{loading ? '—' : s.value}</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>{s.sub}</div>
           </div>
         ))}
       </div>

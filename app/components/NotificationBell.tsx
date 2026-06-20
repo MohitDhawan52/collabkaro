@@ -112,60 +112,73 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {/* Dropdown */}
+      {/* Dropdown — full-width on mobile, fixed 360px on desktop */}
       {open && (
-        <div style={{
-          position: 'absolute', top: 48, right: 0, width: 360,
-          background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.8)',
-          borderRadius: 18, boxShadow: '0 8px 32px rgba(29,78,216,0.15)',
-          zIndex: 100, overflow: 'hidden',
-        }}>
-          {/* Header */}
-          <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontWeight: 700, fontSize: 14, color: '#0c1445', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Bell size={15} /> Notifications {unread > 0 && <span style={{ background: 'rgba(239,68,68,0.12)', color: '#dc2626', fontSize: 11, fontWeight: 700, padding: '1px 7px', borderRadius: 999 }}>{unread} new</span>}
-            </div>
-            {unread > 0 && (
-              <button onClick={markAllRead} disabled={loading} style={{ fontSize: 12, color: '#1d4ed8', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-                <CheckCheck size={13} /> Mark all read
-              </button>
-            )}
-          </div>
-
-          {/* List */}
-          <div style={{ maxHeight: 380, overflowY: 'auto' }}>
-            {notifications.length === 0 ? (
-              <div style={{ padding: '36px 20px', textAlign: 'center' }}>
-                <Bell size={28} style={{ color: '#d1d5db', margin: '0 auto 10px', display: 'block' }} />
-                <div style={{ fontSize: 13, color: '#9ca3af', fontWeight: 500 }}>No notifications yet</div>
+        <>
+          {/* Mobile: full-screen backdrop */}
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 98, display: 'none' }}
+            onClick={() => setOpen(false)}
+            className="mob-backdrop"
+          />
+          <div style={{
+            position: 'fixed',
+            top: 60,
+            right: 12,
+            left: 12,
+            maxWidth: 380,
+            marginLeft: 'auto',
+            background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.8)',
+            borderRadius: 18, boxShadow: '0 8px 32px rgba(29,78,216,0.18)',
+            zIndex: 99, overflow: 'hidden',
+          }}>
+            {/* Header */}
+            <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ fontWeight: 700, fontSize: 14, color: '#0c1445', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Bell size={15} /> Notifications {unread > 0 && <span style={{ background: 'rgba(239,68,68,0.12)', color: '#dc2626', fontSize: 11, fontWeight: 700, padding: '1px 7px', borderRadius: 999 }}>{unread} new</span>}
               </div>
-            ) : (
-              notifications.map((n) => (
-                <div
-                  key={n.id}
-                  onClick={() => markRead(n.id)}
-                  style={{
-                    padding: '12px 18px', borderBottom: '1px solid rgba(0,0,0,0.04)',
-                    background: n.read ? 'transparent' : 'rgba(29,78,216,0.04)',
-                    cursor: 'pointer', transition: 'background 0.12s',
-                    display: 'flex', gap: 11, alignItems: 'flex-start',
-                  }}
-                >
-                  <div style={{ marginTop: 2 }}>{typeIcon(n.type)}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: n.read ? 500 : 700, fontSize: 13, color: '#0c1445', lineHeight: 1.3 }}>{n.title}</div>
-                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 3, lineHeight: 1.4 }}>{n.message}</div>
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>{timeAgo(n.created_at)}</div>
-                  </div>
-                  {!n.read && (
-                    <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#1d4ed8', flexShrink: 0, marginTop: 5 }} />
-                  )}
+              {unread > 0 && (
+                <button onClick={markAllRead} disabled={loading} style={{ fontSize: 12, color: '#1d4ed8', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <CheckCheck size={13} /> Mark all read
+                </button>
+              )}
+            </div>
+
+            {/* List */}
+            <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+              {notifications.length === 0 ? (
+                <div style={{ padding: '36px 20px', textAlign: 'center' }}>
+                  <Bell size={28} style={{ color: '#d1d5db', margin: '0 auto 10px', display: 'block' }} />
+                  <div style={{ fontSize: 13, color: '#9ca3af', fontWeight: 500 }}>No notifications yet</div>
                 </div>
-              ))
-            )}
+              ) : (
+                notifications.map((n) => (
+                  <div
+                    key={n.id}
+                    onClick={() => markRead(n.id)}
+                    style={{
+                      padding: '12px 18px', borderBottom: '1px solid rgba(0,0,0,0.04)',
+                      background: n.read ? 'transparent' : 'rgba(29,78,216,0.04)',
+                      cursor: 'pointer', transition: 'background 0.12s',
+                      display: 'flex', gap: 11, alignItems: 'flex-start',
+                    }}
+                  >
+                    <div style={{ marginTop: 2 }}>{typeIcon(n.type)}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: n.read ? 500 : 700, fontSize: 13, color: '#0c1445', lineHeight: 1.3 }}>{n.title}</div>
+                      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 3, lineHeight: 1.4 }}>{n.message}</div>
+                      <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>{timeAgo(n.created_at)}</div>
+                    </div>
+                    {!n.read && (
+                      <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#1d4ed8', flexShrink: 0, marginTop: 5 }} />
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   )

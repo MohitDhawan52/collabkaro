@@ -126,7 +126,7 @@ export default function BrowseInfluencersPage() {
 
       {/* Search + Filter bar */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: 220, position: 'relative' }}>
+        <div style={{ flex: 1, minWidth: 140, position: 'relative' }}>
           <Search size={15} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }} />
           <input
             placeholder="Search by name, niche, location, bio..."
@@ -150,7 +150,7 @@ export default function BrowseInfluencersPage() {
       {/* Filter panel */}
       {showFilters && (
         <div style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.8)', borderRadius: 18, padding: '20px 24px', backdropFilter: 'blur(14px)', marginBottom: 20 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 20 }}>
 
             {/* Platform */}
             <div>
@@ -228,7 +228,7 @@ export default function BrowseInfluencersPage() {
 
       {/* Results */}
       {loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
           {[1,2,3,4,5,6].map(i => <div key={i} style={{ height: 200, borderRadius: 18, background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.7)' }} />)}
         </div>
       ) : filtered.length === 0 ? (
@@ -238,7 +238,7 @@ export default function BrowseInfluencersPage() {
           <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 5 }}>Try adjusting your search or removing some filters.</div>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
           {filtered.map(inf => {
             const igFollowers = fmt(inf.instagram_followers)
             const ytSubs = fmt(inf.youtube_subscribers)
