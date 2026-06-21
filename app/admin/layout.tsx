@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, Users, Briefcase, ShieldCheck, LogOut, Menu, X, Wallet, GitMerge, BarChart3, Bell, Settings } from 'lucide-react'
+import { LayoutDashboard, Users, Briefcase, ShieldCheck, LogOut, Menu, X, Wallet, GitMerge, BarChart3, Bell, Settings, Scale } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import NotificationBell from '@/app/components/NotificationBell'
 import { useIsMobile } from '@/lib/useIsMobile'
@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: '/admin/influencers', label: 'Influencers',    icon: Users,           iconBg: 'rgba(168,85,247,0.5)' },
   { href: '/admin/gigs',        label: 'All Gigs',       icon: Settings,        iconBg: 'rgba(6,182,212,0.5)' },
   { href: '/admin/collabs',     label: 'Collaborations', icon: GitMerge,        iconBg: 'rgba(16,185,129,0.5)' },
+  { href: '/admin/disputes',    label: 'Disputes',       icon: Scale,           iconBg: 'rgba(239,68,68,0.5)' },
   { href: '/admin/payments',    label: 'Payments',       icon: Wallet,          iconBg: 'rgba(234,179,8,0.55)' },
   { href: '/admin/stats',       label: 'Platform Stats', icon: BarChart3,       iconBg: 'rgba(236,72,153,0.5)' },
   { href: '/admin/kyc',         label: 'KYC Review',     icon: ShieldCheck,     iconBg: 'rgba(16,185,129,0.5)' },

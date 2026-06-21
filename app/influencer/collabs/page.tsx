@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Briefcase, Inbox, FileSignature, Upload, CheckCircle2, Clock, Zap, Download } from 'lucide-react'
+import { Briefcase, Inbox, FileSignature, Upload, CheckCircle2, Clock, Zap, Download, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase'
 import { notify } from '@/lib/notifications'
 import CollabChat from '@/app/components/CollabChat'
 import ReviewForm from '@/app/components/ReviewForm'
 import { generateContract } from '@/lib/generateContract'
+import DisputeModal from '@/app/components/DisputeModal'
 import type { Collaboration } from '@/types/index'
 
 function formatINR(amount: number | null | undefined) {
@@ -45,6 +46,7 @@ export default function InfluencerCollabsPage() {
   const [collabs, setCollabs] = useState<Collaboration[]>([])
   const [acting, setActing] = useState<string | null>(null)
   const [deliverableLink, setDeliverableLink] = useState<Record<string, string>>({})
+  const [disputeCollab, setDisputeCollab] = useState<Collaboration | null>(null)
   const [myUserId, setMyUserId] = useState<string | null>(null)
   const [myName, setMyName] = useState('Influencer')
 
@@ -281,6 +283,12 @@ export default function InfluencerCollabsPage() {
                     </div>
                   )}
 
+                  {collab.status === 'disputed' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 12, background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)', fontSize: 13, color: '#dc2626', fontWeight: 600 }}>
+                      <AlertTriangle size={14} /> Dispute in progress — CollabKaro is reviewing this collaboration.
+                    </div>
+                  )}
+
                   {collab.status === 'completed' && (
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#1d4ed8', fontWeight: 600 }}>
@@ -296,6 +304,18 @@ export default function InfluencerCollabsPage() {
                       )}
                     </div>
                   )}
+
+                  {/* Raise Dispute — available on active/deliverable_submitted */}
+                  {['active', 'deliverable_submitted', 'agreement_signed_brand'].includes(collab.status) && (
+                    <div style={{ marginTop: 4, paddingTop: 12, borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                      <button
+                        onClick={() => setDisputeCollab(collab)}
+                        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 10, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.05)', color: '#dc2626', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        <AlertTriangle size={13} /> Raise Dispute
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Chat */}
@@ -305,6 +325,17 @@ export default function InfluencerCollabsPage() {
           })
         )}
       </div>
+
+      {disputeCollab && (
+        <DisputeModal
+          collabId={disputeCollab.id}
+          collabTitle={disputeCollab.gigs?.title ?? 'Collaboration'}
+          myRole="influencer"
+          otherPartyUserId={(disputeCollab.brand_profiles as unknown as { user_id?: string })?.user_id ?? ''}
+          onClose={() => setDisputeCollab(null)}
+          onRaised={() => { setDisputeCollab(null); load() }}
+        />
+      )}
     </div>
   )
 }
