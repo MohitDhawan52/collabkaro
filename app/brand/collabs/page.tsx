@@ -6,6 +6,7 @@ import { Briefcase, Inbox, FileSignature, CheckCircle2, Clock, Zap, ExternalLink
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase'
 import { notify } from '@/lib/notifications'
+import CollabChat from '@/app/components/CollabChat'
 import type { Collaboration } from '@/types/index'
 
 function formatINR(amount: number | null | undefined) {
@@ -37,6 +38,7 @@ export default function BrandCollabsPage() {
   const [loading, setLoading] = useState(true)
   const [collabs, setCollabs] = useState<Collaboration[]>([])
   const [acting, setActing] = useState<string | null>(null)
+  const [myName, setMyName] = useState('Brand')
 
   useEffect(() => { load() }, [])
 
@@ -47,8 +49,9 @@ export default function BrandCollabsPage() {
     if (!user) return
 
     const { data: brand } = await supabase
-      .from('brand_profiles').select('id').eq('user_id', user.id).single()
+      .from('brand_profiles').select('id, brand_name').eq('user_id', user.id).single()
     if (!brand) { setLoading(false); return }
+    setMyName(brand.brand_name ?? 'Brand')
 
     const { data } = await supabase
       .from('collaborations')
@@ -272,6 +275,9 @@ export default function BrandCollabsPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Chat */}
+                <CollabChat collabId={collab.id} myRole="brand" myName={myName} />
               </div>
             )
           })

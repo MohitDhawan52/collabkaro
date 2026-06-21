@@ -5,6 +5,7 @@ import { Briefcase, Inbox, FileSignature, Upload, CheckCircle2, Clock, Zap } fro
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase'
 import { notify } from '@/lib/notifications'
+import CollabChat from '@/app/components/CollabChat'
 import type { Collaboration } from '@/types/index'
 
 function formatINR(amount: number | null | undefined) {
@@ -43,6 +44,7 @@ export default function InfluencerCollabsPage() {
   const [acting, setActing] = useState<string | null>(null)
   const [deliverableLink, setDeliverableLink] = useState<Record<string, string>>({})
   const [myUserId, setMyUserId] = useState<string | null>(null)
+  const [myName, setMyName] = useState('Influencer')
 
   useEffect(() => { load() }, [])
 
@@ -54,8 +56,9 @@ export default function InfluencerCollabsPage() {
     setMyUserId(user.id)
 
     const { data: influencer } = await supabase
-      .from('influencer_profiles').select('id').eq('user_id', user.id).single()
+      .from('influencer_profiles').select('id, full_name').eq('user_id', user.id).single()
     if (!influencer) { setLoading(false); return }
+    setMyName(influencer.full_name ?? 'Influencer')
 
     const { data } = await supabase
       .from('collaborations')
@@ -261,6 +264,9 @@ export default function InfluencerCollabsPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Chat */}
+                <CollabChat collabId={collab.id} myRole="influencer" myName={myName} />
               </div>
             )
           })
