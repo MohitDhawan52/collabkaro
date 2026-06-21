@@ -59,16 +59,39 @@ export default function InfluencerProfilePage() {
   const router = useRouter()
   const [profile, setProfile] = useState<InfluencerDetail | null>(null)
   const [loading, setLoading] = useState(true)
+  const [avgRating, setAvgRating] = useState<number | null>(null)
+  const [reviewCount, setReviewCount] = useState(0)
+  const [reviews, setReviews] = useState<{ rating: number; comment: string | null; created_at: string }[]>([])
 
   useEffect(() => {
     async function load() {
       const supabase = createClient()
-      const { data } = await supabase
-        .from('influencer_profiles')
-        .select('*')
-        .eq('id', id)
-        .single()
-      setProfile(data as InfluencerDetail)
+      const [profileRes, reviewsRes] = await Promise.all([
+        supabase.from('influencer_profiles').select('*').eq('id', id).single(),
+        supabase.from('reviews').select('rating, comment, created_at')
+          .eq('reviewee_role', 'influencer')
+          .order('created_at', { ascending: false })
+          .limit(20),
+      ])
+      setProfile(profileRes.data as InfluencerDetail)
+
+      // Filter reviews for this influencer via their user_id
+      if (profileRes.data?.user_id) {
+        const infReviews = (reviewsRes.data ?? []).filter(() => true) // filtered server-side below
+        // Fetch reviews where reviewee_id = influencer's user_id
+        const { data: infRev } = await supabase
+          .from('reviews')
+          .select('rating, comment, created_at')
+          .eq('reviewee_id', profileRes.data.user_id)
+          .eq('reviewee_role', 'influencer')
+          .order('created_at', { ascending: false })
+        const rv = infRev ?? []
+        setReviews(rv)
+        setReviewCount(rv.length)
+        if (rv.length > 0) {
+          setAvgRating(rv.reduce((s, r) => s + r.rating, 0) / rv.length)
+        }
+      }
       setLoading(false)
     }
     if (id) load()
@@ -106,11 +129,20 @@ export default function InfluencerProfilePage() {
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 22, fontWeight: 800, color: '#0c1445' }}>{profile.full_name}</div>
-            {profile.location && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: '#6b7280', marginTop: 4 }}>
-                <MapPin size={13} /> {profile.location}
-              </div>
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4, flexWrap: 'wrap' }}>
+              {profile.location && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: '#6b7280' }}>
+                  <MapPin size={13} /> {profile.location}
+                </div>
+              )}
+              {avgRating !== null && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 700, color: '#f59e0b' }}>
+                  <Star size={14} fill="#f59e0b" />
+                  {avgRating.toFixed(1)}
+                  <span style={{ color: '#9ca3af', fontWeight: 400, fontSize: 12 }}>({reviewCount} review{reviewCount !== 1 ? 's' : ''})</span>
+                </div>
+              )}
+            </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
               {(profile.niche ?? []).map(n => (
                 <span key={n} style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: 'rgba(168,85,247,0.12)', color: '#7c3aed', border: '1px solid rgba(168,85,247,0.2)' }}>{n}</span>
@@ -209,6 +241,42 @@ export default function InfluencerProfilePage() {
               <a key={i} href={link} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#1d4ed8', textDecoration: 'none', padding: '8px 12px', borderRadius: 10, background: 'rgba(29,78,216,0.05)', fontWeight: 500 }}>
                 <ExternalLink size={13} /> {link}
               </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Reviews section */}
+      {reviews.length > 0 && (
+        <div style={CARD}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(245,158,11,0.1)', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Star size={17} />
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: '#0c1445' }}>Brand Reviews</div>
+              {avgRating !== null && (
+                <div style={{ fontSize: 12, color: '#6b7280' }}>
+                  {avgRating.toFixed(1)} / 5 · {reviewCount} review{reviewCount !== 1 ? 's' : ''}
+                </div>
+              )}
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {reviews.map((r, i) => (
+              <div key={i} style={{ padding: '12px 14px', background: 'rgba(245,158,11,0.04)', borderRadius: 12, border: '1px solid rgba(245,158,11,0.12)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                  {[1,2,3,4,5].map(s => (
+                    <Star key={s} size={14} fill={s <= r.rating ? '#f59e0b' : 'none'} style={{ color: s <= r.rating ? '#f59e0b' : '#d1d5db' }} />
+                  ))}
+                  <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 4 }}>
+                    {new Date(r.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                </div>
+                {r.comment && (
+                  <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.5, fontStyle: 'italic' }}>"{r.comment}"</div>
+                )}
+              </div>
             ))}
           </div>
         </div>

@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase'
 import { notify } from '@/lib/notifications'
 import CollabChat from '@/app/components/CollabChat'
+import ReviewForm from '@/app/components/ReviewForm'
 import type { Collaboration } from '@/types/index'
 
 function formatINR(amount: number | null | undefined) {
@@ -259,8 +260,18 @@ export default function InfluencerCollabsPage() {
                   )}
 
                   {collab.status === 'completed' && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#1d4ed8', fontWeight: 600 }}>
-                      <CheckCircle2 size={14} /> Collaboration completed.
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#1d4ed8', fontWeight: 600 }}>
+                        <CheckCircle2 size={14} /> Collaboration completed.
+                      </div>
+                      {(collab.brand_profiles as unknown as { user_id?: string })?.user_id && (
+                        <ReviewForm
+                          collabId={collab.id}
+                          myRole="influencer"
+                          revieweeId={(collab.brand_profiles as unknown as { user_id: string }).user_id}
+                          revieweeName={collab.brand_profiles?.brand_name ?? 'Brand'}
+                        />
+                      )}
                     </div>
                   )}
                 </div>

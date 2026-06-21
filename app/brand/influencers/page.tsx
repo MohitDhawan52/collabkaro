@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Search, Filter, AtSign, Play, MapPin, ChevronDown, X, Users, SlidersHorizontal } from 'lucide-react'
+import { Search, AtSign, Play, MapPin, X, Users, SlidersHorizontal, Star } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import { NICHES } from '@/types/index'
 
 interface Influencer {
   id: string
+  user_id: string
   full_name: string
   bio: string | null
   location: string | null
@@ -19,6 +20,8 @@ interface Influencer {
   instagram_reel_price: number | null
   youtube_channel: string | null
   youtube_subscribers: number | null
+  avg_rating?: number | null
+  review_count?: number
 }
 
 function fmt(n: number | null | undefined) {
@@ -73,11 +76,35 @@ export default function BrowseInfluencersPage() {
 
       const { data } = await supabase
         .from('influencer_profiles')
-        .select('id, full_name, bio, location, niche, barter_open, instagram_handle, instagram_followers, instagram_engagement_rate, instagram_reel_price, youtube_channel, youtube_subscribers')
+        .select('id, user_id, full_name, bio, location, niche, barter_open, instagram_handle, instagram_followers, instagram_engagement_rate, instagram_reel_price, youtube_channel, youtube_subscribers')
         .in('user_id', approvedIds)
         .order('instagram_followers', { ascending: false, nullsFirst: false })
 
-      setAll((data as Influencer[]) ?? [])
+      const influencers = (data as Influencer[]) ?? []
+
+      // Fetch ratings for all influencers
+      const userIds = influencers.map(i => i.user_id)
+      if (userIds.length > 0) {
+        const { data: ratingData } = await supabase
+          .from('reviews')
+          .select('reviewee_id, rating')
+          .eq('reviewee_role', 'influencer')
+          .in('reviewee_id', userIds)
+
+        const ratingMap: Record<string, { total: number; count: number }> = {}
+        for (const r of ratingData ?? []) {
+          if (!ratingMap[r.reviewee_id]) ratingMap[r.reviewee_id] = { total: 0, count: 0 }
+          ratingMap[r.reviewee_id].total += r.rating
+          ratingMap[r.reviewee_id].count += 1
+        }
+        for (const inf of influencers) {
+          const rm = ratingMap[inf.user_id]
+          inf.avg_rating = rm ? rm.total / rm.count : null
+          inf.review_count = rm?.count ?? 0
+        }
+      }
+
+      setAll(influencers)
       setLoading(false)
     }
     load()
@@ -256,11 +283,19 @@ export default function BrowseInfluencersPage() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 700, fontSize: 15, color: '#0c1445', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{inf.full_name}</div>
-                      {inf.location && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                          <MapPin size={11} /> {inf.location}
-                        </div>
-                      )}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2, flexWrap: 'wrap' }}>
+                        {inf.location && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#6b7280' }}>
+                            <MapPin size={11} /> {inf.location}
+                          </div>
+                        )}
+                        {inf.avg_rating != null && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 700, color: '#f59e0b' }}>
+                            <Star size={11} fill="#f59e0b" /> {inf.avg_rating.toFixed(1)}
+                            <span style={{ color: '#9ca3af', fontWeight: 400 }}>({inf.review_count})</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     {inf.barter_open && (
                       <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: 'rgba(16,185,129,0.12)', color: '#059669', border: '1px solid rgba(16,185,129,0.25)', whiteSpace: 'nowrap', flexShrink: 0 }}>Barter ✓</span>
