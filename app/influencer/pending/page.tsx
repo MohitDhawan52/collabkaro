@@ -76,15 +76,24 @@ export default function InfluencerPendingPage() {
           <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
             Your influencer profile is under review. Our team checks every new
             profile before activating it, this usually takes a day or two.
-            We'll email you the moment you're approved.
+            We'll notify you the moment you're approved.
           </p>
 
           <div
-            className="flex items-center gap-2 justify-center text-sm mb-6 px-4 py-3 rounded-xl"
+            className="flex items-center gap-2 justify-center text-sm mb-4 px-4 py-3 rounded-xl"
             style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}
           >
             <Sparkles size={16} style={{ color: 'var(--brand-accent)' }} />
             Once approved, brands will be able to discover your profile and send you gigs.
+          </div>
+
+          <div style={{ textAlign: 'left', padding: '14px 16px', borderRadius: 14, background: 'rgba(29,78,216,0.06)', border: '1.5px solid rgba(29,78,216,0.15)', marginBottom: 20 }}>
+            <div style={{ fontWeight: 700, fontSize: 13, color: '#0c1445', marginBottom: 8 }}>💰 Payout Schedule</div>
+            <ul style={{ margin: 0, padding: '0 0 0 16px', fontSize: 12.5, color: '#374151', lineHeight: 1.7 }}>
+              <li>Earnings released <strong>once a month on the 20th</strong></li>
+              <li><strong>10% platform fee</strong> deducted from gross earnings</li>
+              <li>Complete <strong>KYC verification</strong> before your first payout</li>
+            </ul>
           </div>
 
           <button onClick={handleLogout} className="btn btn-secondary w-full justify-center">

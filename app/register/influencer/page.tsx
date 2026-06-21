@@ -299,6 +299,21 @@ export default function InfluencerRegisterPage() {
                     <input type="tel" value={form.phone} onChange={(e) => update('phone', e.target.value)} placeholder="+91 98765 43210" className="input" style={{ paddingLeft: '42px' }} />
                   </Field>
 
+                  {/* Payout policy notice */}
+                  <div style={{ padding: '14px 16px', borderRadius: 14, background: 'rgba(29,78,216,0.06)', border: '1.5px solid rgba(29,78,216,0.18)', marginBottom: 4 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      <span style={{ fontSize: 18 }}>💰</span>
+                      <span style={{ fontWeight: 800, fontSize: 14, color: '#0c1445' }}>Payout Schedule — Please Read</span>
+                    </div>
+                    <ul style={{ margin: 0, padding: '0 0 0 18px', fontSize: 13, color: '#374151', lineHeight: 1.7 }}>
+                      <li>CollabKaro releases influencer earnings <strong>once a month on the 20th</strong>.</li>
+                      <li>Earnings from all completed collaborations in the previous cycle are bundled into one payout.</li>
+                      <li>A <strong>10% platform fee</strong> is deducted from your gross earnings.</li>
+                      <li>You must complete <strong>KYC verification</strong> (PAN + Aadhaar) before your first payout can be released.</li>
+                      <li>If the 20th falls on a weekend/holiday, payouts may be processed the next business day.</li>
+                    </ul>
+                  </div>
+
                   <label className="flex items-start gap-3 mt-2 cursor-pointer">
                     <span
                       onClick={() => update('terms_accepted', !form.terms_accepted)}
@@ -311,7 +326,7 @@ export default function InfluencerRegisterPage() {
                       {form.terms_accepted && <Check size={13} color="white" />}
                     </span>
                     <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                      I agree to CollabKaro's Terms of Service and Privacy Policy, and confirm the information provided is accurate.
+                      I agree to CollabKaro's Terms of Service and Privacy Policy, confirm the information provided is accurate, and <strong>understand that payouts are processed on the 20th of every month</strong>.
                     </span>
                   </label>
                 </motion.div>

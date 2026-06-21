@@ -15,7 +15,7 @@ const NAV_ITEMS = [
   { href: '/admin/gigs',        label: 'All Gigs',       icon: Settings,        iconBg: 'rgba(6,182,212,0.5)' },
   { href: '/admin/collabs',     label: 'Collaborations', icon: GitMerge,        iconBg: 'rgba(16,185,129,0.5)' },
   { href: '/admin/disputes',    label: 'Disputes',       icon: Scale,           iconBg: 'rgba(239,68,68,0.5)' },
-  { href: '/admin/payments',    label: 'Payments',       icon: Wallet,          iconBg: 'rgba(234,179,8,0.55)' },
+  { href: '/admin/payouts',     label: 'Payouts',        icon: Wallet,          iconBg: 'rgba(5,150,105,0.55)' },
   { href: '/admin/stats',       label: 'Platform Stats', icon: BarChart3,       iconBg: 'rgba(236,72,153,0.5)' },
   { href: '/admin/kyc',         label: 'KYC Review',     icon: ShieldCheck,     iconBg: 'rgba(16,185,129,0.5)' },
   { href: '/admin/notify',      label: 'Notifications',  icon: Bell,            iconBg: 'rgba(239,68,68,0.5)' },
