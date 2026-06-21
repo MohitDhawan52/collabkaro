@@ -301,9 +301,9 @@ export default function LandingPage() {
             }} />
             <div style={{ fontSize: 13, fontWeight: 600, color: '#FCD34D', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.08em' }}>For Influencers</div>
             <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 42, color: 'var(--text-primary)', marginBottom: 4 }}>
-              10%
+              FREE
             </div>
-            <div style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>platform commission only on paid collabs</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>to join — get paid for every collab you complete</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {['Free to join & build profile', 'Get discovered by top brands', 'Secure payment guarantee', 'Barter collabs 100% free'].map((item) => (
                 <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

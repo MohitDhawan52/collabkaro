@@ -91,7 +91,7 @@ export default function InfluencerPendingPage() {
             <div style={{ fontWeight: 700, fontSize: 13, color: '#0c1445', marginBottom: 8 }}>💰 Payout Schedule</div>
             <ul style={{ margin: 0, padding: '0 0 0 16px', fontSize: 12.5, color: '#374151', lineHeight: 1.7 }}>
               <li>Earnings released <strong>once a month on the 20th</strong></li>
-              <li><strong>10% platform fee</strong> deducted from gross earnings</li>
+              <li>All completed collabs from the cycle are bundled into one payout</li>
               <li>Complete <strong>KYC verification</strong> before your first payout</li>
             </ul>
           </div>

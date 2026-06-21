@@ -180,8 +180,11 @@ export default function BrowseGigsPage() {
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)' }}>
                       <IndianRupee size={14} />
-                      {gig.max_budget ? formatINR(gig.max_budget) : 'Barter'}
+                      {gig.max_budget ? formatINR(Math.floor(gig.max_budget * 0.9)) : 'Barter'}
                     </div>
+                    {gig.max_budget && (
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1, textAlign: 'right' }}>you earn</div>
+                    )}
                     {gig.min_followers && (
                       <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
                         Min {formatNumber(gig.min_followers)} followers

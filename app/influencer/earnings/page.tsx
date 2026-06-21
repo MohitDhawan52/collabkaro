@@ -211,7 +211,7 @@ export default function EarningsPage() {
                     Payout · {new Date(cycle.cycle_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                   </div>
                   <div className="dash-row-meta">
-                    Gross {formatINR(cycle.amount)} · Fee {formatINR(cycle.platform_fee)}
+                    {new Date(cycle.cycle_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                     {cycle.notes && ` · ${cycle.notes}`}
                   </div>
                 </div>
@@ -233,7 +233,7 @@ export default function EarningsPage() {
       <div style={{ display: 'flex', gap: 10, padding: '14px 18px', borderRadius: 16, background: 'rgba(29,78,216,0.04)', border: '1px solid rgba(29,78,216,0.1)', marginTop: 8 }}>
         <Info size={16} style={{ color: '#1d4ed8', flexShrink: 0, marginTop: 1 }} />
         <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>
-          <strong>Payout Policy:</strong> CollabKaro releases influencer earnings once a month on the <strong>20th</strong>. All completed collabs from the previous cycle are included. A 10% platform fee is deducted from gross earnings. KYC verification is required before your first payout.
+          <strong>Payout Policy:</strong> CollabKaro releases influencer earnings once a month on the <strong>20th</strong>. All completed collabs from the previous cycle are included. KYC verification is required before your first payout.
         </div>
       </div>
     </div>

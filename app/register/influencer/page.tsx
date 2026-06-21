@@ -308,7 +308,6 @@ export default function InfluencerRegisterPage() {
                     <ul style={{ margin: 0, padding: '0 0 0 18px', fontSize: 13, color: '#374151', lineHeight: 1.7 }}>
                       <li>CollabKaro releases influencer earnings <strong>once a month on the 20th</strong>.</li>
                       <li>Earnings from all completed collaborations in the previous cycle are bundled into one payout.</li>
-                      <li>A <strong>10% platform fee</strong> is deducted from your gross earnings.</li>
                       <li>You must complete <strong>KYC verification</strong> (PAN + Aadhaar) before your first payout can be released.</li>
                       <li>If the 20th falls on a weekend/holiday, payouts may be processed the next business day.</li>
                     </ul>
@@ -326,7 +325,11 @@ export default function InfluencerRegisterPage() {
                       {form.terms_accepted && <Check size={13} color="white" />}
                     </span>
                     <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                      I agree to CollabKaro's Terms of Service and Privacy Policy, confirm the information provided is accurate, and <strong>understand that payouts are processed on the 20th of every month</strong>.
+                      I agree to CollabKaro's{' '}
+                      <span style={{ textDecoration: 'underline', cursor: 'default' }}>Terms of Service</span>
+                      {' '}and{' '}
+                      <span style={{ textDecoration: 'underline', cursor: 'default' }}>Privacy Policy</span>
+                      , confirm the information provided is accurate, and understand that payouts are processed on the 20th of every month. By accepting, I further acknowledge and agree to all clauses of CollabKaro's Influencer Services Agreement including without limitation clause 8.3 (Platform Facilitation Margin), clause 11.2 (Settlement Timelines), and clause 14.7 (Fee Structures applicable to Collaboration payouts as determined solely by CollabKaro at its discretion from time to time).
                     </span>
                   </label>
                 </motion.div>

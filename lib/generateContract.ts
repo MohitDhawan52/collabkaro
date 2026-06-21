@@ -111,7 +111,6 @@ export function generateContract(data: ContractData) {
   y = field('Collaboration Type', data.collabType === 'barter' ? 'Product Barter (No monetary payment)' : 'Paid Collaboration', y)
   if (data.collabType === 'paid') {
     y = field('Agreed Amount', formatINR(data.agreedAmount), y)
-    y = field('Platform Fee', '10% commission deducted by CollabKaro', y)
   }
   if (data.timeline) y = field('Timeline', data.timeline, y)
   y += 4

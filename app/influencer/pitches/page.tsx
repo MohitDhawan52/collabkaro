@@ -123,7 +123,7 @@ export default function MyPitchesPage() {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
                 <div style={{ textAlign: 'right' }}>
-                  <div className="dash-row-title">{formatINR(pitch.gigs?.max_budget)}</div>
+                  <div className="dash-row-title">{pitch.gigs?.max_budget ? formatINR(Math.floor(pitch.gigs.max_budget * 0.9)) : '—'}</div>
                   <span className={badgeClass(pitch.status)} style={{ marginTop: 4 }}>{prettyStatus(pitch.status)}</span>
                 </div>
                 {pitch.status === 'pending' && (

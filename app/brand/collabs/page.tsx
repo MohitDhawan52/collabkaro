@@ -259,7 +259,7 @@ export default function BrandCollabsPage() {
                           <IndianRupee size={14} /> Both parties signed! Complete payment to activate the gig.
                         </div>
                         <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>
-                          Amount: {formatINR(collab.agreed_amount)} · Platform fee (10%) included. Razorpay integration coming soon.
+                          Amount: {formatINR(collab.agreed_amount)} · Razorpay integration coming soon.
                         </div>
                       </div>
                       <button onClick={() => simulatePayment(collab)} disabled={acting === collab.id}
