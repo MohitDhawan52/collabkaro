@@ -66,7 +66,7 @@ export default function BrandCollabsPage() {
     const { error } = await supabase.from('collaborations').update({
       status: 'agreement_signed_brand',
       brand_signed_at: new Date().toISOString(),
-    }).eq('id', collab.id)
+    }).eq('id', collab.id).eq('status', 'agreement_signed_influencer')
 
     if (error) {
       toast.error('Could not sign agreement')
@@ -97,8 +97,8 @@ export default function BrandCollabsPage() {
       if (infUserId) {
         await notify({
           userId: infUserId,
-          title: 'Payment Received — Gig is Live! 🚀',
-          message: `The brand has paid for "${collab.gigs?.title ?? 'your collaboration'}". Your gig is now live — go to Collaborations and start working on your deliverables!`,
+          title: 'Gig is Live! 🚀',
+          message: `The brand has confirmed payment for "${collab.gigs?.title ?? 'your collaboration'}". Your gig is now active — go to Collaborations and start working on your deliverables!`,
           type: 'success',
         })
       }
@@ -107,19 +107,20 @@ export default function BrandCollabsPage() {
   }
 
   async function approveDeliverable(collab: Collaboration) {
-    if (!confirm('Approve this deliverable and mark collaboration as complete?')) return
+    if (!confirm('Approve this deliverable? This will release payment to the influencer.')) return
     setActing(collab.id)
     const supabase = createClient()
     const { error } = await supabase.from('collaborations').update({
       status: 'completed',
       deliverable_approved_at: new Date().toISOString(),
-    }).eq('id', collab.id)
+      influencer_payment_status: 'released',
+    }).eq('id', collab.id).eq('status', 'deliverable_submitted')
 
     if (error) {
       toast.error('Could not approve deliverable')
     } else {
-      toast.success('Deliverable approved! Collaboration completed.')
-      setCollabs(prev => prev.map(c => c.id === collab.id ? { ...c, status: 'completed' } : c))
+      toast.success('Deliverable approved! Payment released to influencer.')
+      setCollabs(prev => prev.map(c => c.id === collab.id ? { ...c, status: 'completed', influencer_payment_status: 'released' } : c))
 
       // Notify the influencer
       const infUserId = (collab.influencer_profiles as unknown as { user_id?: string })?.user_id

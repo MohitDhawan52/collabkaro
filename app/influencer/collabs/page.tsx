@@ -73,7 +73,7 @@ export default function InfluencerCollabsPage() {
     const { error } = await supabase.from('collaborations').update({
       status: 'agreement_signed_influencer',
       influencer_signed_at: new Date().toISOString(),
-    }).eq('id', collab.id)
+    }).eq('id', collab.id).eq('status', 'agreement_pending')
 
     if (error) {
       toast.error('Could not sign agreement')

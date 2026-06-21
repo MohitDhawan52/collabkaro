@@ -12,5 +12,6 @@ export async function notify({
   type?: 'info' | 'success' | 'warning' | 'error'
 }) {
   const supabase = createClient()
-  await supabase.from('notifications').insert({ user_id: userId, title, message, type, read: false })
+  const { error } = await supabase.from('notifications').insert({ user_id: userId, title, message, type, read: false })
+  if (error) console.error('[notify] failed:', error.message)
 }

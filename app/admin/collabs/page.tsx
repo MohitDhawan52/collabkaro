@@ -27,6 +27,19 @@ const ALL_STATUSES: Collaboration['status'][] = [
   'active', 'deliverable_submitted', 'deliverable_approved', 'completed', 'cancelled', 'disputed'
 ]
 
+// Only allow valid next states per current state (admin can also cancel/dispute any active collab)
+const VALID_NEXT: Record<string, Collaboration['status'][]> = {
+  agreement_pending:            ['agreement_signed_influencer', 'cancelled'],
+  agreement_signed_influencer:  ['agreement_signed_brand', 'cancelled'],
+  agreement_signed_brand:       ['active', 'cancelled'],
+  active:                       ['deliverable_submitted', 'disputed', 'cancelled'],
+  deliverable_submitted:        ['completed', 'active', 'disputed'],
+  deliverable_approved:         ['completed'],
+  completed:                    [],
+  cancelled:                    [],
+  disputed:                     ['active', 'cancelled', 'completed'],
+}
+
 export default function AdminCollabsPage() {
   const [loading, setLoading] = useState(true)
   const [collabs, setCollabs] = useState<Collaboration[]>([])
@@ -124,11 +137,12 @@ export default function AdminCollabsPage() {
                   <select
                     value={collab.status}
                     onChange={(e) => updateStatus(collab, e.target.value as Collaboration['status'])}
-                    disabled={acting === collab.id}
+                    disabled={acting === collab.id || (VALID_NEXT[collab.status] ?? []).length === 0}
                     className="input"
                     style={{ fontSize: 12, padding: '7px 12px', width: 200 }}
                   >
-                    {ALL_STATUSES.map((s) => <option key={s} value={s}>{prettyStatus(s)}</option>)}
+                    <option value={collab.status}>{prettyStatus(collab.status)} (current)</option>
+                    {(VALID_NEXT[collab.status] ?? []).map((s) => <option key={s} value={s}>{prettyStatus(s)}</option>)}
                   </select>
                 </div>
               </div>

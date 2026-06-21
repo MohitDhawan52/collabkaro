@@ -135,6 +135,7 @@ export interface Pitch {
   brand_id: string
   influencer_id: string
   message: string
+  proposed_amount: number | null
   status: PitchStatus
   created_at: string
   updated_at: string

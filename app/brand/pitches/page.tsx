@@ -69,18 +69,24 @@ export default function BrandPitchesPage() {
       setPitches((prev) => prev.map((p) => p.id === pitch.id ? { ...p, status: action } : p))
 
       if (action === 'accepted') {
-        await supabase.from('collaborations').insert({
+        const gigCollabType = pitch.gigs?.collab_type
+        const { error: collabErr } = await supabase.from('collaborations').insert({
           pitch_id: pitch.id,
           gig_id: pitch.gig_id,
           brand_id: pitch.brand_id,
           influencer_id: pitch.influencer_id,
-          collab_type: pitch.gigs?.collab_type === 'barter' ? 'barter' : 'paid',
-          agreed_amount: pitch.gigs?.max_budget ?? null,
+          collab_type: gigCollabType === 'barter' ? 'barter' : 'paid',
+          agreed_amount: pitch.proposed_amount ?? pitch.gigs?.max_budget ?? null,
           status: 'agreement_pending',
           brand_payment_status: 'pending',
           influencer_payment_status: 'pending',
         })
-        // Notify the influencer — look up their user_id from influencer_profiles
+        if (collabErr) {
+          toast.error('Collaboration could not be created. Please try again.')
+          setActing(null)
+          return
+        }
+        // Notify the influencer
         const { data: infProfile } = await supabase
           .from('influencer_profiles').select('user_id').eq('id', pitch.influencer_id).single()
         if (infProfile?.user_id) {

@@ -52,7 +52,8 @@ export default function EarningsPage() {
       setTotalEarned(total)
 
       const pending = ((collabsRes.data as unknown as Collaboration[]) ?? []).filter(
-        (c) => c.influencer_payment_status === 'pending' && c.status !== 'completed'
+        (c) => c.influencer_payment_status === 'pending' &&
+          ['active', 'deliverable_submitted', 'agreement_signed_brand', 'agreement_signed_influencer'].includes(c.status)
       )
       setPendingCollabs(pending)
       setPendingAmount(pending.reduce((sum, c) => sum + (c.influencer_payout ?? c.agreed_amount ?? 0), 0))
