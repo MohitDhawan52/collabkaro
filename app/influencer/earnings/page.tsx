@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Wallet, TrendingUp, CheckCircle2, Clock } from 'lucide-react'
+import { Wallet, TrendingUp, CheckCircle2, Clock, ShieldCheck, AlertTriangle } from 'lucide-react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import type { Payment, Collaboration } from '@/types/index'
 
@@ -20,6 +21,7 @@ export default function EarningsPage() {
   const [pendingCollabs, setPendingCollabs] = useState<Collaboration[]>([])
   const [totalEarned, setTotalEarned] = useState(0)
   const [pendingAmount, setPendingAmount] = useState(0)
+  const [kycStatus, setKycStatus] = useState<'not_submitted' | 'pending' | 'approved' | 'rejected'>('not_submitted')
 
   useEffect(() => {
     async function load() {
@@ -30,6 +32,11 @@ export default function EarningsPage() {
       const { data: influencer } = await supabase
         .from('influencer_profiles').select('id').eq('user_id', user.id).single()
       if (!influencer) { setLoading(false); return }
+
+      const { data: kyc } = await supabase
+        .from('kyc_documents').select('status').eq('user_id', user.id).single()
+      if (kyc) setKycStatus(kyc.status as 'pending' | 'approved' | 'rejected')
+      else setKycStatus('not_submitted')
 
       const [paymentsRes, collabsRes] = await Promise.all([
         supabase
@@ -67,6 +74,33 @@ export default function EarningsPage() {
     <div>
       <div className="dash-page-title">Earnings</div>
       <div className="dash-page-subtitle">Track your payouts and upcoming payments.</div>
+
+      {/* KYC banner */}
+      {!loading && kycStatus !== 'approved' && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
+          padding: '14px 18px', borderRadius: 16, marginTop: 20,
+          background: kycStatus === 'pending' ? 'rgba(249,115,22,0.07)' : 'rgba(239,68,68,0.07)',
+          border: `1.5px solid ${kycStatus === 'pending' ? 'rgba(249,115,22,0.3)' : 'rgba(239,68,68,0.25)'}`,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {kycStatus === 'pending'
+              ? <Clock size={18} style={{ color: '#ea580c', flexShrink: 0 }} />
+              : <AlertTriangle size={18} style={{ color: '#dc2626', flexShrink: 0 }} />}
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: kycStatus === 'pending' ? '#9a3412' : '#7f1d1d' }}>
+                {kycStatus === 'pending' ? 'KYC Under Review' : kycStatus === 'rejected' ? 'KYC Rejected — Re-submit Required' : 'KYC Verification Required'}
+              </div>
+              <div style={{ fontSize: 12.5, color: '#6b7280', marginTop: 2 }}>
+                {kycStatus === 'pending' ? 'Your documents are being verified. Payouts will be enabled once approved.' : 'Complete KYC to unlock payout eligibility.'}
+              </div>
+            </div>
+          </div>
+          <Link href="/influencer/kyc" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 10, background: 'linear-gradient(135deg,#1d4ed8,#06b6d4)', color: '#fff', fontWeight: 700, fontSize: 13, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            <ShieldCheck size={13} /> {kycStatus === 'rejected' ? 'Re-submit KYC' : kycStatus === 'pending' ? 'View Status' : 'Complete KYC'}
+          </Link>
+        </div>
+      )}
 
       {/* Stat cards */}
       <div className="dash-stats-grid" style={{ marginTop: 24 }}>
