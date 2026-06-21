@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Briefcase, Inbox, FileSignature, Upload, CheckCircle2, Clock, Zap } from 'lucide-react'
+import { Briefcase, Inbox, FileSignature, Upload, CheckCircle2, Clock, Zap, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase'
 import { notify } from '@/lib/notifications'
 import CollabChat from '@/app/components/CollabChat'
 import ReviewForm from '@/app/components/ReviewForm'
+import { generateContract } from '@/lib/generateContract'
 import type { Collaboration } from '@/types/index'
 
 function formatINR(amount: number | null | undefined) {
@@ -174,7 +175,28 @@ export default function InfluencerCollabsPage() {
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontWeight: 800, fontSize: 20, color: '#0c1445' }}>{formatINR(collab.influencer_payout ?? collab.agreed_amount)}</div>
                     <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>your payout</div>
-                    <div style={{ marginTop: 6 }}><StatusBadge status={collab.status} /></div>
+                    <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                      <StatusBadge status={collab.status} />
+                      {!['agreement_pending', 'agreement_signed_influencer'].includes(collab.status) && (
+                        <button
+                          onClick={() => generateContract({
+                            gigTitle: collab.gigs?.title ?? 'Collaboration',
+                            deliverables: collab.gigs?.deliverables ?? '',
+                            timeline: collab.gigs?.timeline,
+                            collabType: collab.collab_type,
+                            agreedAmount: collab.agreed_amount,
+                            brandName: collab.brand_profiles?.brand_name ?? 'Brand',
+                            influencerName: myName,
+                            brandSignedAt: collab.brand_signed_at,
+                            influencerSignedAt: collab.influencer_signed_at,
+                            createdAt: collab.created_at,
+                          })}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 8, border: '1px solid rgba(29,78,216,0.25)', background: 'rgba(29,78,216,0.06)', color: '#1d4ed8', fontSize: 11.5, fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          <Download size={12} /> Contract
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
