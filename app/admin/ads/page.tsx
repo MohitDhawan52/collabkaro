@@ -53,15 +53,27 @@ export default function AdminAdsPage() {
   async function load() {
     const supabase = createClient()
 
-    const [adsRes, txnRes, eventRes] = await Promise.all([
-      supabase.from('gig_ads').select('*, gigs(title), brand_profiles!gig_ads_brand_user_id_fkey(company_name)').order('created_at', { ascending: false }),
+    const [txnRes, eventRes] = await Promise.all([
       supabase.from('wallet_transactions').select('ad_id, total_amount, gst_amount').eq('type', 'debit').not('ad_id', 'is', null),
       supabase.from('ad_events').select('ad_id, event_type'),
     ])
 
-    // Fallback if brand_profiles join fails
-    const loadedAds = (adsRes.data ?? adsRes.data) as unknown as GigAd[]
-    setAds(loadedAds ?? [])
+    // Try with brand join; fall back to simple query if it errors
+    let loadedAds: GigAd[] = []
+    const { data: adsWithBrand, error: adsErr } = await supabase
+      .from('gig_ads')
+      .select('*, gigs(title), brand_profiles!gig_ads_brand_user_id_fkey(company_name)')
+      .order('created_at', { ascending: false })
+    if (!adsErr && adsWithBrand) {
+      loadedAds = adsWithBrand as unknown as GigAd[]
+    } else {
+      const { data: adsSimple } = await supabase
+        .from('gig_ads')
+        .select('*, gigs(title)')
+        .order('created_at', { ascending: false })
+      loadedAds = (adsSimple as unknown as GigAd[]) ?? []
+    }
+    setAds(loadedAds)
 
     // Build spend map per ad
     const sm: Record<string, TxnSummary> = {}
