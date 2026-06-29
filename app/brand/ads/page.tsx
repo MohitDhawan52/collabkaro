@@ -12,7 +12,7 @@ import { createClient } from '@/lib/supabase'
 
 const GST = 0.18
 
-interface Gig { id: string; title: string }
+interface Gig { id: string; title: string; influencer_limit: number | null; accepted_count: number }
 interface GigAd {
   id: string; gig_id: string; daily_budget: number; total_budget: number | null
   start_date: string; end_date: string | null; run_continuously: boolean
@@ -67,13 +67,21 @@ export default function BrandAdsPage() {
 
     const [adsRes, gigsRes, walletRes] = await Promise.all([
       supabase.from('gig_ads').select('*, gigs(title)').eq('brand_user_id', user.id).order('created_at', { ascending: false }),
-      supabase.from('gigs').select('id, title').eq('status', 'active').order('created_at', { ascending: false }),
+      supabase.from('gigs').select('id, title, influencer_limit, collaborations(id)').eq('status', 'active').order('created_at', { ascending: false }),
       supabase.from('brand_wallet').select('balance').eq('brand_user_id', user.id).maybeSingle(),
     ])
 
     const loadedAds = (adsRes.data as unknown as GigAd[]) ?? []
     setAds(loadedAds)
-    setGigs(gigsRes.data ?? [])
+    // Map gigs to include accepted_count and filter out fully filled ones
+    const rawGigs = (gigsRes.data ?? []) as (Omit<Gig, 'accepted_count'> & { collaborations?: { id: string }[]; influencer_limit: number | null })[]
+    const mappedGigs: Gig[] = rawGigs.map(g => ({
+      id: g.id,
+      title: g.title,
+      influencer_limit: g.influencer_limit ?? null,
+      accepted_count: (g.collaborations ?? []).length,
+    }))
+    setGigs(mappedGigs)
     setWallet((walletRes.data as { balance: number } | null)?.balance ?? 0)
 
     if (loadedAds.length > 0) {
@@ -301,15 +309,16 @@ export default function BrandAdsPage() {
                     {ad.status.charAt(0).toUpperCase() + ad.status.slice(1)}
                   </span>
 
-                  {ad.status === 'pending' && (
-                    <>
-                      <button onClick={() => openEdit(ad)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, border: '1.5px solid #bfdbfe', background: '#eff6ff', color: '#1d4ed8', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                        <Edit2 size={12} /> Edit
-                      </button>
-                      <button onClick={() => deleteAd(ad.id)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, border: '1.5px solid #fca5a5', background: '#fff1f2', color: '#b91c1c', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                        <Trash2 size={12} /> Remove
-                      </button>
-                    </>
+                  {/* Edit available on pending + paused; Delete always available */}
+                  {(ad.status === 'pending' || ad.status === 'paused') && (
+                    <button onClick={() => openEdit(ad)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, border: '1.5px solid #bfdbfe', background: '#eff6ff', color: '#1d4ed8', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      <Edit2 size={12} /> Edit
+                    </button>
+                  )}
+                  {ad.status !== 'active' && (
+                    <button onClick={() => deleteAd(ad.id)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, border: '1.5px solid #fca5a5', background: '#fff1f2', color: '#b91c1c', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      <Trash2 size={12} /> Delete
+                    </button>
                   )}
                   {(ad.status === 'active' || ad.status === 'paused') && !ad.strike && (
                     <button onClick={() => togglePause(ad)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -381,7 +390,17 @@ export default function BrandAdsPage() {
                   <label style={lbl}>Select Gig *</label>
                   <select value={form.gig_id} onChange={e => setForm(p => ({ ...p, gig_id: e.target.value }))} style={inp}>
                     <option value="">Choose a gig to promote...</option>
-                    {gigs.map(g => <option key={g.id} value={g.id}>{g.title}</option>)}
+                    {gigs
+                      .filter(g => g.influencer_limit === null || g.accepted_count < g.influencer_limit)
+                      .map(g => {
+                        const remaining = g.influencer_limit !== null ? g.influencer_limit - g.accepted_count : null
+                        return (
+                          <option key={g.id} value={g.id}>
+                            {g.title}{remaining !== null ? ` (${remaining} slot${remaining !== 1 ? 's' : ''} left)` : ''}
+                          </option>
+                        )
+                      })
+                    }
                   </select>
                 </div>
 

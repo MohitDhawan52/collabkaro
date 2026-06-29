@@ -66,7 +66,7 @@ export default function BrowseGigsPage() {
     const [gigsRes, influencerRes, adsRes] = await Promise.all([
       supabase
         .from('gigs')
-        .select('*, brand_profiles(brand_name, industry, location)')
+        .select('*, brand_profiles(brand_name, industry, location), collaborations(id)')
         .eq('status', 'active')
         .order('created_at', { ascending: false }),
       supabase
@@ -95,7 +95,13 @@ export default function BrowseGigsPage() {
     // 4-hour verified priority: hide gigs posted < 4h ago for non-verified
     const now = Date.now()
     const fourHours = 4 * 60 * 60 * 1000
-    const allGigs = (gigsRes.data as unknown as Gig[]) ?? []
+    const rawGigs = (gigsRes.data as unknown as (Gig & { collaborations?: { id: string }[]; influencer_limit?: number | null })[]) ?? []
+    // Hide gigs that have reached their influencer limit
+    const openGigs = rawGigs.filter(g => {
+      if (!g.influencer_limit) return true
+      return (g.collaborations ?? []).length < g.influencer_limit
+    })
+    const allGigs = openGigs
     const visibleGigs = verified
       ? allGigs
       : allGigs.filter(g => (now - new Date(g.created_at).getTime()) >= fourHours)
@@ -264,6 +270,16 @@ export default function BrowseGigsPage() {
                     {gig.min_followers && (
                       <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
                         Min {formatNumber(gig.min_followers)} followers
+                      </div>
+                    )}
+                    {(gig as Gig & { influencer_limit?: number | null; collaborations?: { id: string }[] }).influencer_limit && (
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#8b5cf6', marginTop: 2 }}>
+                        {(() => {
+                          const limit = (gig as Gig & { influencer_limit?: number | null; collaborations?: { id: string }[] }).influencer_limit!
+                          const taken = ((gig as Gig & { collaborations?: { id: string }[] }).collaborations ?? []).length
+                          const left = limit - taken
+                          return `${left} of ${limit} slot${limit !== 1 ? 's' : ''} left`
+                        })()}
                       </div>
                     )}
                     <button

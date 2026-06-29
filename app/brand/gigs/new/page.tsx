@@ -27,6 +27,7 @@ const schema = z.object({
   niche_required: z.array(z.string()).min(1, 'Select at least one niche'),
   platforms: z.array(z.string()).min(1, 'Select at least one platform'),
   min_followers: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
+  influencer_limit: z.coerce.number().min(1, 'Must be at least 1').max(500, 'Max 500'),
   max_budget: z.union([z.coerce.number().min(1, 'Please enter a budget'), z.literal('')]).optional(),
   deliverables: z.string().min(10, 'Please describe what you need from the creator'),
   timeline: z.string().optional(),
@@ -106,6 +107,7 @@ export default function PostGigPage() {
       collab_type: 'paid',
       niche_required: [],
       platforms: [],
+      influencer_limit: 1,
     },
   })
 
@@ -142,6 +144,7 @@ export default function PostGigPage() {
         niche_required: data.niche_required,
         platforms: data.platforms,
         min_followers: data.min_followers || null,
+        influencer_limit: data.influencer_limit,
         max_budget: data.max_budget || null,
         deliverables: data.deliverables,
         timeline: data.timeline || null,
@@ -357,6 +360,26 @@ export default function PostGigPage() {
                   min={0}
                 />
                 {errors.min_followers && <span style={errStyle}>{errors.min_followers.message}</span>}
+              </div>
+
+              <div>
+                <label style={labelStyle}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <Users size={13} /> Number of Influencers Wanted *
+                  </span>
+                </label>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2, marginBottom: 8 }}>
+                  How many creators do you want to finalize for this campaign? Pitches are unlimited — you pick the best ones up to this limit.
+                </div>
+                <input
+                  {...register('influencer_limit')}
+                  type="number"
+                  className="input"
+                  placeholder="e.g. 5"
+                  min={1}
+                  max={500}
+                />
+                {errors.influencer_limit && <span style={errStyle}>{errors.influencer_limit.message}</span>}
               </div>
             </div>
           )}
