@@ -81,7 +81,7 @@ export default function AdminPayoutsPage() {
       if (!map[inf.user_id]) {
         map[inf.user_id] = { user_id: inf.user_id, influencer_id: inf.id, full_name: inf.full_name ?? 'Unknown', instagram_handle: inf.instagram_handle, kyc_status: null, collabs: [], gross: 0, fee: 0, net: 0 }
       }
-      map[inf.user_id].collabs.push({ id: c.id, title: (c.gigs as { title: string | null } | null)?.title ?? 'Collaboration', net })
+      map[inf.user_id].collabs.push({ id: c.id, title: (c.gigs as unknown as { title: string | null } | null)?.title ?? 'Collaboration', net })
       map[inf.user_id].gross += gross
       map[inf.user_id].fee += fee
       map[inf.user_id].net += net
