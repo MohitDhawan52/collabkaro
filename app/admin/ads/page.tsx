@@ -47,6 +47,25 @@ export default function AdminAdsPage() {
   // Aggregated spend + events per ad
   const [spendMap, setSpendMap] = useState<Record<string, TxnSummary>>({})
   const [eventMap, setEventMap] = useState<Record<string, EventSummary>>({})
+  const [processing, setProcessing] = useState(false)
+
+  async function runAdCycle() {
+    setProcessing(true)
+    try {
+      const res = await fetch('/api/ads/process', { method: 'POST' })
+      const data = await res.json()
+      if (data.ok) {
+        toast.success(`Done — Charged: ${data.charged} · Paused (low funds): ${data.paused_no_funds} · Ended: ${data.ended_date}`)
+        load()
+      } else {
+        toast.error(data.error ?? 'Processing failed')
+      }
+    } catch {
+      toast.error('Failed to run ad cycle')
+    } finally {
+      setProcessing(false)
+    }
+  }
 
   useEffect(() => {
     load()
@@ -160,11 +179,19 @@ export default function AdminAdsPage() {
 
   return (
     <div>
-      <div className="dash-page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <Megaphone size={22} style={{ color: '#f59e0b' }} />
-        Gig Ads Management
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <div className="dash-page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Megaphone size={22} style={{ color: '#f59e0b' }} />
+            Gig Ads Management
+          </div>
+          <div className="dash-page-subtitle">Review, approve, and moderate all brand gig ad campaigns.</div>
+        </div>
+        <button onClick={runAdCycle} disabled={processing}
+          style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '10px 20px', borderRadius: 12, border: 'none', background: processing ? '#9ca3af' : 'linear-gradient(135deg,#10b981,#059669)', color: '#fff', fontWeight: 700, fontSize: 13.5, cursor: processing ? 'not-allowed' : 'pointer', boxShadow: '0 4px 14px rgba(16,185,129,0.3)', fontFamily: 'inherit' }}>
+          {processing ? '⏳ Processing…' : '▶ Run Ad Cycle (Deduct Today)'}
+        </button>
       </div>
-      <div className="dash-page-subtitle">Review, approve, and moderate all brand gig ad campaigns.</div>
 
       {/* Platform Earnings */}
       <div style={{ marginTop: 20, padding: '20px 24px', borderRadius: 20, background: 'linear-gradient(135deg,#0c1445,#1d4ed8)', boxShadow: '0 6px 24px rgba(29,78,216,0.25)' }}>

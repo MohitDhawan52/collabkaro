@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/ads/process",
+      "schedule": "30 18 * * *"
+    }
+  ]
+}
