@@ -254,7 +254,7 @@ export default function AdsAnalyticsPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
                 <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9ca3af' }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} tickLine={false} axisLine={false} tickFormatter={v => `₹${v}`} />
-                <Tooltip formatter={(v: number) => [`₹${v}`, 'Spend']} contentStyle={{ borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 12 }} />
+                <Tooltip formatter={(v) => [`₹${Number(v).toFixed(2)}`, 'Spend']} contentStyle={{ borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 12 }} />
                 <Line type="monotone" dataKey="Spend" stroke="#f59e0b" strokeWidth={2.5} dot={{ r: 3, fill: '#f59e0b' }} />
               </LineChart>
             </ResponsiveContainer>
