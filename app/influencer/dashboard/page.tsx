@@ -47,6 +47,7 @@ export default function InfluencerDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [influencerName, setInfluencerName] = useState<string | null>(null)
   const [gigs, setGigs] = useState<Gig[]>([])
+  const [sponsoredGigIds, setSponsoredGigIds] = useState<Set<string>>(new Set())
   const [pitches, setPitches] = useState<Pitch[]>([])
   const [collabs, setCollabs] = useState<Collaboration[]>([])
   const [totalEarnings, setTotalEarnings] = useState(0)
@@ -98,20 +99,27 @@ export default function InfluencerDashboardPage() {
         .order('created_at', { ascending: false })
         .limit(20)
 
-      const { data: allGigs } = await gigsQuery
+      const [allGigsRes, adsRes] = await Promise.all([
+        gigsQuery,
+        supabase.from('gig_ads').select('gig_id').eq('status', 'active'),
+      ])
+
+      const sponsoredIds = new Set<string>(((adsRes.data ?? []) as { gig_id: string }[]).map(a => a.gig_id))
+      setSponsoredGigIds(sponsoredIds)
 
       // Client-side filter: niche overlap + min_followers check + not already applied/active
-      const filtered = ((allGigs as unknown as Gig[]) ?? []).filter(gig => {
-        if (pitchedGigIds.has(gig.id)) return false      // already pitched
-        if (activeCollabGigIds.has(gig.id)) return false  // already in active collab
-        // Niche match — show if gig requires no niche OR influencer matches at least one
+      const open = ((allGigsRes.data as unknown as Gig[]) ?? []).filter(gig => {
+        if (pitchedGigIds.has(gig.id)) return false
+        if (activeCollabGigIds.has(gig.id)) return false
         const nicheMatch = !gig.niche_required?.length || gig.niche_required.some(n => myNiches.includes(n))
-        // Followers match — show if no min set OR influencer meets it
         const followersMatch = !gig.min_followers || myFollowers >= gig.min_followers
         return nicheMatch && followersMatch
-      }).slice(0, 5)
+      })
 
-      setGigs(filtered)
+      // Sponsored gigs first, then rest
+      const sponsored = open.filter(g => sponsoredIds.has(g.id))
+      const regular = open.filter(g => !sponsoredIds.has(g.id))
+      setGigs([...sponsored, ...regular].slice(0, 5))
       setLoading(false)
     }
     load()
@@ -159,22 +167,32 @@ export default function InfluencerDashboardPage() {
               <Inbox size={24} style={{ color: '#d1d5db', margin: '0 auto 10px', display: 'block' }} />
               <div style={{ fontSize: 13, color: '#9ca3af' }}>No matching gigs right now. Check back soon!</div>
             </div>
-          ) : gigs.map((gig) => (
-            <Link key={gig.id} href={`/influencer/gigs/${gig.id}`} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 14, padding: '13px 20px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(29,78,216,0.04)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(168,85,247,0.1)', color: '#a855f7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Sparkles size={16} /></div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: 14, color: '#0c1445' }}>{gig.title}</div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{(gig.brand_profiles as unknown as {brand_name?: string})?.brand_name ?? 'Brand'} · {gig.collab_type}</div>
-              </div>
-              <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: '#0c1445' }}>{gig.max_budget ? formatINR(gig.max_budget) : 'Barter'}</div>
-                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>you earn</div>
-              </div>
-              <ArrowRight size={14} style={{ color: '#9ca3af', flexShrink: 0 }} />
-            </Link>
-          ))}
+          ) : gigs.map((gig) => {
+            const isSponsored = sponsoredGigIds.has(gig.id)
+            return (
+              <Link key={gig.id} href={`/influencer/gigs/${gig.id}`}
+                style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 14, padding: '13px 20px', borderBottom: '1px solid rgba(0,0,0,0.04)', background: isSponsored ? 'linear-gradient(90deg,rgba(245,158,11,0.04),transparent)' : 'transparent' }}
+                onMouseEnter={e => (e.currentTarget.style.background = isSponsored ? 'rgba(245,158,11,0.08)' : 'rgba(29,78,216,0.04)')}
+                onMouseLeave={e => (e.currentTarget.style.background = isSponsored ? 'linear-gradient(90deg,rgba(245,158,11,0.04),transparent)' : 'transparent')}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: isSponsored ? 'rgba(245,158,11,0.12)' : 'rgba(168,85,247,0.1)', color: isSponsored ? '#f59e0b' : '#a855f7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {isSponsored ? <Zap size={16} /> : <Sparkles size={16} />}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    <span style={{ fontWeight: 600, fontSize: 14, color: '#0c1445' }}>{gig.title}</span>
+                    {isSponsored && (
+                      <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: 'linear-gradient(90deg,#f59e0b,#f97316)', color: '#fff', letterSpacing: 0.4 }}>SPONSORED</span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{(gig.brand_profiles as unknown as {brand_name?: string})?.brand_name ?? 'Brand'} · {gig.collab_type}</div>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: '#0c1445' }}>{gig.max_budget ? formatINR(Math.floor(gig.max_budget * 0.9)) : 'Barter'}</div>
+                </div>
+                <ArrowRight size={14} style={{ color: '#9ca3af', flexShrink: 0 }} />
+              </Link>
+            )
+          })}
         </div>
       </div>
 
@@ -198,7 +216,7 @@ export default function InfluencerDashboardPage() {
               <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(99,102,241,0.1)', color: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Send size={15} /></div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: 14, color: '#0c1445' }}>{pitch.gigs?.title ?? 'Gig'}</div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{pitch.gigs?.max_budget ? formatINR(pitch.gigs.max_budget) : '—'} · {pitch.gigs?.collab_type}</div>
+                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{pitch.gigs?.max_budget ? formatINR(Math.floor(pitch.gigs.max_budget * 0.9)) : '—'} · {pitch.gigs?.collab_type}</div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                 <span style={{ ...pitchStatusStyle(pitch.status), fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999 }}>{prettyStatus(pitch.status)}</span>

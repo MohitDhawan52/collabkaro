@@ -196,7 +196,7 @@ export default function GigDetailPage() {
       {/* Stats row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
         {[
-          { icon: <IndianRupee size={15} />, label: 'You Earn', value: gig.max_budget ? formatINR(gig.max_budget) : '—' },
+          { icon: <IndianRupee size={15} />, label: 'You Earn', value: gig.max_budget ? formatINR(Math.floor(gig.max_budget * 0.9)) : '—' },
           { icon: <Users size={15} />, label: 'Min Followers', value: formatNumber(gig.min_followers) ?? 'Any' },
           { icon: <Clock size={15} />, label: 'Timeline', value: gig.timeline ?? 'Flexible' },
         ].map((stat) => (
