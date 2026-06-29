@@ -55,7 +55,25 @@ export default function BrowseGigsPage() {
   const [pitchMessage, setPitchMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    load()
+    const supabase = createClient()
+    const channel = supabase
+      .channel('influencer-gig-ads-rt')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'gig_ads' }, () => { load() })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'gig_ads' }, (payload) => {
+        const updated = payload.new as { id: string; gig_id: string; status: string }
+        if (updated.status === 'active') {
+          setSponsoredGigIds(prev => new Set([...prev, updated.gig_id]))
+          setGigToAdId(prev => ({ ...prev, [updated.gig_id]: updated.id }))
+        } else {
+          setSponsoredGigIds(prev => { const s = new Set(prev); s.delete(updated.gig_id); return s })
+          setGigToAdId(prev => { const m = { ...prev }; delete m[updated.gig_id]; return m })
+        }
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [])
 
   async function load() {
     setLoading(true)

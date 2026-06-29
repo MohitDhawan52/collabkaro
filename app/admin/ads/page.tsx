@@ -48,7 +48,21 @@ export default function AdminAdsPage() {
   const [spendMap, setSpendMap] = useState<Record<string, TxnSummary>>({})
   const [eventMap, setEventMap] = useState<Record<string, EventSummary>>({})
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    load()
+    const supabase = createClient()
+    const channel = supabase
+      .channel('admin-gig-ads-rt')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'gig_ads' }, () => {
+        toast.info('New ad submitted — refreshing…')
+        load()
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'gig_ads' }, (payload) => {
+        setAds(prev => prev.map(a => a.id === payload.new.id ? { ...a, ...(payload.new as Partial<GigAd>) } : a))
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [])
 
   async function load() {
     const supabase = createClient()
