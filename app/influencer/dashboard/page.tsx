@@ -169,7 +169,7 @@ export default function InfluencerDashboardPage() {
                 <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{(gig.brand_profiles as unknown as {brand_name?: string})?.brand_name ?? 'Brand'} · {gig.collab_type}</div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: '#0c1445' }}>{gig.max_budget ? formatINR(Math.floor(gig.max_budget * 0.9)) : 'Barter'}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: '#0c1445' }}>{gig.max_budget ? formatINR(gig.max_budget) : 'Barter'}</div>
                 <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>you earn</div>
               </div>
               <ArrowRight size={14} style={{ color: '#9ca3af', flexShrink: 0 }} />
@@ -198,7 +198,7 @@ export default function InfluencerDashboardPage() {
               <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(99,102,241,0.1)', color: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Send size={15} /></div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: 14, color: '#0c1445' }}>{pitch.gigs?.title ?? 'Gig'}</div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{pitch.gigs?.max_budget ? formatINR(Math.floor(pitch.gigs.max_budget * 0.9)) : '—'} · {pitch.gigs?.collab_type}</div>
+                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{pitch.gigs?.max_budget ? formatINR(pitch.gigs.max_budget) : '—'} · {pitch.gigs?.collab_type}</div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                 <span style={{ ...pitchStatusStyle(pitch.status), fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999 }}>{prettyStatus(pitch.status)}</span>

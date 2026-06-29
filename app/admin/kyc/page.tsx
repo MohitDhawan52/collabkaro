@@ -55,10 +55,30 @@ export default function AdminKYCPage() {
     const supabase = createClient()
     const { data, error } = await supabase
       .from('kyc_documents')
-      .select(`*, influencer_profiles(full_name, instagram_handle, niche)`)
+      .select('*')
       .order('submitted_at', { ascending: false })
-    if (error) { toast.error(error.message); setLoading(false); return }
-    setRecords((data ?? []) as KYCRecord[])
+    if (error) {
+      if (error.message.includes('kyc_documents')) {
+        toast.error('Run the kyc_documents SQL migration in Supabase first')
+      } else {
+        toast.error(error.message)
+      }
+      setLoading(false)
+      return
+    }
+
+    // Fetch influencer profiles separately (no FK constraint needed)
+    const userIds = (data ?? []).map((r: { user_id: string }) => r.user_id)
+    let profileMap: Record<string, { full_name: string | null; instagram_handle: string | null; niche: string | null }> = {}
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('influencer_profiles')
+        .select('user_id, full_name, instagram_handle, niche')
+        .in('user_id', userIds)
+      for (const p of profiles ?? []) profileMap[p.user_id] = p
+    }
+
+    setRecords((data ?? []).map((r: { user_id: string }) => ({ ...r, influencer_profiles: profileMap[r.user_id] ?? null })) as KYCRecord[])
     setLoading(false)
   }
 

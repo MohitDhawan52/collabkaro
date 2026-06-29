@@ -32,10 +32,28 @@ export default function AdminVerificationsPage() {
     const supabase = createClient()
     const { data, error } = await supabase
       .from('verification_requests')
-      .select('*, influencer_profiles(full_name, instagram_handle, niche)')
+      .select('*')
       .order('applied_at', { ascending: false })
-    if (error) { toast.error(error.message); return }
-    setRequests((data as unknown as VerifRequest[]) ?? [])
+    if (error) { toast.error(error.message); setLoading(false); return }
+
+    // Fetch influencer profiles separately (no FK constraint)
+    const userIds = (data ?? []).map((r: { user_id: string }) => r.user_id)
+    let profileMap: Record<string, { full_name: string | null; instagram_handle: string | null; niche: string | null }> = {}
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('influencer_profiles')
+        .select('user_id, full_name, instagram_handle, niche')
+        .in('user_id', userIds)
+      for (const p of profiles ?? []) {
+        profileMap[p.user_id] = p
+      }
+    }
+
+    const merged = (data ?? []).map((r: { user_id: string }) => ({
+      ...r,
+      influencer_profiles: profileMap[r.user_id] ?? null,
+    }))
+    setRequests(merged as unknown as VerifRequest[])
     setLoading(false)
   }
 

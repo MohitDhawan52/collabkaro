@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { ArrowLeft, Sparkles, IndianRupee, Users, Clock, Send, X } from 'lucide-react'
+import { ArrowLeft, Sparkles, IndianRupee, Users, Clock, Send, X, Calendar } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import { sendEmail } from '@/lib/sendEmail'
 import { pitchReceivedEmail } from '@/lib/emailTemplates'
 import type { Gig } from '@/types/index'
+
+interface ParsedDeliverable { type: string; emoji: string; qty: number; due_date: string }
 
 function formatINR(amount: number | null | undefined) {
   if (amount == null) return 'Open to negotiate'
@@ -21,6 +23,20 @@ function formatNumber(n: number | null | undefined) {
   return n.toString()
 }
 
+function fmtDate(d: string) {
+  return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+async function trackImpression(ad_id: string, viewer_user_id: string) {
+  try {
+    await fetch('/api/ads/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ad_id, event_type: 'impression', viewer_user_id }),
+    })
+  } catch { /* silent */ }
+}
+
 export default function GigDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
@@ -30,19 +46,31 @@ export default function GigDetailPage() {
   const [showModal, setShowModal] = useState(false)
   const [pitchMessage, setPitchMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [isSponsored, setIsSponsored] = useState(false)
+  const [adId, setAdId] = useState<string | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+      setCurrentUserId(user.id)
 
-      const [gigRes, influencerRes] = await Promise.all([
+      const [gigRes, influencerRes, adRes] = await Promise.all([
         supabase.from('gigs').select('*, brand_profiles(brand_name, industry, location, description)').eq('id', id).single(),
         supabase.from('influencer_profiles').select('id').eq('user_id', user.id).single(),
+        supabase.from('gig_ads').select('id').eq('gig_id', id).eq('status', 'active').maybeSingle(),
       ])
 
       setGig(gigRes.data as unknown as Gig)
+
+      if (adRes.data?.id) {
+        setIsSponsored(true)
+        setAdId(adRes.data.id)
+        // Fire impression for viewing this sponsored gig detail
+        trackImpression(adRes.data.id, user.id)
+      }
 
       if (influencerRes.data) {
         const { data: pitch } = await supabase
@@ -76,11 +104,18 @@ export default function GigDetailPage() {
 
     if (error) toast.error('Could not submit pitch')
     else {
+      // Track pitch_click for sponsored gig
+      if (adId && currentUserId) {
+        await fetch('/api/ads/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ad_id: adId, event_type: 'pitch_click', viewer_user_id: currentUserId }),
+        }).catch(() => {})
+      }
       toast.success('Pitch sent!')
       setAlreadyPitched(true)
       setShowModal(false)
       setPitchMessage('')
-      // Email brand about new pitch
       const { data: brandProfile } = await supabase
         .from('brand_profiles').select('user_id, brand_name').eq('id', gig.brand_id).single()
       if (brandProfile?.user_id) {
@@ -94,6 +129,12 @@ export default function GigDetailPage() {
       }
     }
     setSubmitting(false)
+  }
+
+  // Parse deliverables JSON
+  let parsedDeliverables: ParsedDeliverable[] = []
+  if (gig?.deliverables) {
+    try { parsedDeliverables = JSON.parse(gig.deliverables) } catch { /* legacy text */ }
   }
 
   if (loading) return (
@@ -119,7 +160,19 @@ export default function GigDetailPage() {
       </button>
 
       {/* Header card */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bg-border)', borderRadius: 20, padding: '24px 26px', boxShadow: 'var(--shadow-card)', marginBottom: 16 }}>
+      <div style={{
+        background: isSponsored ? 'linear-gradient(135deg,#fffbeb,#fff7ed)' : 'var(--bg-card)',
+        border: isSponsored ? '1.5px solid #fde68a' : '1px solid var(--bg-border)',
+        borderRadius: 20, padding: '24px 26px',
+        boxShadow: isSponsored ? '0 6px 24px rgba(245,158,11,0.13)' : 'var(--shadow-card)',
+        marginBottom: 16,
+      }}>
+        {/* Sponsored badge */}
+        {isSponsored && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 20, background: 'linear-gradient(90deg,#f59e0b,#f97316)', color: '#fff', fontSize: 11.5, fontWeight: 800, marginBottom: 14, letterSpacing: 0.3 }}>
+            ⚡ SPONSORED
+          </div>
+        )}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
           <div className="dash-row-icon" style={{ width: 48, height: 48, borderRadius: 14, flexShrink: 0 }}>
             <Sparkles size={20} />
@@ -143,7 +196,7 @@ export default function GigDetailPage() {
       {/* Stats row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
         {[
-          { icon: <IndianRupee size={15} />, label: 'You Earn', value: gig.max_budget ? formatINR(Math.floor(gig.max_budget * 0.9)) : '—' },
+          { icon: <IndianRupee size={15} />, label: 'You Earn', value: gig.max_budget ? formatINR(gig.max_budget) : '—' },
           { icon: <Users size={15} />, label: 'Min Followers', value: formatNumber(gig.min_followers) ?? 'Any' },
           { icon: <Clock size={15} />, label: 'Timeline', value: gig.timeline ?? 'Flexible' },
         ].map((stat) => (
@@ -162,8 +215,26 @@ export default function GigDetailPage() {
 
       {/* Deliverables */}
       <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bg-border)', borderRadius: 18, padding: '20px 22px', boxShadow: 'var(--shadow-card)', marginBottom: 24 }}>
-        <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', marginBottom: 10 }}>What the brand expects</div>
-        <div style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{gig.deliverables}</div>
+        <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 14 }}>What the brand expects</div>
+        {parsedDeliverables.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {parsedDeliverables.map((d, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderRadius: 12, background: 'var(--bg-input)', border: '1.5px solid var(--bg-border)' }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 18 }}>{d.emoji}</span>
+                  {d.qty}× {d.type}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
+                  <Calendar size={12} /> Due {fmtDate(d.due_date)}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+            {gig.deliverables ?? 'No specific deliverables listed'}
+          </div>
+        )}
       </div>
 
       {/* CTA */}
@@ -198,15 +269,18 @@ export default function GigDetailPage() {
                 onChange={(e) => setPitchMessage(e.target.value)}
                 className="input"
                 rows={5}
-                placeholder="Introduce yourself, explain why you're a great fit, mention your audience stats..."
+                placeholder="Tell the brand why you're a great fit, your content style, reach, and how you'll promote their product..."
+                style={{ resize: 'vertical' }}
               />
             </div>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setShowModal(false)} className="btn btn-secondary" style={{ flex: 1 }}>Cancel</button>
-              <button onClick={submitPitch} disabled={submitting} className="btn btn-primary" style={{ flex: 1 }}>
-                {submitting ? 'Sending...' : <><Send size={14} /> Send Pitch</>}
-              </button>
-            </div>
+            <button
+              onClick={submitPitch}
+              disabled={submitting}
+              className="btn btn-primary"
+              style={{ width: '100%', fontSize: 14 }}
+            >
+              {submitting ? 'Sending...' : <><Send size={14} /> Send Pitch</>}
+            </button>
           </div>
         </div>
       )}
