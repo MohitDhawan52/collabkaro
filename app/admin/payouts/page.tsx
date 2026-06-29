@@ -73,7 +73,7 @@ export default function AdminPayoutsPage() {
     // Group by influencer
     const map: Record<string, PendingInfluencer> = {}
     for (const c of collabs ?? []) {
-      const inf = c.influencer_profiles as { id: string; full_name: string | null; instagram_handle: string | null; user_id: string } | null
+      const inf = c.influencer_profiles as unknown as { id: string; full_name: string | null; instagram_handle: string | null; user_id: string } | null
       if (!inf) continue
       const gross = c.influencer_payout ?? c.agreed_amount ?? 0
       const fee = Math.round(gross * PLATFORM_FEE_PCT)
