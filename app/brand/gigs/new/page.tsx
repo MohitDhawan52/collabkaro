@@ -116,6 +116,11 @@ export default function PostGigPage() {
   const [step, setStep] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [deliverables, setDeliverables] = useState<DeliverableItem[]>([])
+  const [showAddFunds, setShowAddFunds] = useState(false)
+  const [walletBalance, setWalletBalance] = useState<number | null>(null)
+  const [addAmount, setAddAmount] = useState('')
+  const [addingFunds, setAddingFunds] = useState(false)
+  const [pendingSubmit, setPendingSubmit] = useState<GigForm | null>(null)
 
   const {
     register,
@@ -160,6 +165,34 @@ export default function PostGigPage() {
     if (valid) setStep((s) => s + 1)
   }
 
+  async function addFunds() {
+    const amount = parseFloat(addAmount)
+    if (!amount || amount < 100) { toast.error('Minimum top-up is ₹100'); return }
+    setAddingFunds(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not logged in')
+      const { data: wallet } = await supabase.from('brand_wallet').select('id, balance').eq('user_id', user.id).single()
+      if (!wallet) throw new Error('Wallet not found')
+      const newBalance = (wallet.balance ?? 0) + amount
+      await supabase.from('brand_wallet').update({ balance: newBalance }).eq('id', wallet.id)
+      await supabase.from('wallet_transactions').insert({ user_id: user.id, type: 'credit', amount, description: 'Funds added', balance_after: newBalance })
+      setWalletBalance(newBalance)
+      setAddAmount('')
+      toast.success(`₹${amount.toLocaleString('en-IN')} added to wallet!`)
+      setShowAddFunds(false)
+      if (pendingSubmit) {
+        setPendingSubmit(null)
+        onSubmit(pendingSubmit)
+      }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to add funds')
+    } finally {
+      setAddingFunds(false)
+    }
+  }
+
   async function onSubmit(data: GigForm) {
     setSubmitting(true)
     try {
@@ -177,6 +210,17 @@ export default function PostGigPage() {
 
       if (deliverables.length === 0) { toast.error('Select at least one deliverable'); setSubmitting(false); return }
       if (deliverables.some(d => !d.due_date)) { toast.error('Set a due date for every deliverable'); setSubmitting(false); return }
+
+      // Wallet check — ₹250 gig listing fee
+      const { data: wallet } = await supabase.from('brand_wallet').select('balance').eq('user_id', user.id).single()
+      const balance = wallet?.balance ?? 0
+      setWalletBalance(balance)
+      if (balance < 250) {
+        setPendingSubmit(data)
+        setSubmitting(false)
+        setShowAddFunds(true)
+        return
+      }
 
       const { error } = await supabase.from('gigs').insert({
         brand_id: brand.id,
@@ -573,6 +617,46 @@ export default function PostGigPage() {
           </div>
         </form>
       </div>
+
+      {/* Add Funds Modal */}
+      {showAddFunds && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          onClick={e => { if (e.target === e.currentTarget) setShowAddFunds(false) }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 24, padding: '32px 28px', width: '100%', maxWidth: 420, boxShadow: '0 24px 60px rgba(0,0,0,0.25)' }}>
+            <div style={{ fontSize: 28, textAlign: 'center', marginBottom: 8 }}>💳</div>
+            <div style={{ fontSize: 19, fontWeight: 900, textAlign: 'center', color: 'var(--text-primary)', marginBottom: 6 }}>Add Funds to Wallet</div>
+            <div style={{ fontSize: 13.5, color: 'var(--text-muted)', textAlign: 'center', marginBottom: 24, lineHeight: 1.5 }}>
+              Publishing a gig costs <strong style={{ color: '#f59e0b' }}>₹250</strong>. Your current wallet balance is <strong style={{ color: walletBalance !== null && walletBalance < 250 ? '#ef4444' : '#10b981' }}>₹{(walletBalance ?? 0).toLocaleString('en-IN')}</strong>. Add funds to continue.
+            </div>
+
+            {/* Quick amounts */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 16 }}>
+              {[500, 1000, 2000].map(amt => (
+                <button key={amt} type="button" onClick={() => setAddAmount(String(amt))}
+                  style={{ padding: '10px 0', borderRadius: 12, border: `1.5px solid ${addAmount === String(amt) ? 'var(--brand-primary)' : 'var(--bg-border)'}`, background: addAmount === String(amt) ? 'rgba(109,40,217,0.07)' : 'var(--bg-input)', color: addAmount === String(amt) ? 'var(--brand-primary)' : 'var(--text-primary)', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  ₹{amt.toLocaleString('en-IN')}
+                </button>
+              ))}
+            </div>
+
+            {/* Custom amount */}
+            <div style={{ position: 'relative', marginBottom: 20 }}>
+              <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontWeight: 600, fontSize: 16 }}>₹</span>
+              <input type="number" value={addAmount} onChange={e => setAddAmount(e.target.value)} placeholder="Enter custom amount" min={100}
+                className="input" style={{ paddingLeft: 32 }} />
+            </div>
+
+            <button type="button" onClick={addFunds} disabled={addingFunds || !addAmount}
+              className="btn btn-primary" style={{ width: '100%', fontSize: 15, fontWeight: 800, padding: '14px 0', marginBottom: 10 }}>
+              {addingFunds ? 'Adding funds...' : `Add ₹${addAmount ? Number(addAmount).toLocaleString('en-IN') : '—'} & Publish Gig`}
+            </button>
+            <button type="button" onClick={() => setShowAddFunds(false)}
+              style={{ width: '100%', padding: '10px 0', background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

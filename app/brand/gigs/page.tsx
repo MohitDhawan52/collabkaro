@@ -178,9 +178,14 @@ export default function BrandGigsPage() {
                   <Briefcase size={18} />
                 </div>
 
-                {/* Info */}
+                {/* Info — clickable title */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="dash-row-title" style={{ fontSize: 15 }}>{gig.title}</div>
+                  <Link href={`/brand/gigs/${gig.id}`} style={{ textDecoration: 'none' }}>
+                    <div className="dash-row-title" style={{ fontSize: 15, display: 'flex', alignItems: 'center', gap: 5 }}>
+                      {gig.title}
+                      <span style={{ fontSize: 12, color: 'var(--brand-primary)', fontWeight: 700, opacity: 0.7 }}>View →</span>
+                    </div>
+                  </Link>
                   <div className="dash-row-meta" style={{ marginTop: 4 }}>
                     {gig.collab_type} · {gig.platforms?.join(', ')} · Budget: {formatINR(gig.max_budget)}
                   </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Megaphone, Plus, Pause, Play, AlertTriangle,
@@ -49,6 +50,7 @@ export default function BrandAdsPage() {
   const [spendMap, setSpendMap] = useState<Record<string, { total: number; gst: number }>>({})
   const [eventMap, setEventMap] = useState<Record<string, { impressions: number; pitches: number }>>({})
 
+  const searchParams = useSearchParams()
   const [showCreate, setShowCreate] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const [editAdId, setEditAdId] = useState<string | null>(null)
@@ -58,6 +60,15 @@ export default function BrandAdsPage() {
   const [acting, setActing] = useState(false)
 
   useEffect(() => { load() }, [])
+
+  // Auto-open create modal if coming from "Boost this Gig"
+  useEffect(() => {
+    const boostGigId = searchParams.get('boost')
+    if (boostGigId) {
+      setForm({ ...EMPTY_FORM, gig_id: boostGigId })
+      setShowCreate(true)
+    }
+  }, [searchParams])
 
   async function load() {
     const supabase = createClient()
