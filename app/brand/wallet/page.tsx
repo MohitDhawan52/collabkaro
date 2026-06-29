@@ -161,7 +161,7 @@ export default function BrandWalletPage() {
           { val: 'month', label: 'This month' },
           { val: 'custom', label: 'Custom' },
         ].map(r => (
-          <button key={r.val} onClick={() => setRange(r.val as Range)} style={{ padding: '6px 14px', borderRadius: 9, border: 'none', background: range === r.val ? '#1d4ed8' : 'var(--bg-card)', color: range === r.val ? '#fff' : 'var(--text-muted)', fontWeight: range === r.val ? 700 : 500, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', border: range === r.val ? 'none' : '1px solid var(--bg-border)' } as React.CSSProperties}>
+          <button key={r.val} onClick={() => setRange(r.val as Range)} style={{ padding: '6px 14px', borderRadius: 9, border: range === r.val ? 'none' : '1px solid var(--bg-border)', background: range === r.val ? '#1d4ed8' : 'var(--bg-card)', color: range === r.val ? '#fff' : 'var(--text-muted)', fontWeight: range === r.val ? 700 : 500, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
             {r.label}
           </button>
         ))}
