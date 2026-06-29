@@ -29,7 +29,7 @@ const schema = z.object({
   min_followers: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
   influencer_limit: z.coerce.number().min(1, 'Must be at least 1').max(500, 'Max 500'),
   max_budget: z.union([z.coerce.number().min(1, 'Please enter a budget'), z.literal('')]).optional(),
-  deliverables: z.string().min(10, 'Please describe what you need from the creator'),
+  deliverables: z.string().optional(),
   timeline: z.string().optional(),
 })
 
@@ -88,10 +88,34 @@ function ChipSelect({
 }
 
 // ── Main page ────────────────────────────────────────────────
+const DELIVERABLE_TYPES = [
+  { id: 'ig_reel',    label: 'Instagram Reel',   emoji: '🎬' },
+  { id: 'ig_post',    label: 'Instagram Post',   emoji: '📸' },
+  { id: 'ig_story',   label: 'Instagram Story',  emoji: '⭕' },
+  { id: 'ig_live',    label: 'Instagram Live',   emoji: '🔴' },
+  { id: 'yt_video',   label: 'YouTube Video',    emoji: '▶️' },
+  { id: 'yt_short',   label: 'YouTube Short',    emoji: '⚡' },
+  { id: 'tiktok',     label: 'TikTok Video',     emoji: '🎵' },
+  { id: 'twitter',    label: 'Twitter/X Post',   emoji: '✖️' },
+  { id: 'linkedin',   label: 'LinkedIn Post',    emoji: '💼' },
+  { id: 'blog',       label: 'Blog Article',     emoji: '✍️' },
+  { id: 'pinterest',  label: 'Pinterest Pin',    emoji: '📌' },
+  { id: 'podcast',    label: 'Podcast Mention',  emoji: '🎙️' },
+]
+
+interface DeliverableItem {
+  id: string
+  label: string
+  emoji: string
+  qty: number
+  due_date: string
+}
+
 export default function PostGigPage() {
   const router = useRouter()
   const [step, setStep] = useState(0)
   const [submitting, setSubmitting] = useState(false)
+  const [deliverables, setDeliverables] = useState<DeliverableItem[]>([])
 
   const {
     register,
@@ -113,10 +137,25 @@ export default function PostGigPage() {
 
   const collabType = watch('collab_type')
 
+  function toggleDeliverable(type: typeof DELIVERABLE_TYPES[0]) {
+    setDeliverables(prev => {
+      if (prev.find(d => d.id === type.id)) return prev.filter(d => d.id !== type.id)
+      return [...prev, { ...type, qty: 1, due_date: '' }]
+    })
+  }
+
+  function updateDeliverable(id: string, field: 'qty' | 'due_date', value: string | number) {
+    setDeliverables(prev => prev.map(d => d.id === id ? { ...d, [field]: value } : d))
+  }
+
   async function goNext() {
     let fields: (keyof GigForm)[] = []
     if (step === 0) fields = ['title', 'description', 'collab_type']
     if (step === 1) fields = ['niche_required', 'platforms', 'min_followers']
+    if (step === 2) {
+      if (deliverables.length === 0) { toast.error('Select at least one deliverable'); return }
+      if (deliverables.some(d => !d.due_date)) { toast.error('Set a due date for every deliverable'); return }
+    }
     const valid = await trigger(fields)
     if (valid) setStep((s) => s + 1)
   }
@@ -136,6 +175,9 @@ export default function PostGigPage() {
 
       if (!brand) throw new Error('Brand profile not found')
 
+      if (deliverables.length === 0) { toast.error('Select at least one deliverable'); setSubmitting(false); return }
+      if (deliverables.some(d => !d.due_date)) { toast.error('Set a due date for every deliverable'); setSubmitting(false); return }
+
       const { error } = await supabase.from('gigs').insert({
         brand_id: brand.id,
         title: data.title,
@@ -146,8 +188,8 @@ export default function PostGigPage() {
         min_followers: data.min_followers || null,
         influencer_limit: data.influencer_limit,
         max_budget: data.max_budget || null,
-        deliverables: data.deliverables,
-        timeline: data.timeline || null,
+        deliverables: JSON.stringify(deliverables.map(d => ({ type: d.label, emoji: d.emoji, qty: d.qty, due_date: d.due_date }))),
+        timeline: deliverables.map(d => `${d.qty}× ${d.label} by ${new Date(d.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`).join(', '),
         status: 'active',
         payment_status: 'pending',
         gig_fee: 250,
@@ -400,32 +442,56 @@ export default function PostGigPage() {
                 </div>
               </div>
 
+              {/* Deliverable type grid */}
               <div>
-                <label style={labelStyle}>Deliverables *</label>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2, marginBottom: 8 }}>
-                  Be specific — what exactly do you want the creator to make?
+                <label style={labelStyle}>Select Content Types *</label>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2, marginBottom: 12 }}>
+                  Pick what you want creators to make. Set quantity + due date for each.
                 </div>
-                <textarea
-                  {...register('deliverables')}
-                  className="input"
-                  rows={4}
-                  placeholder="e.g. 1 Instagram Reel (60 sec), 2 Instagram Stories, 1 unboxing video on YouTube. Product must be featured prominently. Brand mention in caption required."
-                />
-                {errors.deliverables && <span style={errStyle}>{errors.deliverables.message}</span>}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                  {DELIVERABLE_TYPES.map(type => {
+                    const selected = deliverables.some(d => d.id === type.id)
+                    return (
+                      <button key={type.id} type="button" onClick={() => toggleDeliverable(type)}
+                        style={{ padding: '10px 8px', borderRadius: 12, border: `1.5px solid ${selected ? 'var(--brand-primary)' : 'var(--bg-border)'}`, background: selected ? 'rgba(109,40,217,0.07)' : 'var(--bg-input)', color: selected ? 'var(--brand-primary)' : 'var(--text-secondary)', fontWeight: selected ? 700 : 500, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 7, transition: 'all 0.13s ease', textAlign: 'left' }}>
+                        <span style={{ fontSize: 16, lineHeight: 1 }}>{type.emoji}</span>
+                        {type.label}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
 
-              <div>
-                <label style={labelStyle}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <Clock size={13} /> Timeline / Deadline
-                  </span>
-                </label>
-                <input
-                  {...register('timeline')}
-                  className="input"
-                  placeholder="e.g. Content to be posted by July 15, 2025"
-                />
-              </div>
+              {/* Per-deliverable qty + due date */}
+              {deliverables.length > 0 && (
+                <div>
+                  <label style={labelStyle}>Quantity & Due Date</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {deliverables.map(d => (
+                      <div key={d.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 10, alignItems: 'center', padding: '12px 14px', borderRadius: 12, background: 'var(--bg-input)', border: '1.5px solid rgba(109,40,217,0.2)' }}>
+                        <div style={{ fontWeight: 700, fontSize: 13.5, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 7 }}>
+                          <span>{d.emoji}</span> {d.label}
+                        </div>
+                        {/* Qty stepper */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <button type="button" onClick={() => updateDeliverable(d.id, 'qty', Math.max(1, d.qty - 1))}
+                            style={{ width: 28, height: 28, borderRadius: 7, border: '1.5px solid var(--bg-border)', background: '#fff', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)', fontFamily: 'inherit' }}>−</button>
+                          <span style={{ minWidth: 22, textAlign: 'center', fontWeight: 800, fontSize: 14, color: 'var(--brand-primary)' }}>{d.qty}</span>
+                          <button type="button" onClick={() => updateDeliverable(d.id, 'qty', d.qty + 1)}
+                            style={{ width: 28, height: 28, borderRadius: 7, border: '1.5px solid var(--bg-border)', background: '#fff', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)', fontFamily: 'inherit' }}>+</button>
+                        </div>
+                        {/* Due date */}
+                        <input type="date" value={d.due_date} min={new Date().toISOString().split('T')[0]}
+                          onChange={e => updateDeliverable(d.id, 'due_date', e.target.value)}
+                          style={{ padding: '7px 10px', borderRadius: 9, border: `1.5px solid ${d.due_date ? 'rgba(109,40,217,0.4)' : 'var(--bg-border)'}`, background: '#fff', color: 'var(--text-primary)', fontSize: 13, outline: 'none', fontFamily: 'inherit', cursor: 'pointer' }} />
+                      </div>
+                    ))}
+                  </div>
+                  {deliverables.some(d => !d.due_date) && (
+                    <div style={{ fontSize: 12, color: '#dc2626', marginTop: 6 }}>Set a due date for each selected deliverable</div>
+                  )}
+                </div>
+              )}
 
               {collabType !== 'barter' && (
                 <div>
