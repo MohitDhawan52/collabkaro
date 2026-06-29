@@ -186,7 +186,7 @@ export default function AdsAnalyticsPage() {
         <div style={{ display: 'flex', gap: 6 }}>
           {([['7d','Last 7 days'],['14d','Last 14 days'],['30d','Last 30 days'],['all','All time']] as [Range,string][]).map(([val, label]) => (
             <button key={val} onClick={() => setRange(val)}
-              style={{ padding: '7px 14px', borderRadius: 9, border: 'none', background: range === val ? '#1d4ed8' : 'var(--bg-card)', color: range === val ? '#fff' : 'var(--text-muted)', fontWeight: range === val ? 700 : 500, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', border: range === val ? 'none' : '1px solid var(--bg-border)' } as React.CSSProperties}>
+              style={{ padding: '7px 14px', borderRadius: 9, border: range === val ? 'none' : '1px solid var(--bg-border)', background: range === val ? '#1d4ed8' : 'var(--bg-card)', color: range === val ? '#fff' : 'var(--text-muted)', fontWeight: range === val ? 700 : 500, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
               {label}
             </button>
           ))}
