@@ -1,0 +1,148 @@
+<!-- PRODUCT 3D SHOWCASE — Full screen scroll per product -->
+<section class="products-showcase">
+  <div class="showcase-header reveal">
+    <h2>
+      The <em>Collection</em>
+    </h2>
+    <p>{{ section.settings.subtitle }}</p>
+  </div>
+
+  <div class="product-3d-grid">
+    {% for block in section.blocks %}
+      {% assign product = all_products[block.settings.product] %}
+      {% if product != blank %}
+        <div class="product-3d-item" {{ block.shopify_attributes }}>
+          <div class="product-3d-inner">
+
+            <div class="product-3d-visual">
+              <div class="product-3d-card">
+                {% if product.featured_image %}
+                  <img
+                    src="{{ product.featured_image | image_url: width: 800 }}"
+                    alt="{{ product.featured_image.alt | default: product.title | escape }}"
+                    loading="lazy"
+                    width="800"
+                    height="1067"
+                  >
+                {% else %}
+                  {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+                {% endif %}
+                <div class="product-card-overlay"></div>
+                {% if block.settings.badge != blank %}
+                  <span class="product-badge">{{ block.settings.badge }}</span>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="product-3d-info">
+              <p class="product-number">0{{ forloop.index }}</p>
+              <h3 class="product-3d-title">{{ product.title }}</h3>
+              <p class="product-3d-desc">
+                {{ block.settings.custom_desc | default: product.description | strip_html | truncate: 160 }}
+              </p>
+              <div class="product-3d-price">
+                <span class="price-current">{{ product.price | money }}</span>
+                {% if product.compare_at_price > product.price %}
+                  <span class="price-compare">{{ product.compare_at_price | money }}</span>
+                {% endif %}
+              </div>
+              <div class="product-3d-actions">
+                <button
+                  class="btn-primary"
+                  data-add-cart
+                  data-variant-id="{{ product.first_available_variant.id }}"
+                >
+                  <span class="btn-text">Add to Bag</span>
+                </button>
+                <a href="{{ product.url }}" class="btn-secondary">View Details</a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      {% else %}
+        <!-- Placeholder when no product selected -->
+        <div class="product-3d-item" {{ block.shopify_attributes }}>
+          <div class="product-3d-inner">
+            <div class="product-3d-visual">
+              <div class="product-3d-card">
+                {{ 'product-' | append: forloop.index | placeholder_svg_tag: 'placeholder-svg' }}
+                <div class="product-card-overlay"></div>
+                <span class="product-badge">New</span>
+              </div>
+            </div>
+            <div class="product-3d-info">
+              <p class="product-number">0{{ forloop.index }}</p>
+              <h3 class="product-3d-title">{{ block.settings.fallback_title | default: 'Product Name' }}</h3>
+              <p class="product-3d-desc">Select a product in the theme editor to display here. Add a short, evocative description to draw your customers in.</p>
+              <div class="product-3d-price">
+                <span class="price-current">₹0.00</span>
+              </div>
+              <div class="product-3d-actions">
+                <button class="btn-primary"><span class="btn-text">Add to Bag</span></button>
+                <button class="btn-secondary">View Details</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "3D Product Showcase",
+  "max_blocks": 8,
+  "settings": [
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Section Subtitle",
+      "default": "Handpicked pieces for every story"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product_item",
+      "name": "Product",
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product"
+        },
+        {
+          "type": "text",
+          "id": "badge",
+          "label": "Badge Text (e.g. New, Sale, Limited)",
+          "default": "New"
+        },
+        {
+          "type": "textarea",
+          "id": "custom_desc",
+          "label": "Custom Description (overrides product description)",
+          "info": "Leave blank to use the product's own description"
+        },
+        {
+          "type": "text",
+          "id": "fallback_title",
+          "label": "Fallback Title (if no product selected)",
+          "default": "Featured Piece"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "3D Product Showcase",
+      "category": "Products",
+      "blocks": [
+        { "type": "product_item" },
+        { "type": "product_item" },
+        { "type": "product_item" }
+      ]
+    }
+  ]
+}
+{% endschema %}

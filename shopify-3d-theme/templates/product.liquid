@@ -1,0 +1,145 @@
+{% assign current_product = product %}
+
+<div class="page-loader" id="page-loader">
+  <div class="loader-brand">{{ shop.name | upcase | truncate: 10, '' }}</div>
+  <div class="loader-bar-wrap">
+    <div class="loader-bar"></div>
+  </div>
+</div>
+
+<div class="product-page">
+  <div class="product-page-grid">
+    <!-- Images Column -->
+    <div class="product-images-col">
+      {% if current_product.featured_image %}
+        <img
+          class="product-main-image"
+          src="{{ current_product.featured_image | image_url: width: 1200 }}"
+          alt="{{ current_product.featured_image.alt | default: current_product.title | escape }}"
+          id="product-main-img"
+          width="1200"
+          height="1600"
+        >
+      {% else %}
+        {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+      {% endif %}
+    </div>
+
+    <!-- Info Column -->
+    <div class="product-info-col">
+      <p class="product-vendor reveal">{{ current_product.vendor }}</p>
+      <h1 class="product-title reveal reveal-delay-1">{{ current_product.title }}</h1>
+
+      <div class="product-price-row reveal reveal-delay-2">
+        <span class="product-price">{{ current_product.price | money }}</span>
+        {% if current_product.compare_at_price > current_product.price %}
+          <span class="product-compare-price">{{ current_product.compare_at_price | money }}</span>
+        {% endif %}
+      </div>
+
+      <div class="product-divider"></div>
+
+      {% if current_product.options.size > 1 or current_product.options.first != 'Title' %}
+        {% for option in current_product.options_with_values %}
+          <p class="variant-label reveal">{{ option.name }}</p>
+
+          {% if option.name == 'Size' or option.name == 'size' %}
+            <div class="size-options reveal reveal-delay-1">
+              {% for value in option.values %}
+                <button class="size-btn {% if forloop.first %}active{% endif %}" data-value="{{ value }}">
+                  {{ value }}
+                </button>
+              {% endfor %}
+            </div>
+          {% elsif option.name == 'Color' or option.name == 'Colour' %}
+            <div class="color-options reveal reveal-delay-1">
+              {% for value in option.values %}
+                <div
+                  class="color-swatch {% if forloop.first %}active{% endif %}"
+                  data-value="{{ value }}"
+                  title="{{ value }}"
+                  style="background: {{ value | downcase | replace: ' ', '' }};"
+                ></div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="size-options reveal reveal-delay-1">
+              {% for value in option.values %}
+                <button class="size-btn {% if forloop.first %}active{% endif %}" data-value="{{ value }}">
+                  {{ value }}
+                </button>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+
+      <div class="product-divider"></div>
+
+      {% form 'product', current_product, id: 'product-form' %}
+        <input type="hidden" name="id" id="selected-variant" value="{{ current_product.first_available_variant.id }}">
+
+        <button
+          type="submit"
+          class="add-to-cart-btn"
+          {% unless current_product.available %}disabled{% endunless %}
+        >
+          {% if current_product.available %}
+            Add to Bag
+          {% else %}
+            Sold Out
+          {% endif %}
+        </button>
+      {% endform %}
+
+      <button class="wishlist-btn">
+        ♡ &nbsp; Save to Wishlist
+      </button>
+
+      {% if current_product.description != blank %}
+        <div class="product-description reveal">
+          {{ current_product.description }}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+  // Variant switcher
+  (function () {
+    const form = document.getElementById('product-form');
+    const variantInput = document.getElementById('selected-variant');
+    const mainImg = document.getElementById('product-main-img');
+    const variants = {{ current_product.variants | json }};
+
+    document.querySelectorAll('.size-btn, .color-swatch').forEach(btn => {
+      btn.addEventListener('click', () => {
+        updateVariant();
+      });
+    });
+
+    function updateVariant() {
+      const selected = {};
+      document.querySelectorAll('.size-options .size-btn.active, .color-options .color-swatch.active').forEach(el => {
+        const optionName = el.closest('[data-option]')?.dataset.option;
+        if (optionName) selected[optionName] = el.dataset.value;
+      });
+
+      // Find matching variant
+      const match = variants.find(v =>
+        v.options.every((opt, i) => {
+          const val = Object.values(selected)[i];
+          return !val || val === opt;
+        })
+      );
+
+      if (match) {
+        variantInput.value = match.id;
+        if (match.featured_image && mainImg) {
+          mainImg.src = match.featured_image.src;
+        }
+      }
+    }
+  })();
+</script>

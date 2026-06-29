@@ -1,0 +1,28 @@
+<!-- This section opens the #shop-content div. All sections after this are inside it. -->
+<div id="shop-content">
+
+<!-- Cart Drawer (available site-wide on homepage) -->
+<div class="cart-drawer" id="cart-drawer" aria-hidden="true">
+  <div class="cart-drawer-header">
+    <h3>Your Bag</h3>
+    <button class="cart-close-btn" aria-label="Close cart">✕</button>
+  </div>
+  <div class="cart-items" id="cart-items">
+    <p style="color: var(--color-text-muted); font-size: 0.8rem; margin-top: 2rem; text-align: center; letter-spacing: 0.2em;">Your bag is empty</p>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-total">
+      <span>Total</span>
+      <span id="cart-total-price">₹0.00</span>
+    </div>
+    <a href="/checkout" class="checkout-btn">Proceed to Checkout</a>
+  </div>
+</div>
+<div class="overlay-bg"></div>
+
+{% schema %}
+{
+  "name": "Shop Content Start",
+  "settings": []
+}
+{% endschema %}

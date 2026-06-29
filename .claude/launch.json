@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "3D Theme Preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "shopify-3d-theme", "-p", "4200", "--no-clipboard"],
+      "port": 4200
+    }
+  ]
+}

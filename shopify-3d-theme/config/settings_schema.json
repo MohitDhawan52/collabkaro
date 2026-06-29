@@ -1,0 +1,108 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Élan 3D",
+    "theme_version": "1.0.0",
+    "theme_author": "Monk Wise Media",
+    "theme_documentation_url": "",
+    "theme_support_url": ""
+  },
+  {
+    "name": "Brand",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "Favicon",
+        "info": "32×32px PNG recommended"
+      },
+      {
+        "type": "color",
+        "id": "color_accent",
+        "label": "Accent / Gold Color",
+        "default": "#c9a96e"
+      },
+      {
+        "type": "color",
+        "id": "color_bg",
+        "label": "Background Color",
+        "default": "#080808"
+      },
+      {
+        "type": "color",
+        "id": "color_text",
+        "label": "Text Color",
+        "default": "#f0ece4"
+      }
+    ]
+  },
+  {
+    "name": "Typography",
+    "settings": [
+      {
+        "type": "select",
+        "id": "heading_font",
+        "label": "Heading Font Style",
+        "options": [
+          { "value": "cormorant", "label": "Cormorant Garamond (Luxury)" },
+          { "value": "playfair", "label": "Playfair Display (Classic)" },
+          { "value": "italiana", "label": "Italiana (Editorial)" }
+        ],
+        "default": "cormorant"
+      }
+    ]
+  },
+  {
+    "name": "3D Effects",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "enable_entrance",
+        "label": "Enable 3D Entrance Overlay",
+        "default": true
+      },
+      {
+        "type": "range",
+        "id": "particle_count",
+        "min": 500,
+        "max": 3000,
+        "step": 100,
+        "label": "Particle Count (entrance canvas)",
+        "default": 1800,
+        "info": "Higher values = richer effect but heavier on mobile"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_product_tilt",
+        "label": "Enable Product Card 3D Tilt",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_scroll_reveal",
+        "label": "Enable Scroll Reveal Animations",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "Social Media",
+    "settings": [
+      {
+        "type": "url",
+        "id": "social_instagram",
+        "label": "Instagram URL"
+      },
+      {
+        "type": "url",
+        "id": "social_facebook",
+        "label": "Facebook URL"
+      },
+      {
+        "type": "url",
+        "id": "social_pinterest",
+        "label": "Pinterest URL"
+      }
+    ]
+  }
+]

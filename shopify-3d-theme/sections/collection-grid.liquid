@@ -1,0 +1,89 @@
+<!-- FEATURED COLLECTION GRID -->
+<section class="collection-grid-section">
+  <div class="reveal">
+    <p class="section-label">{{ section.settings.label }}</p>
+    <h2 class="section-title">{{ section.settings.title | replace: '*', '<em>' | replace: '*', '</em>' }}</h2>
+  </div>
+
+  <div class="collection-grid">
+    {% for block in section.blocks %}
+      <a href="{{ block.settings.link | default: '#' }}" class="collection-card" {{ block.shopify_attributes }}>
+        {% if block.settings.image != blank %}
+          <img
+            src="{{ block.settings.image | image_url: width: 800 }}"
+            alt="{{ block.settings.title }}"
+            loading="lazy"
+          >
+        {% else %}
+          {{ 'collection-' | append: forloop.index | placeholder_svg_tag: 'placeholder-svg' }}
+        {% endif %}
+        <div class="collection-card-info">
+          <h3>{{ block.settings.title }}</h3>
+          <p>{{ block.settings.subtitle }}</p>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Collection Grid",
+  "max_blocks": 4,
+  "settings": [
+    {
+      "type": "text",
+      "id": "label",
+      "label": "Section Label",
+      "default": "Shop by category"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Section Title (* = italic gold)",
+      "default": "Explore the *World*"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection_card",
+      "name": "Collection Card",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Summer Dresses"
+        },
+        {
+          "type": "text",
+          "id": "subtitle",
+          "label": "Subtitle / CTA",
+          "default": "Shop Now →"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection Grid",
+      "category": "Collections",
+      "blocks": [
+        { "type": "collection_card" },
+        { "type": "collection_card" },
+        { "type": "collection_card" }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,52 @@
+<!-- ENTRANCE OVERLAY -->
+<div id="entrance-overlay">
+  <canvas id="entrance-canvas"></canvas>
+
+  <div class="entrance-content">
+    <h1 class="entrance-brand">
+      {{ section.settings.brand_name | split: ' ' | first }}<span>{{ section.settings.brand_name | split: ' ' | last }}</span>
+    </h1>
+    <p class="entrance-tagline">{{ section.settings.tagline }}</p>
+    <div class="entrance-line"></div>
+    <button id="enter-btn" aria-label="Enter Shop">
+      <span class="btn-text">{{ section.settings.enter_text }}</span>
+    </button>
+  </div>
+
+  <div class="entrance-scroll-hint">
+    <span>Scroll to explore</span>
+    <div class="scroll-dot"></div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "3D Entrance",
+  "settings": [
+    {
+      "type": "text",
+      "id": "brand_name",
+      "label": "Brand Name",
+      "default": "ÉLAN STUDIO"
+    },
+    {
+      "type": "text",
+      "id": "tagline",
+      "label": "Tagline",
+      "default": "Crafted for the bold · Worn by the free"
+    },
+    {
+      "type": "text",
+      "id": "enter_text",
+      "label": "Enter Button Text",
+      "default": "Enter Shop"
+    }
+  ],
+  "presets": [
+    {
+      "name": "3D Entrance",
+      "category": "Custom"
+    }
+  ]
+}
+{% endschema %}

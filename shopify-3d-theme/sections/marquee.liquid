@@ -1,0 +1,32 @@
+<!-- MARQUEE STRIP -->
+<div class="marquee-strip" aria-hidden="true">
+  <div class="marquee-inner">
+    {% assign words = section.settings.marquee_text | split: ',' %}
+    {% for i in (1..4) %}
+      {% for word in words %}
+        <span>{{ word | strip }}</span>
+        <span class="marquee-dot">✦</span>
+      {% endfor %}
+    {% endfor %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Marquee Strip",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "marquee_text",
+      "label": "Marquee Text (comma separated)",
+      "default": "New Collection 2026, Ethically Crafted, Free Shipping Over ₹2000, Sustainably Made, Premium Fabrics, Made in India"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Marquee Strip",
+      "category": "Custom"
+    }
+  ]
+}
+{% endschema %}

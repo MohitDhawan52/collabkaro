@@ -1,0 +1,91 @@
+<!-- FOOTER -->
+<footer class="shop-footer" role="contentinfo">
+  <div class="footer-grid">
+    <div class="footer-brand-col">
+      <div class="footer-brand-name">
+        {{ section.settings.logo_first }}<span>{{ section.settings.logo_second }}</span>
+      </div>
+      <p class="footer-desc">{{ section.settings.description }}</p>
+    </div>
+
+    {% for block in section.blocks %}
+      {% if block.type == 'menu_column' %}
+        <div class="footer-col" {{ block.shopify_attributes }}>
+          <h4>{{ block.settings.heading }}</h4>
+          <ul>
+            {% for link in linklists[block.settings.menu].links %}
+              <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <div class="footer-bottom">
+    <span>© {{ 'now' | date: '%Y' }} {{ shop.name }}. All rights reserved.</span>
+    <span>{{ section.settings.footer_note }}</span>
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "Footer",
+  "max_blocks": 3,
+  "settings": [
+    {
+      "type": "text",
+      "id": "logo_first",
+      "label": "Logo First Part",
+      "default": "ÉLAN"
+    },
+    {
+      "type": "text",
+      "id": "logo_second",
+      "label": "Logo Second Part (Gold)",
+      "default": "STUDIO"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Brand Description",
+      "default": "We create clothing that moves with you — crafted from sustainable fabrics, designed for the modern soul."
+    },
+    {
+      "type": "text",
+      "id": "footer_note",
+      "label": "Footer Note",
+      "default": "Made with love in India 🇮🇳"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "menu_column",
+      "name": "Menu Column",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Shop"
+        },
+        {
+          "type": "link_list",
+          "id": "menu",
+          "label": "Menu"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Footer",
+      "category": "Custom",
+      "blocks": [
+        { "type": "menu_column" },
+        { "type": "menu_column" }
+      ]
+    }
+  ]
+}
+{% endschema %}

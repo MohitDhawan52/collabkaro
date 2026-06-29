@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, PlusCircle, Briefcase, Users, Wallet, Settings, LogOut, Search, Menu, X } from 'lucide-react'
+import { LayoutDashboard, PlusCircle, Briefcase, Users, Wallet, Settings, LogOut, Search, Menu, X, Megaphone } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import NotificationBell from '@/app/components/NotificationBell'
 import { useIsMobile } from '@/lib/useIsMobile'
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { href: '/brand/influencers', label: 'Browse Influencers', icon: Search,          iconBg: 'rgba(6,182,212,0.5)' },
   { href: '/brand/pitches',     label: 'Pitches Received',   icon: Users,           iconBg: 'rgba(168,85,247,0.5)' },
   { href: '/brand/collabs',     label: 'Collaborations',     icon: Wallet,          iconBg: 'rgba(236,72,153,0.5)' },
+  { href: '/brand/ads',         label: 'Gig Ads',            icon: Megaphone,       iconBg: 'rgba(245,158,11,0.6)' },
   { href: '/brand/profile',     label: 'Brand Profile',      icon: Settings,        iconBg: 'rgba(6,182,212,0.5)' },
 ]
 

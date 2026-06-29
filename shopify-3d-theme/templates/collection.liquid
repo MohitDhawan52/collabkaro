@@ -1,0 +1,72 @@
+{% assign current_collection = collection %}
+
+<div class="page-loader" id="page-loader">
+  <div class="loader-brand">{{ shop.name | upcase | truncate: 10, '' }}</div>
+  <div class="loader-bar-wrap">
+    <div class="loader-bar"></div>
+  </div>
+</div>
+
+<div class="collection-page">
+  <div class="collection-page-header">
+    <div>
+      <h1>{{ current_collection.title }}</h1>
+      {% if current_collection.description != blank %}
+        <p class="collection-count" style="margin-top: 0.5rem; color: var(--color-text-muted); font-size: 0.8rem;">
+          {{ current_collection.description | strip_html | truncate: 100 }}
+        </p>
+      {% endif %}
+    </div>
+    <span class="collection-count">{{ current_collection.products_count }} pieces</span>
+  </div>
+
+  <div class="products-grid">
+    {% for product in current_collection.products %}
+      <a href="{{ product.url }}" class="product-grid-card reveal" style="transition-delay: {{ forloop.index0 | times: 0.05 }}s">
+        <div class="product-grid-image-wrap">
+          {% if product.featured_image %}
+            <img
+              src="{{ product.featured_image | image_url: width: 600 }}"
+              alt="{{ product.featured_image.alt | default: product.title | escape }}"
+              loading="lazy"
+              width="600"
+              height="800"
+            >
+          {% else %}
+            {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+          {% endif %}
+
+          {% if product.compare_at_price > product.price %}
+            <span class="product-badge">Sale</span>
+          {% endif %}
+        </div>
+        <div class="product-grid-info">
+          <h3 class="product-grid-title">{{ product.title }}</h3>
+          <p class="product-grid-price">
+            {{ product.price | money }}
+            {% if product.compare_at_price > product.price %}
+              <span style="text-decoration: line-through; margin-left: 0.5rem; opacity: 0.5;">{{ product.compare_at_price | money }}</span>
+            {% endif %}
+          </p>
+        </div>
+      </a>
+    {% else %}
+      <p style="color: var(--color-text-muted); grid-column: 1/-1; text-align: center; padding: 5rem; letter-spacing: 0.3em; font-size: 0.8rem;">
+        No products found in this collection.
+      </p>
+    {% endfor %}
+  </div>
+
+  {% if paginate.pages > 1 %}
+    {% paginate current_collection.products by 12 %}
+      <div style="display: flex; justify-content: center; gap: 1rem; padding: 4rem; border-top: 1px solid var(--color-border);">
+        {% if paginate.previous %}
+          <a href="{{ paginate.previous.url }}" class="btn-secondary">← Previous</a>
+        {% endif %}
+        {% if paginate.next %}
+          <a href="{{ paginate.next.url }}" class="btn-secondary">Next →</a>
+        {% endif %}
+      </div>
+    {% endpaginate %}
+  {% endif %}
+</div>

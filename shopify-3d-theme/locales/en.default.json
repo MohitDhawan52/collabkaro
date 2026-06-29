@@ -1,0 +1,26 @@
+{
+  "general": {
+    "404": {
+      "title": "Page not found",
+      "description": "The page you're looking for doesn't exist."
+    }
+  },
+  "products": {
+    "add_to_cart": "Add to Bag",
+    "sold_out": "Sold Out",
+    "unavailable": "Unavailable",
+    "wishlist": "Save to Wishlist",
+    "view_details": "View Details"
+  },
+  "cart": {
+    "title": "Your Bag",
+    "empty": "Your bag is empty",
+    "checkout": "Proceed to Checkout",
+    "total": "Total",
+    "remove": "Remove"
+  },
+  "search": {
+    "placeholder": "Search pieces...",
+    "no_results": "No results for"
+  }
+}

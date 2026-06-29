@@ -1,0 +1,144 @@
+{
+  "sections": {
+    "entrance": {
+      "type": "entrance",
+      "settings": {
+        "brand_name": "ÉLAN STUDIO",
+        "tagline": "Crafted for the bold · Worn by the free",
+        "enter_text": "Enter Shop"
+      }
+    },
+    "shop-content-start": {
+      "type": "shop-content-start",
+      "settings": {}
+    },
+    "shop-header": {
+      "type": "shop-header",
+      "settings": {
+        "logo_first": "ÉLAN",
+        "logo_second": "STUDIO",
+        "menu": "main-menu"
+      }
+    },
+    "hero-3d": {
+      "type": "hero-3d",
+      "settings": {
+        "hero_line1": "Wear the",
+        "hero_line2": "Extraordinary",
+        "hero_subtitle": "New Collection · SS 2026"
+      }
+    },
+    "marquee-1": {
+      "type": "marquee",
+      "settings": {
+        "marquee_text": "New Collection 2026, Ethically Crafted, Free Shipping Over ₹2000, Sustainably Made, Premium Fabrics, Made in India"
+      }
+    },
+    "product-showcase": {
+      "type": "product-showcase-3d",
+      "blocks": {
+        "product-1": {
+          "type": "product_item",
+          "settings": {
+            "badge": "New",
+            "fallback_title": "The Silk Wrap Dress"
+          }
+        },
+        "product-2": {
+          "type": "product_item",
+          "settings": {
+            "badge": "Bestseller",
+            "fallback_title": "The Linen Co-ord Set"
+          }
+        },
+        "product-3": {
+          "type": "product_item",
+          "settings": {
+            "badge": "Limited",
+            "fallback_title": "The Embroidered Kurta"
+          }
+        },
+        "product-4": {
+          "type": "product_item",
+          "settings": {
+            "badge": "New",
+            "fallback_title": "The Vintage Blazer"
+          }
+        }
+      },
+      "block_order": ["product-1", "product-2", "product-3", "product-4"],
+      "settings": {
+        "subtitle": "Handpicked pieces for every story"
+      }
+    },
+    "collection-grid": {
+      "type": "collection-grid",
+      "blocks": {
+        "col-1": {
+          "type": "collection_card",
+          "settings": {
+            "title": "Summer Dresses",
+            "subtitle": "Shop Now →",
+            "link": "/collections/dresses"
+          }
+        },
+        "col-2": {
+          "type": "collection_card",
+          "settings": {
+            "title": "Ethnic Wear",
+            "subtitle": "Explore →",
+            "link": "/collections/ethnic"
+          }
+        },
+        "col-3": {
+          "type": "collection_card",
+          "settings": {
+            "title": "Co-ord Sets",
+            "subtitle": "View All →",
+            "link": "/collections/coord-sets"
+          }
+        }
+      },
+      "block_order": ["col-1", "col-2", "col-3"],
+      "settings": {
+        "label": "Shop by category",
+        "title": "Explore the *World*"
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "blocks": {
+        "menu-1": {
+          "type": "menu_column",
+          "settings": {
+            "heading": "Shop",
+            "menu": "main-menu"
+          }
+        },
+        "menu-2": {
+          "type": "menu_column",
+          "settings": {
+            "heading": "Help",
+            "menu": "footer-help"
+          }
+        }
+      },
+      "block_order": ["menu-1", "menu-2"],
+      "settings": {
+        "logo_first": "ÉLAN",
+        "logo_second": "STUDIO",
+        "description": "We create clothing that moves with you — crafted from sustainable fabrics, designed for the modern soul.",
+        "footer_note": "Made with love in India"
+      }
+    }
+  },
+  "order": [
+    "entrance",
+    "shop-header",
+    "hero-3d",
+    "marquee-1",
+    "product-showcase",
+    "collection-grid",
+    "footer"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "current": {
+    "color_accent": "#c9a96e",
+    "color_bg": "#080808",
+    "color_text": "#f0ece4",
+    "heading_font": "cormorant",
+    "enable_entrance": true,
+    "particle_count": 1800,
+    "enable_product_tilt": true,
+    "enable_scroll_reveal": true
+  }
+}

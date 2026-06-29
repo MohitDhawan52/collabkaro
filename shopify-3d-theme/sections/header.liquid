@@ -1,0 +1,80 @@
+<!-- SITE HEADER (non-homepage pages) -->
+<header class="site-header" role="banner">
+  <a href="/" class="site-logo" aria-label="{{ shop.name }}">
+    {{ section.settings.logo_first }}<span>{{ section.settings.logo_second }}</span>
+  </a>
+
+  <nav aria-label="Main navigation">
+    <ul class="site-nav">
+      {% for link in linklists[section.settings.menu].links %}
+        <li><a href="{{ link.url }}" {% if link.active %}aria-current="page"{% endif %}>{{ link.title }}</a></li>
+      {% endfor %}
+    </ul>
+  </nav>
+
+  <div class="header-actions">
+    {% if shop.customer_accounts_enabled %}
+      <a href="{{ routes.account_url }}" class="nav-icon-btn" aria-label="Account">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+      </a>
+    {% endif %}
+    <a href="{{ routes.search_url }}" class="nav-icon-btn" aria-label="Search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
+      </svg>
+    </a>
+    <button class="nav-icon-btn" aria-label="Open cart" data-cart-open>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- CART DRAWER -->
+<div class="cart-drawer" id="cart-drawer" aria-hidden="true">
+  <div class="cart-drawer-header">
+    <h3>Your Bag</h3>
+    <button class="cart-close-btn" aria-label="Close cart">✕</button>
+  </div>
+  <div class="cart-items" id="cart-items">
+    <p style="color: var(--color-text-muted); font-size: 0.8rem; margin-top: 2rem; text-align: center;">Your bag is empty</p>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-total">
+      <span>Total</span>
+      <span id="cart-total-price">₹0.00</span>
+    </div>
+    <a href="/checkout" class="checkout-btn">Checkout</a>
+  </div>
+</div>
+<div class="overlay-bg"></div>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": [
+    {
+      "type": "text",
+      "id": "logo_first",
+      "label": "Logo First Part",
+      "default": "ÉLAN"
+    },
+    {
+      "type": "text",
+      "id": "logo_second",
+      "label": "Logo Second Part (Gold)",
+      "default": "STUDIO"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Navigation Menu",
+      "default": "main-menu"
+    }
+  ]
+}
+{% endschema %}

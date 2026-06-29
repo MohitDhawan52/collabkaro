@@ -1,0 +1,43 @@
+<!-- HERO 3D SECTION -->
+<section class="hero-3d-section">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-text reveal">
+    <h2 class="hero-title">
+      {{ section.settings.hero_line1 }}<br>
+      <em>{{ section.settings.hero_line2 }}</em>
+    </h2>
+    <p class="hero-subtitle">{{ section.settings.hero_subtitle }}</p>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Hero 3D",
+  "settings": [
+    {
+      "type": "text",
+      "id": "hero_line1",
+      "label": "Hero Title Line 1",
+      "default": "Wear the"
+    },
+    {
+      "type": "text",
+      "id": "hero_line2",
+      "label": "Hero Title Line 2 (italic accent)",
+      "default": "Extraordinary"
+    },
+    {
+      "type": "text",
+      "id": "hero_subtitle",
+      "label": "Hero Subtitle",
+      "default": "New Collection · SS 2026"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero 3D",
+      "category": "Custom"
+    }
+  ]
+}
+{% endschema %}

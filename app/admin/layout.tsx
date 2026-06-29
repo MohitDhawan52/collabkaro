@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, Users, Briefcase, ShieldCheck, LogOut, Menu, X, Wallet, GitMerge, BarChart3, Bell, Settings, Scale } from 'lucide-react'
+import { LayoutDashboard, Users, Briefcase, ShieldCheck, LogOut, Menu, X, Wallet, GitMerge, BarChart3, Bell, Settings, Scale, BadgeCheck, Megaphone } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import NotificationBell from '@/app/components/NotificationBell'
 import { useIsMobile } from '@/lib/useIsMobile'
@@ -17,8 +17,10 @@ const NAV_ITEMS = [
   { href: '/admin/disputes',    label: 'Disputes',       icon: Scale,           iconBg: 'rgba(239,68,68,0.5)' },
   { href: '/admin/payouts',     label: 'Payouts',        icon: Wallet,          iconBg: 'rgba(5,150,105,0.55)' },
   { href: '/admin/stats',       label: 'Platform Stats', icon: BarChart3,       iconBg: 'rgba(236,72,153,0.5)' },
-  { href: '/admin/kyc',         label: 'KYC Review',     icon: ShieldCheck,     iconBg: 'rgba(16,185,129,0.5)' },
-  { href: '/admin/notify',      label: 'Notifications',  icon: Bell,            iconBg: 'rgba(239,68,68,0.5)' },
+  { href: '/admin/kyc',           label: 'KYC Review',      icon: ShieldCheck,  iconBg: 'rgba(16,185,129,0.5)' },
+  { href: '/admin/verifications', label: 'Verifications',   icon: BadgeCheck,   iconBg: 'rgba(29,78,216,0.6)' },
+  { href: '/admin/ads',           label: 'Gig Ads',         icon: Megaphone,    iconBg: 'rgba(245,158,11,0.6)' },
+  { href: '/admin/notify',        label: 'Notifications',   icon: Bell,         iconBg: 'rgba(239,68,68,0.5)' },
 ]
 
 function NavItem({ item, active, onClick }: { item: typeof NAV_ITEMS[0]; active: boolean; onClick: () => void }) {
