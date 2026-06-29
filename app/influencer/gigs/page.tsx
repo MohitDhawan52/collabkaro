@@ -7,6 +7,17 @@ import { createClient } from '@/lib/supabase'
 import type { Gig } from '@/types/index'
 import { NICHES, PLATFORMS } from '@/types/index'
 
+// Fire-and-forget ad event tracker — never blocks UI
+async function trackAdEvent(ad_id: string, event_type: 'impression' | 'pitch_click', viewer_user_id: string) {
+  try {
+    await fetch('/api/ads/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ad_id, event_type, viewer_user_id }),
+    })
+  } catch { /* silent */ }
+}
+
 function formatINR(amount: number | null | undefined) {
   if (amount == null) return 'Open to negotiate'
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount)
@@ -32,6 +43,8 @@ export default function BrowseGigsPage() {
   const [loading, setLoading] = useState(true)
   const [gigs, setGigs] = useState<Gig[]>([])
   const [sponsoredGigIds, setSponsoredGigIds] = useState<Set<string>>(new Set())
+  const [gigToAdId, setGigToAdId] = useState<Record<string, string>>({})
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [isVerified, setIsVerified] = useState(false)
   const [search, setSearch] = useState('')
   const [nicheFilter, setNicheFilter] = useState('')
@@ -63,15 +76,21 @@ export default function BrowseGigsPage() {
         .single(),
       supabase
         .from('gig_ads')
-        .select('gig_id')
+        .select('id, gig_id')
         .eq('status', 'active'),
     ])
+
+    setCurrentUserId(user.id)
 
     const verified = influencerRes.data?.is_verified ?? false
     setIsVerified(verified)
 
-    const sponsoredIds = new Set<string>((adsRes.data ?? []).map((a: { gig_id: string }) => a.gig_id))
+    const adsData = (adsRes.data ?? []) as { gig_id: string; id: string }[]
+    const sponsoredIds = new Set<string>(adsData.map(a => a.gig_id))
     setSponsoredGigIds(sponsoredIds)
+    const adMap: Record<string, string> = {}
+    adsData.forEach(a => { adMap[a.gig_id] = a.id })
+    setGigToAdId(adMap)
 
     // 4-hour verified priority: hide gigs posted < 4h ago for non-verified
     const now = Date.now()
@@ -90,6 +109,11 @@ export default function BrowseGigsPage() {
         .eq('influencer_id', influencerRes.data.id)
       setPitchedGigIds(new Set((pitches ?? []).map((p) => p.gig_id)))
     }
+
+    // Fire impression events for all sponsored gigs visible to this user
+    adsData.forEach(a => {
+      trackAdEvent(a.id, 'impression', user.id)
+    })
 
     setLoading(false)
   }
@@ -116,6 +140,9 @@ export default function BrowseGigsPage() {
     } else {
       toast.success('Pitch sent! The brand will review it soon.')
       setPitchedGigIds((prev) => new Set([...prev, pitchGig.id]))
+      // Track pitch click on sponsored gig
+      const adId = gigToAdId[pitchGig.id]
+      if (adId && currentUserId) trackAdEvent(adId, 'pitch_click', currentUserId)
       setPitchGig(null)
       setPitchMessage('')
     }
