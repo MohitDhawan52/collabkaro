@@ -176,7 +176,7 @@ export default function KYCPage() {
     fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 6, display: 'block',
   }
 
-  function FileUploadBox({ label, file, onFile, existingUrl, inputRef }: { label: string; file: File | null; onFile: (f: File) => void; existingUrl?: string | null; inputRef: React.RefObject<HTMLInputElement> }) {
+  function FileUploadBox({ label, file, onFile, existingUrl, inputRef }: { label: string; file: File | null; onFile: (f: File) => void; existingUrl?: string | null; inputRef: React.RefObject<HTMLInputElement | null> }) {
     return (
       <div>
         <label style={LABEL}>{label}</label>
