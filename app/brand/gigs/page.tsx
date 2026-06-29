@@ -10,6 +10,7 @@ import {
   Play,
   Trash2,
   Users,
+  Megaphone,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import type { Gig } from '@/types/index'
@@ -211,6 +212,12 @@ export default function BrandGigsPage() {
                   )}
 
                   <span className={gigBadgeClass(gig.status)}>{prettyStatus(gig.status)}</span>
+
+                  {/* Boost */}
+                  <Link href={`/brand/ads?boost=${gig.id}`}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 13px', borderRadius: 10, background: 'linear-gradient(135deg,#f59e0b,#f97316)', color: '#fff', fontSize: 12, fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                    <Megaphone size={12} /> Boost
+                  </Link>
 
                   {/* Actions */}
                   <button

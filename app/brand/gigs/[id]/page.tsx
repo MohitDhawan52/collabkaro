@@ -145,7 +145,7 @@ export default function GigDetailPage() {
       {/* Stats row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 18 }}>
         {[
-          { icon: <IndianRupee size={15} />, label: 'Max Budget', value: gig.max_budget ? fmt(gig.max_budget * 0.9) : 'Barter', sub: 'Creator earns', color: '#10b981', bg: '#ecfdf5' },
+          { icon: <IndianRupee size={15} />, label: 'Budget / Influencer', value: gig.max_budget ? fmt(gig.max_budget) : 'Barter', sub: slotsTotal ? `Total: ${fmt(gig.max_budget! * slotsTotal)}` : 'Per creator', color: '#10b981', bg: '#ecfdf5' },
           { icon: <Send size={15} />, label: 'Total Pitches', value: String(pitchCount), sub: 'Received so far', color: '#8b5cf6', bg: '#f5f3ff' },
           { icon: <Users size={15} />, label: 'Slots Filled', value: slotsTotal ? `${slotsFilled}/${slotsTotal}` : String(slotsFilled), sub: slotsLeft !== null ? `${slotsLeft} remaining` : 'No limit set', color: '#1d4ed8', bg: '#eff6ff' },
           { icon: <Calendar size={15} />, label: 'Min Followers', value: gig.min_followers ? (gig.min_followers >= 1000 ? `${(gig.min_followers/1000).toFixed(0)}K` : String(gig.min_followers)) : 'Any', sub: 'Requirement', color: '#f59e0b', bg: '#fef3c7' },

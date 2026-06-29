@@ -539,9 +539,9 @@ export default function PostGigPage() {
 
               {collabType !== 'barter' && (
                 <div>
-                  <label style={labelStyle}>Maximum Budget (₹) *</label>
+                  <label style={labelStyle}>Budget per Influencer (₹) *</label>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2, marginBottom: 8 }}>
-                    Your upper limit — creators will pitch within this range
+                    Amount you'll pay each creator. Total campaign spend = Budget × No. of Influencers.
                   </div>
                   <div style={{ position: 'relative' }}>
                     <span style={{
@@ -553,11 +553,18 @@ export default function PostGigPage() {
                       type="number"
                       className="input"
                       style={{ paddingLeft: 32 }}
-                      placeholder="e.g. 15000"
+                      placeholder="e.g. 5000"
                       min={0}
                     />
                   </div>
                   {errors.max_budget && <span style={errStyle}>{errors.max_budget.message}</span>}
+                  {/* Live total calculator */}
+                  {watch('max_budget') && watch('influencer_limit') && Number(watch('max_budget')) > 0 && (
+                    <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 10, background: 'rgba(109,40,217,0.06)', border: '1px solid rgba(109,40,217,0.15)', fontSize: 13, color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between' }}>
+                      <span>₹{Number(watch('max_budget')).toLocaleString('en-IN')} × {watch('influencer_limit')} influencers</span>
+                      <span style={{ fontWeight: 800, color: 'var(--brand-primary)' }}>= ₹{(Number(watch('max_budget')) * Number(watch('influencer_limit'))).toLocaleString('en-IN')} total</span>
+                    </div>
+                  )}
                 </div>
               )}
 
