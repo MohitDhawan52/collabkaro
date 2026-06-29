@@ -9,6 +9,8 @@ import CollabChat from '@/app/components/CollabChat'
 import ReviewForm from '@/app/components/ReviewForm'
 import { generateContract } from '@/lib/generateContract'
 import DisputeModal from '@/app/components/DisputeModal'
+import { sendEmail } from '@/lib/sendEmail'
+import { influencerSignedEmail, newMessageEmail } from '@/lib/emailTemplates'
 import type { Collaboration } from '@/types/index'
 
 function formatINR(amount: number | null | undefined) {
@@ -90,13 +92,16 @@ export default function InfluencerCollabsPage() {
 
       // Notify the brand
       const brandUserId = (collab.brand_profiles as unknown as { user_id?: string })?.user_id
+      const gigTitle = collab.gigs?.title ?? 'your gig'
       if (brandUserId) {
         await notify({
           userId: brandUserId,
           title: 'Influencer Signed the Agreement ✍️',
-          message: `The influencer has signed the agreement for "${collab.gigs?.title ?? 'your gig'}". Go to Collaborations, sign and complete payment to go live.`,
+          message: `The influencer has signed the agreement for "${gigTitle}". Go to Collaborations, sign and complete payment to go live.`,
           type: 'info',
         })
+        const { subject, html } = influencerSignedEmail(collab.brand_profiles?.brand_name ?? 'Brand', myName, gigTitle)
+        await sendEmail(brandUserId, subject, html)
       }
     }
     setActing(null)
@@ -319,7 +324,7 @@ export default function InfluencerCollabsPage() {
                 </div>
 
                 {/* Chat */}
-                <CollabChat collabId={collab.id} myRole="influencer" myName={myName} />
+                <CollabChat collabId={collab.id} myRole="influencer" myName={myName} otherPartyUserId={(collab.brand_profiles as unknown as { user_id?: string })?.user_id} gigTitle={collab.gigs?.title ?? 'Collaboration'} />
               </div>
             )
           })

@@ -6,6 +6,8 @@ import { Users, CheckCircle2, XCircle, AtSign, Play } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { notify } from '@/lib/notifications'
+import { sendEmail } from '@/lib/sendEmail'
+import { pitchAcceptedEmail } from '@/lib/emailTemplates'
 import type { Pitch } from '@/types/index'
 
 function formatNumber(n: number | null | undefined) {
@@ -96,6 +98,9 @@ export default function BrandPitchesPage() {
             message: `Your pitch for "${pitch.gigs?.title ?? 'a gig'}" has been accepted. Go to Collaborations and sign the agreement to get started.`,
             type: 'success',
           })
+          const brandName = pitch.gigs?.brand_profiles?.brand_name ?? 'Brand'
+          const { subject, html } = pitchAcceptedEmail(pitch.influencer_profiles?.full_name ?? 'Influencer', brandName, pitch.gigs?.title ?? 'Collaboration')
+          await sendEmail(infProfile.user_id, subject, html)
         }
       }
     }

@@ -10,6 +10,8 @@ import CollabChat from '@/app/components/CollabChat'
 import ReviewForm from '@/app/components/ReviewForm'
 import { generateContract } from '@/lib/generateContract'
 import DisputeModal from '@/app/components/DisputeModal'
+import { sendEmail } from '@/lib/sendEmail'
+import { brandSignedEmail } from '@/lib/emailTemplates'
 import type { Collaboration } from '@/types/index'
 
 function formatINR(amount: number | null | undefined) {
@@ -80,6 +82,12 @@ export default function BrandCollabsPage() {
     } else {
       toast.success('Agreement signed! Complete payment to go live.')
       setCollabs(prev => prev.map(c => c.id === collab.id ? { ...c, status: 'agreement_signed_brand' } : c))
+      // Email influencer
+      const infUserId = (collab.influencer_profiles as unknown as { user_id?: string })?.user_id
+      if (infUserId) {
+        const { subject, html } = brandSignedEmail(collab.influencer_profiles?.full_name ?? 'Influencer', myName, collab.gigs?.title ?? 'Collaboration')
+        await sendEmail(infUserId, subject, html)
+      }
     }
     setActing(null)
   }
@@ -331,7 +339,7 @@ export default function BrandCollabsPage() {
                 </div>
 
                 {/* Chat */}
-                <CollabChat collabId={collab.id} myRole="brand" myName={myName} />
+                <CollabChat collabId={collab.id} myRole="brand" myName={myName} otherPartyUserId={(collab.influencer_profiles as unknown as { user_id?: string })?.user_id} gigTitle={collab.gigs?.title ?? 'Collaboration'} />
               </div>
             )
           })

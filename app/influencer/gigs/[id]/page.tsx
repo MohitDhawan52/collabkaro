@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { ArrowLeft, Sparkles, IndianRupee, Users, Clock, Send, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
+import { sendEmail } from '@/lib/sendEmail'
+import { pitchReceivedEmail } from '@/lib/emailTemplates'
 import type { Gig } from '@/types/index'
 
 function formatINR(amount: number | null | undefined) {
@@ -61,7 +63,7 @@ export default function GigDetailPage() {
     if (!user || !gig) { setSubmitting(false); return }
 
     const { data: influencer } = await supabase
-      .from('influencer_profiles').select('id').eq('user_id', user.id).single()
+      .from('influencer_profiles').select('id, full_name').eq('user_id', user.id).single()
     if (!influencer) { toast.error('Profile not found'); setSubmitting(false); return }
 
     const { error } = await supabase.from('pitches').insert({
@@ -78,6 +80,18 @@ export default function GigDetailPage() {
       setAlreadyPitched(true)
       setShowModal(false)
       setPitchMessage('')
+      // Email brand about new pitch
+      const { data: brandProfile } = await supabase
+        .from('brand_profiles').select('user_id, brand_name').eq('id', gig.brand_id).single()
+      if (brandProfile?.user_id) {
+        const { subject, html } = pitchReceivedEmail(
+          brandProfile.brand_name ?? 'Brand',
+          (influencer as unknown as { full_name: string }).full_name ?? 'Influencer',
+          gig.title,
+          pitchMessage.trim(),
+        )
+        await sendEmail(brandProfile.user_id, subject, html)
+      }
     }
     setSubmitting(false)
   }

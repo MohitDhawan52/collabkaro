@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { MessageCircle, Send, X, ChevronDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
+import { sendEmail } from '@/lib/sendEmail'
+import { newMessageEmail } from '@/lib/emailTemplates'
 
 interface Message {
   id: string
@@ -20,6 +22,8 @@ interface Props {
   collabId: string
   myRole: 'brand' | 'influencer'
   myName: string
+  otherPartyUserId?: string
+  gigTitle?: string
 }
 
 function timeLabel(dateStr: string) {
@@ -34,7 +38,7 @@ function timeLabel(dateStr: string) {
   return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
 }
 
-export default function CollabChat({ collabId, myRole, myName }: Props) {
+export default function CollabChat({ collabId, myRole, myName, otherPartyUserId, gigTitle }: Props) {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -121,6 +125,11 @@ export default function CollabChat({ collabId, myRole, myName }: Props) {
       read_by_brand: myRole === 'brand',
       read_by_influencer: myRole === 'influencer',
     })
+    // Email the other party (fire-and-forget, don't block UI)
+    if (otherPartyUserId && gigTitle) {
+      const { subject, html } = newMessageEmail('', myName, gigTitle, text)
+      sendEmail(otherPartyUserId, subject, html)
+    }
     setSending(false)
   }
 
