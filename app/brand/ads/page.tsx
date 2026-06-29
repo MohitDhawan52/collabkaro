@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Megaphone, Plus, Pause, Play, AlertTriangle,
   X, Edit2, Trash2, Wallet, Plus as PlusIcon,
-  Infinity, Calendar, ChevronRight, Info,
+  Infinity, Calendar, ChevronRight, Info, Eye, Send, IndianRupee, BarChart2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase'
@@ -46,6 +46,8 @@ export default function BrandAdsPage() {
   const [gigs, setGigs] = useState<Gig[]>([])
   const [userId, setUserId] = useState<string | null>(null)
   const [wallet, setWallet] = useState<number>(0)
+  const [spendMap, setSpendMap] = useState<Record<string, { total: number; gst: number }>>({})
+  const [eventMap, setEventMap] = useState<Record<string, { impressions: number; pitches: number }>>({})
 
   const [showCreate, setShowCreate] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
@@ -69,9 +71,32 @@ export default function BrandAdsPage() {
       supabase.from('brand_wallet').select('balance').eq('brand_user_id', user.id).maybeSingle(),
     ])
 
-    setAds((adsRes.data as unknown as GigAd[]) ?? [])
+    const loadedAds = (adsRes.data as unknown as GigAd[]) ?? []
+    setAds(loadedAds)
     setGigs(gigsRes.data ?? [])
     setWallet((walletRes.data as { balance: number } | null)?.balance ?? 0)
+
+    if (loadedAds.length > 0) {
+      const adIds = loadedAds.map(a => a.id)
+      const [txnRes, evRes] = await Promise.all([
+        supabase.from('wallet_transactions').select('ad_id, total_amount, gst_amount').eq('type', 'debit').in('ad_id', adIds),
+        supabase.from('ad_events').select('ad_id, event_type').in('ad_id', adIds),
+      ])
+      const sm: Record<string, { total: number; gst: number }> = {}
+      ;((txnRes.data ?? []) as { ad_id: string; total_amount: number; gst_amount: number }[]).forEach(t => {
+        if (!sm[t.ad_id]) sm[t.ad_id] = { total: 0, gst: 0 }
+        sm[t.ad_id].total += t.total_amount
+        sm[t.ad_id].gst += t.gst_amount
+      })
+      setSpendMap(sm)
+      const em: Record<string, { impressions: number; pitches: number }> = {}
+      ;((evRes.data ?? []) as { ad_id: string; event_type: string }[]).forEach(e => {
+        if (!em[e.ad_id]) em[e.ad_id] = { impressions: 0, pitches: 0 }
+        if (e.event_type === 'impression') em[e.ad_id].impressions++
+        else if (e.event_type === 'pitch_click') em[e.ad_id].pitches++
+      })
+      setEventMap(em)
+    }
     setLoading(false)
   }
 
@@ -237,10 +262,15 @@ export default function BrandAdsPage() {
           </div>
         ) : ads.map(ad => {
           const dailyCharge = ad.daily_budget * 1.18
+          const spend = spendMap[ad.id]
+          const events = eventMap[ad.id]
+          const ctr = events && events.impressions > 0 ? ((events.pitches / events.impressions) * 100).toFixed(2) : '0.00'
+          const isLive = ad.status === 'active' || ad.status === 'paused'
           return (
             <motion.div key={ad.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-              style={{ background: 'var(--bg-card)', border: ad.strike ? '1.5px solid #fca5a5' : '1px solid var(--bg-border)', borderRadius: 18, padding: '18px 22px', boxShadow: 'var(--shadow-card)' }}>
+              style={{ background: 'var(--bg-card)', border: ad.strike ? '1.5px solid #fca5a5' : '1px solid var(--bg-border)', borderRadius: 18, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
 
+              <div style={{ padding: '18px 22px' }}>
               {ad.strike && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#fee2e2', borderRadius: 10, marginBottom: 14, fontSize: 13, color: '#b91c1c', fontWeight: 600 }}>
                   <AlertTriangle size={14} /> Strike: {ad.strike_reason ?? 'Policy violation'}
@@ -288,6 +318,28 @@ export default function BrandAdsPage() {
                   )}
                 </div>
               </div>
+              </div>
+
+              {/* Analytics strip — only for live ads */}
+              {isLive && (
+                <div style={{ padding: '12px 22px', background: 'linear-gradient(135deg,#f8faff,#eff6ff)', borderTop: '1px solid #e0e7ff', display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 0 }}>
+                  {[
+                    { icon: <IndianRupee size={11} />, label: 'Spent', value: fmt(spend?.total ?? 0), color: '#f59e0b' },
+                    { icon: <IndianRupee size={11} />, label: 'GST Paid', value: fmt(spend?.gst ?? 0), color: '#ef4444' },
+                    { icon: <Eye size={11} />, label: 'Impressions', value: String(events?.impressions ?? 0), color: '#1d4ed8' },
+                    { icon: <Send size={11} />, label: 'Pitches', value: String(events?.pitches ?? 0), color: '#8b5cf6' },
+                    { icon: <BarChart2 size={11} />, label: 'CTR', value: `${ctr}%`, color: '#10b981' },
+                  ].map((m, i) => (
+                    <div key={m.label} style={{ padding: '6px 14px', borderRight: i < 4 ? '1px solid #e0e7ff' : 'none', textAlign: i === 0 ? 'left' : 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: i === 0 ? 'flex-start' : 'center', color: m.color, marginBottom: 2 }}>
+                        {m.icon}
+                        <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>{m.label}</span>
+                      </div>
+                      <div style={{ fontSize: 14, fontWeight: 900, color: m.color }}>{m.value}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </motion.div>
           )
         })}
