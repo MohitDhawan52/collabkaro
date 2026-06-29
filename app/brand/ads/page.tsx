@@ -1,34 +1,59 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { Megaphone, Plus, IndianRupee, Pause, Play, AlertTriangle, Inbox, ChevronRight, X } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Megaphone, Plus, IndianRupee, Pause, Play, AlertTriangle,
+  Inbox, X, Edit2, Trash2, Wallet, Plus as PlusIcon,
+  Infinity, Calendar, ChevronRight, Info,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase'
 
+const GST = 0.18
+
 interface Gig { id: string; title: string }
 interface GigAd {
-  id: string
-  gig_id: string
-  daily_budget: number
-  total_budget: number
-  start_date: string
-  end_date: string
+  id: string; gig_id: string; daily_budget: number; total_budget: number | null
+  start_date: string; end_date: string | null; run_continuously: boolean
   status: 'pending' | 'active' | 'paused' | 'rejected' | 'ended'
-  strike: boolean
-  strike_reason: string | null
-  created_at: string
+  strike: boolean; strike_reason: string | null; created_at: string
   gigs?: { title: string } | null
 }
+interface Wallet { balance: number }
+
+function fmt(n: number) {
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(n)
+}
+
+const inp: React.CSSProperties = {
+  width: '100%', padding: '10px 14px', borderRadius: 10,
+  border: '1.5px solid #e5e7eb', background: '#f9fafb',
+  color: '#111827', fontSize: 14, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
+}
+const lbl: React.CSSProperties = {
+  display: 'block', fontSize: 11.5, fontWeight: 700, color: '#6b7280',
+  textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 7,
+}
+
+const statusColor: Record<string, string> = { pending: '#f59e0b', active: '#10b981', paused: '#6b7280', rejected: '#ef4444', ended: '#9ca3af' }
+const statusBg: Record<string, string> = { pending: '#fef3c7', active: '#ecfdf5', paused: '#f3f4f6', rejected: '#fee2e2', ended: '#f9fafb' }
+
+const EMPTY_FORM = { gig_id: '', daily_budget: '85', run_continuously: true, start_date: '', end_date: '' }
 
 export default function BrandAdsPage() {
   const [loading, setLoading] = useState(true)
   const [ads, setAds] = useState<GigAd[]>([])
   const [gigs, setGigs] = useState<Gig[]>([])
   const [userId, setUserId] = useState<string | null>(null)
-  const [showCreate, setShowCreate] = useState(false)
+  const [wallet, setWallet] = useState<number>(0)
 
-  const [form, setForm] = useState({ gig_id: '', daily_budget: '85', total_budget: '', start_date: '', end_date: '' })
+  const [showCreate, setShowCreate] = useState(false)
+  const [editAd, setEditAd] = useState<GigAd | null>(null)
+  const [showAddFunds, setShowAddFunds] = useState(false)
+  const [fundAmount, setFundAmount] = useState('500')
+  const [form, setForm] = useState(EMPTY_FORM)
+  const [acting, setActing] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -38,83 +63,241 @@ export default function BrandAdsPage() {
     if (!user) return
     setUserId(user.id)
 
-    const [adsRes, gigsRes] = await Promise.all([
+    const [adsRes, gigsRes, walletRes] = await Promise.all([
       supabase.from('gig_ads').select('*, gigs(title)').eq('brand_user_id', user.id).order('created_at', { ascending: false }),
       supabase.from('gigs').select('id, title').eq('status', 'active').order('created_at', { ascending: false }),
+      supabase.from('brand_wallet').select('balance').eq('brand_user_id', user.id).maybeSingle(),
     ])
 
     setAds((adsRes.data as unknown as GigAd[]) ?? [])
     setGigs(gigsRes.data ?? [])
+    setWallet((walletRes.data as unknown as Wallet | null)?.balance ?? 0)
     setLoading(false)
   }
 
-  async function createAd() {
-    if (!form.gig_id) { toast.error('Select a gig to promote'); return }
-    const daily = parseInt(form.daily_budget)
-    const total = parseInt(form.total_budget)
-    if (!daily || daily < 85) { toast.error('Minimum daily budget is ₹85'); return }
-    if (!total || total < daily) { toast.error('Total budget must be at least equal to daily budget'); return }
-    if (!form.start_date || !form.end_date) { toast.error('Set start and end dates'); return }
-    if (new Date(form.end_date) <= new Date(form.start_date)) { toast.error('End date must be after start date'); return }
+  // GST calculations
+  const dailyBudget = parseFloat(form.daily_budget) || 0
+  const dailyGST = dailyBudget * GST
+  const dailyTotal = dailyBudget + dailyGST
+  const daysCanRun = dailyTotal > 0 ? Math.floor(wallet / dailyTotal) : 0
 
+  async function ensureWallet(uid: string) {
     const supabase = createClient()
-    const { error } = await supabase.from('gig_ads').insert({
+    await supabase.from('brand_wallet').upsert({ brand_user_id: uid, balance: 0 }, { onConflict: 'brand_user_id', ignoreDuplicates: true })
+  }
+
+  async function addFunds() {
+    const amount = parseFloat(fundAmount)
+    if (!amount || amount < 1) { toast.error('Enter a valid amount'); return }
+    if (!userId) return
+    setActing(true)
+    const supabase = createClient()
+    await ensureWallet(userId)
+    const newBal = wallet + amount
+    const { error: wErr } = await supabase.from('brand_wallet').update({ balance: newBal, updated_at: new Date().toISOString() }).eq('brand_user_id', userId)
+    if (wErr) {
+      const { error: iErr } = await supabase.from('brand_wallet').insert({ brand_user_id: userId, balance: amount })
+      if (iErr) { toast.error(iErr.message); setActing(false); return }
+    }
+    await supabase.from('wallet_transactions').insert({
+      brand_user_id: userId, type: 'credit', amount, gst_amount: 0,
+      total_amount: amount, description: 'Funds added to wallet',
+      date: new Date().toISOString().split('T')[0],
+    })
+    toast.success(`₹${amount.toLocaleString('en-IN')} added to your wallet!`)
+    setWallet(newBal)
+    setShowAddFunds(false)
+    setFundAmount('500')
+    setActing(false)
+  }
+
+  async function submitAd(isEdit = false) {
+    if (!form.gig_id) { toast.error('Select a gig to promote'); return }
+    const daily = parseFloat(form.daily_budget)
+    if (!daily || daily < 85) { toast.error('Minimum daily budget is ₹85'); return }
+    if (!form.start_date) { toast.error('Set a start date'); return }
+    if (!form.run_continuously && !form.end_date) { toast.error('Set an end date or choose "Run continuously"'); return }
+    if (!form.run_continuously && form.end_date && new Date(form.end_date) <= new Date(form.start_date)) {
+      toast.error('End date must be after start date'); return
+    }
+    if (wallet <= 0) { toast.error('Your wallet is empty. Please add funds first.'); setShowAddFunds(true); return }
+
+    setActing(true)
+    const supabase = createClient()
+    const payload = {
       gig_id: form.gig_id,
       brand_user_id: userId,
       daily_budget: daily,
-      total_budget: total,
+      total_budget: null,
+      run_continuously: form.run_continuously,
       start_date: form.start_date,
-      end_date: form.end_date,
+      end_date: form.run_continuously ? null : form.end_date,
       status: 'pending',
       strike: false,
-    })
-    if (error) { toast.error(error.message); return }
-    toast.success('Ad submitted for review! It will go live once admin approves.')
+    }
+
+    let error
+    if (isEdit && editAd) {
+      ;({ error } = await supabase.from('gig_ads').update(payload).eq('id', editAd.id))
+    } else {
+      ;({ error } = await supabase.from('gig_ads').insert(payload))
+    }
+
+    if (error) { toast.error(error.message); setActing(false); return }
+    toast.success(isEdit ? 'Ad updated!' : 'Ad submitted for review!')
     setShowCreate(false)
-    setForm({ gig_id: '', daily_budget: '85', total_budget: '', start_date: '', end_date: '' })
+    setEditAd(null)
+    setForm(EMPTY_FORM)
+    setActing(false)
+    load()
+  }
+
+  async function deleteAd(id: string) {
+    if (!confirm('Remove this ad?')) return
+    const supabase = createClient()
+    const { error } = await supabase.from('gig_ads').delete().eq('id', id)
+    if (error) { toast.error(error.message); return }
+    toast.success('Ad removed')
     load()
   }
 
   async function togglePause(ad: GigAd) {
     const supabase = createClient()
     const next = ad.status === 'active' ? 'paused' : 'active'
-    const { error } = await supabase.from('gig_ads').update({ status: next }).eq('id', ad.id)
-    if (error) { toast.error(error.message); return }
-    toast.success(next === 'paused' ? 'Ad paused' : 'Ad resumed')
+    await supabase.from('gig_ads').update({ status: next }).eq('id', ad.id)
     load()
   }
 
-  const statusColor: Record<string, string> = {
-    pending: '#f59e0b', active: '#10b981', paused: '#6b7280', rejected: '#ef4444', ended: '#9ca3af'
-  }
-  const statusBg: Record<string, string> = {
-    pending: '#fef3c7', active: '#ecfdf5', paused: '#f3f4f6', rejected: '#fee2e2', ended: '#f9fafb'
+  function openEdit(ad: GigAd) {
+    setForm({
+      gig_id: ad.gig_id,
+      daily_budget: String(ad.daily_budget),
+      run_continuously: ad.run_continuously,
+      start_date: ad.start_date,
+      end_date: ad.end_date ?? '',
+    })
+    setEditAd(ad)
   }
 
-  const inp: React.CSSProperties = {
-    width: '100%', padding: '10px 14px', borderRadius: 10,
-    border: '1.5px solid #e5e7eb', background: '#f9fafb',
-    color: '#111827', fontSize: 14, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
-  }
+  const AdFormModal = ({ isEdit }: { isEdit: boolean }) => (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(20,16,43,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}>
+      <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
+        style={{ background: '#fff', borderRadius: 20, padding: 28, width: '100%', maxWidth: 500, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div style={{ fontWeight: 800, fontSize: 17, color: '#111827' }}>{isEdit ? 'Edit Ad Campaign' : 'Create Gig Ad'}</div>
+          <button onClick={() => { setShowCreate(false); setEditAd(null); setForm(EMPTY_FORM) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={20} /></button>
+        </div>
+
+        {/* Wallet balance in modal */}
+        <div style={{ padding: '12px 14px', borderRadius: 12, background: wallet <= 0 ? '#fff1f2' : daysCanRun < 3 ? '#fef3c7' : '#ecfdf5', border: `1.5px solid ${wallet <= 0 ? '#fca5a5' : daysCanRun < 3 ? '#fde68a' : '#a7f3d0'}`, marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: wallet <= 0 ? '#b91c1c' : '#374151' }}>
+              Wallet Balance: <span style={{ fontSize: 15, color: wallet <= 0 ? '#ef4444' : '#10b981' }}>{fmt(wallet)}</span>
+            </div>
+            {dailyTotal > 0 && wallet > 0 && (
+              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                {daysCanRun} day{daysCanRun !== 1 ? 's' : ''} at ₹{dailyTotal.toFixed(2)}/day (incl. GST)
+              </div>
+            )}
+            {wallet <= 0 && <div style={{ fontSize: 12, color: '#b91c1c', marginTop: 2 }}>Add funds to launch your ad</div>}
+          </div>
+          <button onClick={() => setShowAddFunds(true)} style={{ padding: '7px 14px', borderRadius: 9, border: 'none', background: '#1d4ed8', color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            + Add Funds
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <label style={lbl}>Select Gig *</label>
+            <select value={form.gig_id} onChange={e => setForm(p => ({ ...p, gig_id: e.target.value }))} style={inp}>
+              <option value="">Choose a gig to promote...</option>
+              {gigs.map(g => <option key={g.id} value={g.id}>{g.title}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label style={lbl}>Daily Budget (₹, excl. GST) *</label>
+            <input type="number" min={85} value={form.daily_budget} onChange={e => setForm(p => ({ ...p, daily_budget: e.target.value }))} placeholder="Min ₹85" style={inp} />
+            {dailyBudget >= 85 && (
+              <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, background: '#f8faff', border: '1px solid #e0e7ff' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#374151', marginBottom: 4 }}>
+                  <span>Daily budget</span><span>₹{dailyBudget.toFixed(2)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#374151', marginBottom: 4 }}>
+                  <span>GST (18%)</span><span>₹{dailyGST.toFixed(2)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, fontWeight: 800, color: '#1d4ed8', borderTop: '1px solid #e0e7ff', paddingTop: 6 }}>
+                  <span>Daily total charged</span><span>₹{dailyTotal.toFixed(2)}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label style={lbl}>Start Date *</label>
+            <input type="date" value={form.start_date} onChange={e => setForm(p => ({ ...p, start_date: e.target.value }))} style={inp} min={new Date().toISOString().split('T')[0]} />
+          </div>
+
+          <div>
+            <label style={lbl}>Campaign End</label>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+              {[
+                { val: true, icon: Infinity, label: 'Run continuously' },
+                { val: false, icon: Calendar, label: 'Set end date' },
+              ].map(opt => (
+                <button key={String(opt.val)} type="button" onClick={() => setForm(p => ({ ...p, run_continuously: opt.val }))}
+                  style={{ flex: 1, padding: '10px 12px', borderRadius: 10, border: `1.5px solid ${form.run_continuously === opt.val ? '#1d4ed8' : '#e5e7eb'}`, background: form.run_continuously === opt.val ? '#eff6ff' : '#f9fafb', color: form.run_continuously === opt.val ? '#1d4ed8' : '#374151', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <opt.icon size={14} /> {opt.label}
+                </button>
+              ))}
+            </div>
+            {!form.run_continuously && (
+              <input type="date" value={form.end_date} onChange={e => setForm(p => ({ ...p, end_date: e.target.value }))} style={inp} min={form.start_date || new Date().toISOString().split('T')[0]} />
+            )}
+            {form.run_continuously && (
+              <div style={{ fontSize: 12, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 5 }}>
+                <Info size={12} /> Ad runs until your wallet runs out or you manually stop it.
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          <button onClick={() => { setShowCreate(false); setEditAd(null); setForm(EMPTY_FORM) }} style={{ flex: 1, padding: '12px', borderRadius: 12, border: '1.5px solid #e5e7eb', background: '#f9fafb', color: '#374151', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+            Cancel
+          </button>
+          <button onClick={() => submitAd(isEdit)} disabled={acting} style={{ flex: 2, padding: '12px', borderRadius: 12, border: 'none', background: acting ? '#fde68a' : 'linear-gradient(135deg,#f59e0b,#f97316)', color: '#fff', fontWeight: 800, fontSize: 14, cursor: acting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
+            <Megaphone size={15} /> {acting ? 'Saving...' : isEdit ? 'Update Campaign' : 'Submit for Review'} <ChevronRight size={14} />
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  )
 
   return (
     <div>
+      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <div className="dash-page-title">Gig Ads</div>
           <div className="dash-page-subtitle">Promote your gigs to the top — get more pitches from top creators.</div>
         </div>
-        <button onClick={() => setShowCreate(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#f59e0b,#f97316)', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 14px rgba(245,158,11,0.3)', fontFamily: 'inherit' }}>
-          <Plus size={16} /> Create Ad
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={() => setShowAddFunds(true)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '10px 16px', borderRadius: 12, border: '1.5px solid #bfdbfe', background: '#eff6ff', color: '#1d4ed8', fontWeight: 700, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <Wallet size={15} /> {fmt(wallet)}
+          </button>
+          <button onClick={() => { setForm(EMPTY_FORM); setShowCreate(true) }} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#f59e0b,#f97316)', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 14px rgba(245,158,11,0.3)', fontFamily: 'inherit' }}>
+            <Plus size={16} /> Create Ad
+          </button>
+        </div>
       </div>
 
       {/* How it works */}
       <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
         {[
-          { n: '1', title: 'Choose a Gig', desc: 'Pick any of your active gigs to promote.' },
-          { n: '2', title: 'Set Budget', desc: 'Min ₹85/day. Set total campaign budget.' },
-          { n: '3', title: 'Get Seen First', desc: 'Your gig appears pinned at the top for all creators.' },
+          { n: '1', title: 'Top Up Wallet', desc: 'Add prepaid funds. Ads deduct daily budget + 18% GST.' },
+          { n: '2', title: 'Create & Submit', desc: 'Pick a gig, set ₹85+/day. Admin reviews within 24h.' },
+          { n: '3', title: 'Get Seen First', desc: 'Your gig pins to the top for all creators until balance runs out.' },
         ].map(s => (
           <div key={s.n} style={{ background: 'var(--bg-card)', border: '1px solid var(--bg-border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow-card)' }}>
             <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#f59e0b,#f97316)', color: '#fff', fontWeight: 800, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>{s.n}</div>
@@ -136,86 +319,119 @@ export default function BrandAdsPage() {
               <div className="dash-empty-sub">Create your first gig ad to start getting priority visibility.</div>
             </div>
           </div>
-        ) : ads.map(ad => (
-          <motion.div key={ad.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ background: 'var(--bg-card)', border: ad.strike ? '1.5px solid #fca5a5' : '1px solid var(--bg-border)', borderRadius: 18, padding: '18px 22px', boxShadow: 'var(--shadow-card)' }}>
-            {ad.strike && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#fee2e2', borderRadius: 10, marginBottom: 14, fontSize: 13, color: '#b91c1c', fontWeight: 600 }}>
-                <AlertTriangle size={14} /> Strike issued: {ad.strike_reason ?? 'Policy violation'}
-              </div>
-            )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-              <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg,#f59e0b,#f97316)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Megaphone size={18} color="#fff" />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>{(ad.gigs as unknown as { title: string } | null)?.title ?? 'Gig'}</div>
-                <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>
-                  ₹{ad.daily_budget}/day · Total: ₹{ad.total_budget} · {new Date(ad.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} → {new Date(ad.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+        ) : ads.map(ad => {
+          const dailyCharge = ad.daily_budget * 1.18
+          return (
+            <motion.div key={ad.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+              style={{ background: 'var(--bg-card)', border: ad.strike ? '1.5px solid #fca5a5' : '1px solid var(--bg-border)', borderRadius: 18, padding: '18px 22px', boxShadow: 'var(--shadow-card)' }}>
+
+              {ad.strike && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#fee2e2', borderRadius: 10, marginBottom: 14, fontSize: 13, color: '#b91c1c', fontWeight: 600 }}>
+                  <AlertTriangle size={14} /> Strike: {ad.strike_reason ?? 'Policy violation'}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+                <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg,#f59e0b,#f97316)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Megaphone size={18} color="#fff" />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>
+                    {(ad.gigs as unknown as { title: string } | null)?.title ?? 'Gig'}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                    ₹{ad.daily_budget}/day + GST = <strong>₹{dailyCharge.toFixed(2)}/day charged</strong>
+                    {' · '}
+                    {new Date(ad.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                    {' → '}
+                    {ad.run_continuously ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><Infinity size={12} /> Continuous</span> : ad.end_date ? new Date(ad.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, flexWrap: 'wrap' }}>
+                  <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: statusBg[ad.status] ?? '#f9fafb', color: statusColor[ad.status] ?? '#6b7280' }}>
+                    {ad.status.charAt(0).toUpperCase() + ad.status.slice(1)}
+                  </span>
+
+                  {ad.status === 'pending' && (
+                    <>
+                      <button onClick={() => openEdit(ad)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, border: '1.5px solid #bfdbfe', background: '#eff6ff', color: '#1d4ed8', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                        <Edit2 size={12} /> Edit
+                      </button>
+                      <button onClick={() => deleteAd(ad.id)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, border: '1.5px solid #fca5a5', background: '#fff1f2', color: '#b91c1c', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                        <Trash2 size={12} /> Remove
+                      </button>
+                    </>
+                  )}
+                  {(ad.status === 'active' || ad.status === 'paused') && !ad.strike && (
+                    <button onClick={() => togglePause(ad)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      {ad.status === 'active' ? <><Pause size={12} /> Pause</> : <><Play size={12} /> Resume</>}
+                    </button>
+                  )}
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-                <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: statusBg[ad.status] ?? '#f9fafb', color: statusColor[ad.status] ?? '#6b7280' }}>
-                  {ad.status.charAt(0).toUpperCase() + ad.status.slice(1)}
-                </span>
-                {(ad.status === 'active' || ad.status === 'paused') && !ad.strike && (
-                  <button onClick={() => togglePause(ad)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                    {ad.status === 'active' ? <><Pause size={12} /> Pause</> : <><Play size={12} /> Resume</>}
-                  </button>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          )
+        })}
       </div>
 
-      {/* Create Ad Modal */}
-      {showCreate && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(20,16,43,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}>
-          <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} style={{ background: '#fff', borderRadius: 20, padding: 28, width: '100%', maxWidth: 480, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
-              <div style={{ fontWeight: 800, fontSize: 17, color: '#111827' }}>Create Gig Ad</div>
-              <button onClick={() => setShowCreate(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={20} /></button>
-            </div>
+      {/* Create / Edit Modal */}
+      <AnimatePresence>
+        {showCreate && <AdFormModal isEdit={false} />}
+        {editAd && <AdFormModal isEdit={true} />}
+      </AnimatePresence>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 7 }}>Select Gig *</label>
-                <select value={form.gig_id} onChange={e => setForm(p => ({ ...p, gig_id: e.target.value }))} style={inp}>
-                  <option value="">Choose a gig to promote...</option>
-                  {gigs.map(g => <option key={g.id} value={g.id}>{g.title}</option>)}
-                </select>
+      {/* Add Funds Modal */}
+      <AnimatePresence>
+        {showAddFunds && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(20,16,43,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 110, padding: 16 }}>
+            <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
+              style={{ background: '#fff', borderRadius: 20, padding: 28, width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <div style={{ fontWeight: 800, fontSize: 18, color: '#111827' }}>Add Funds</div>
+                <button onClick={() => setShowAddFunds(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={20} /></button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 7 }}>Daily Budget (₹) *</label>
-                  <input type="number" min={85} value={form.daily_budget} onChange={e => setForm(p => ({ ...p, daily_budget: e.target.value }))} placeholder="Min ₹85" style={inp} />
-                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>Minimum ₹85/day</div>
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 7 }}>Total Budget (₹) *</label>
-                  <input type="number" value={form.total_budget} onChange={e => setForm(p => ({ ...p, total_budget: e.target.value }))} placeholder="e.g. 2000" style={inp} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 7 }}>Start Date *</label>
-                  <input type="date" value={form.start_date} onChange={e => setForm(p => ({ ...p, start_date: e.target.value }))} style={inp} min={new Date().toISOString().split('T')[0]} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 7 }}>End Date *</label>
-                  <input type="date" value={form.end_date} onChange={e => setForm(p => ({ ...p, end_date: e.target.value }))} style={inp} min={form.start_date || new Date().toISOString().split('T')[0]} />
-                </div>
+              <div style={{ padding: '14px 16px', borderRadius: 14, background: '#f0fdf4', border: '1.5px solid #a7f3d0', marginBottom: 20 }}>
+                <div style={{ fontSize: 12.5, color: '#374151' }}>Current wallet balance</div>
+                <div style={{ fontSize: 26, fontWeight: 900, color: '#10b981' }}>{fmt(wallet)}</div>
               </div>
-            </div>
 
-            <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
-              <button onClick={() => setShowCreate(false)} style={{ flex: 1, padding: '12px', borderRadius: 12, border: '1.5px solid #e5e7eb', background: '#f9fafb', color: '#374151', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
-              <button onClick={createAd} style={{ flex: 2, padding: '12px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#f59e0b,#f97316)', color: '#fff', fontWeight: 800, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
-                <Megaphone size={15} /> Submit Ad for Review <ChevronRight size={14} />
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
+              <label style={lbl}>Amount to Add (₹)</label>
+              <input type="number" value={fundAmount} onChange={e => setFundAmount(e.target.value)} placeholder="Enter amount" style={{ ...inp, marginBottom: 12 }} min={1} />
+
+              {/* Quick amounts */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
+                {[500, 1000, 2000, 5000].map(amt => (
+                  <button key={amt} onClick={() => setFundAmount(String(amt))} style={{ padding: '6px 14px', borderRadius: 8, border: `1.5px solid ${fundAmount === String(amt) ? '#1d4ed8' : '#e5e7eb'}`, background: fundAmount === String(amt) ? '#eff6ff' : '#f9fafb', color: fundAmount === String(amt) ? '#1d4ed8' : '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    ₹{amt.toLocaleString('en-IN')}
+                  </button>
+                ))}
+              </div>
+
+              {parseFloat(fundAmount) > 0 && (
+                <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 14 }}>
+                  After adding: <strong style={{ color: '#111827' }}>{fmt(wallet + parseFloat(fundAmount))}</strong>
+                  {dailyTotal > 0 && <span style={{ color: '#10b981' }}> ({Math.floor((wallet + parseFloat(fundAmount)) / dailyTotal)} days at current budget)</span>}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button onClick={() => setShowAddFunds(false)} style={{ flex: 1, padding: '12px', borderRadius: 12, border: '1.5px solid #e5e7eb', background: '#f9fafb', color: '#374151', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  Cancel
+                </button>
+                <button onClick={addFunds} disabled={acting} style={{ flex: 2, padding: '12px', borderRadius: 12, border: 'none', background: acting ? '#93c5fd' : 'linear-gradient(135deg,#1d4ed8,#06b6d4)', color: '#fff', fontWeight: 800, fontSize: 14, cursor: acting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
+                  <PlusIcon size={15} /> {acting ? 'Adding...' : `Add ${fundAmount ? fmt(parseFloat(fundAmount)) : 'Funds'}`}
+                </button>
+              </div>
+
+              <p style={{ fontSize: 11.5, color: '#9ca3af', textAlign: 'center', marginTop: 12 }}>
+                Funds are prepaid and non-refundable. Ads deduct daily budget + 18% GST.
+              </p>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
