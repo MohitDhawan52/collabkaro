@@ -110,6 +110,17 @@ export default function BrandDashboardPage() {
         </Link>
       </div>
 
+      {/* Gig fee notice */}
+      <div style={{ marginTop: 18, padding: '13px 18px', borderRadius: 14, background: 'rgba(29,78,216,0.05)', border: '1.5px solid rgba(29,78,216,0.15)', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ width: 34, height: 34, borderRadius: 10, background: 'linear-gradient(135deg,#1d4ed8,#06b6d4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <span style={{ color: '#fff', fontSize: 15, fontWeight: 800 }}>₹</span>
+        </div>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <span style={{ fontSize: 13.5, fontWeight: 700, color: '#1d4ed8' }}>₹250 per gig posting fee</span>
+          <span style={{ fontSize: 13, color: '#6b7280', marginLeft: 6 }}>— A flat platform fee of ₹250 is charged each time you publish a new gig. Collaboration budgets are separate.</span>
+        </div>
+      </div>
+
       {/* Stat cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginTop: 24 }}>
         {stats.map((s, i) => (
