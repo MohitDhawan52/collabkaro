@@ -55,12 +55,12 @@ export default function DisputeModal({ collabId, collabTitle, myRole, otherParty
     await supabase.from('collaborations').update({ status: 'disputed' }).eq('id', collabId)
 
     // Notify other party
-    await notify(otherPartyUserId, 'Dispute Raised', `A dispute has been raised on "${collabTitle}". CollabKaro will review and resolve it.`, 'system')
+    await notify({ userId: otherPartyUserId, title: 'Dispute Raised', message: `A dispute has been raised on "${collabTitle}". CollabKaro will review and resolve it.`, type: 'info' })
 
     // Notify admins (fetch admin user IDs)
     const { data: admins } = await supabase.from('profiles').select('id').eq('role', 'admin')
     for (const admin of admins ?? []) {
-      await notify(admin.id, 'New Dispute Filed', `${myRole === 'brand' ? 'Brand' : 'Influencer'} raised a dispute on "${collabTitle}". Reason: ${reason}`, 'system')
+      await notify({ userId: admin.id, title: 'New Dispute Filed', message: `${myRole === 'brand' ? 'Brand' : 'Influencer'} raised a dispute on "${collabTitle}". Reason: ${reason}`, type: 'info' })
     }
 
     toast.success('Dispute raised. CollabKaro will review within 2 business days.')

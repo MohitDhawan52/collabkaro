@@ -149,7 +149,7 @@ export default function AdminPayoutsPage() {
     })
 
     // Notify influencer
-    await notify(inf.user_id, '💰 Payout Processed!', `Your earnings of ${formatINR(inf.net)} have been released for the ${cycleDateStr} cycle. Check your bank account within 2-3 business days.`, 'system')
+    await notify({ userId: inf.user_id, title: '💰 Payout Processed!', message: `Your earnings of ${formatINR(inf.net)} have been released for the ${cycleDateStr} cycle. Check your bank account within 2-3 business days.`, type: 'success' })
 
     toast.success(`Payout of ${formatINR(inf.net)} processed for ${inf.full_name}`)
     setProcessing(null)
