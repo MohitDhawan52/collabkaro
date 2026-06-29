@@ -69,13 +69,13 @@ export default function BrandAdsPage() {
     const channel = supabase
       .channel('brand-gig-ads-rt')
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'gig_ads' }, (payload) => {
-        const updated = payload.new as { id: string; status: string; brand_user_id?: string }
+        const updated = payload.new as GigAd & { brand_user_id?: string }
         if (userId && updated.brand_user_id && updated.brand_user_id !== userId) return
         setAds(prev => {
           const existing = prev.find(a => a.id === updated.id)
           if (!existing) return prev
           const oldStatus = existing.status
-          const newStatus = updated.status as GigAd['status']
+          const newStatus = updated.status
           if (oldStatus !== newStatus) {
             if (newStatus === 'active') toast.success('Your ad is now live! 🎉')
             else if (newStatus === 'rejected') toast.error('Your ad was rejected by admin')
