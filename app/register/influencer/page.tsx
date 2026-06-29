@@ -91,19 +91,13 @@ export default function InfluencerRegisterPage() {
     )
     const username = form.username || form.full_name.toLowerCase().replace(/\s+/g, '_')
     const { error: infErr } = await supabase.from('influencer_profiles').insert({
-      user_id: data.user.id,
-      full_name: form.full_name,
-      username,
-      location: form.location,
-      niche: form.niche,
-      bio: form.bio || null,
+      user_id: data.user.id, full_name: form.full_name, username,
+      location: form.location, niche: form.niche, bio: form.bio || null,
       instagram_handle: form.instagram_handle || null,
       youtube_handle: form.youtube_handle || null,
       followers_count: form.followers_count ? parseInt(form.followers_count) : null,
-      phone: form.phone,
-      avatar_url,
-      terms_accepted: true,
-      terms_accepted_at: new Date().toISOString(),
+      phone: form.phone, avatar_url,
+      terms_accepted: true, terms_accepted_at: new Date().toISOString(),
     })
     setLoading(false)
     if (infErr) { toast.error(infErr.message); return }
@@ -112,187 +106,157 @@ export default function InfluencerRegisterPage() {
   }
 
   const inp: React.CSSProperties = {
-    width: '100%', padding: '12px 14px 12px 40px', borderRadius: 10,
-    border: '1.5px solid #e5e7eb', background: '#f9fafb',
-    color: '#111827', fontSize: 14, outline: 'none',
-    boxSizing: 'border-box', fontFamily: 'inherit',
+    width: '100%', padding: '12px 14px 12px 42px', borderRadius: 10,
+    border: '1.5px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)',
+    color: '#fff', fontSize: 14, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
   }
   const lbl: React.CSSProperties = {
-    display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 7,
+    display: 'block', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)',
+    textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 7,
   }
-  const secHeader = (title: string) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
-      <div style={{ flex: 1, height: 1.5, background: '#f0eeff' }} />
-      <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#7c3aed', whiteSpace: 'nowrap' as const }}>{title}</span>
-      <div style={{ flex: 1, height: 1.5, background: '#f0eeff' }} />
-    </div>
-  )
   const iconPos: React.CSSProperties = {
-    position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
-    color: '#9ca3af', pointerEvents: 'none',
+    position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)',
+    color: 'rgba(255,255,255,0.3)', pointerEvents: 'none',
+  }
+
+  function SecDivider({ title }: { title: string }) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '4px 0' }}>
+        <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
+        <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', whiteSpace: 'nowrap' }}>{title}</span>
+        <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
+      </div>
+    )
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f5f3ff', fontFamily: 'inherit', padding: '32px 16px' }}>
+    <div style={{ minHeight: '100vh', background: '#0a0f1e', fontFamily: 'inherit', padding: '36px 16px' }}>
+      {/* bg glow */}
+      <div style={{ position: 'fixed', top: '10%', left: '20%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,188,212,0.07) 0%, transparent 65%)', pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ position: 'fixed', bottom: '10%', right: '15%', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,78,216,0.08) 0%, transparent 65%)', pointerEvents: 'none', zIndex: 0 }} />
+
       <motion.div
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
-        style={{ maxWidth: 860, margin: '0 auto' }}
+        style={{ maxWidth: 760, margin: '0 auto', position: 'relative', zIndex: 1 }}
       >
-        {/* Header */}
+        {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 11, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 11, background: 'linear-gradient(135deg,#00bcd4,#1d4ed8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{ color: '#fff', fontWeight: 900, fontSize: 18 }}>C</span>
             </div>
-            <span style={{ color: '#1a1a2e', fontWeight: 800, fontSize: 22, letterSpacing: -0.4 }}>CollabKaro</span>
+            <span style={{ color: '#fff', fontWeight: 800, fontSize: 22, letterSpacing: -0.4 }}>CollabKaro</span>
           </Link>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: '#1a1a2e', margin: '0 0 6px', letterSpacing: -0.5 }}>Create Your Creator Profile</h1>
-          <p style={{ fontSize: 14, color: '#6b7280', margin: 0 }}>Get discovered by top brands and start earning from collaborations</p>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: '#fff', margin: '16px 0 6px', letterSpacing: -0.5 }}>Create Your Creator Profile</h1>
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', margin: 0 }}>Get discovered by top brands and start earning</p>
         </div>
 
-        <div style={{ background: '#fff', borderRadius: 20, boxShadow: '0 4px 40px rgba(124,58,237,0.07)', padding: '40px 44px' }}>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
+        {/* Card */}
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '40px 44px', backdropFilter: 'blur(20px)' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
 
-            {/* ── PERSONAL CREDENTIALS ── */}
-            {secHeader('Personal Credentials')}
-
-            {/* Profile picture centered */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginTop: -16, marginBottom: 8 }}>
-              <div
-                onClick={() => fileRef.current?.click()}
-                style={{ width: 100, height: 100, borderRadius: '50%', cursor: 'pointer', border: '3px dashed #c4b5fd', background: '#faf5ff', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}
-              >
+            {/* Profile photo */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+              <div onClick={() => fileRef.current?.click()} style={{ width: 88, height: 88, borderRadius: '50%', cursor: 'pointer', border: '2px dashed rgba(0,188,212,0.4)', background: 'rgba(0,188,212,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                 {profilePreview
                   ? <img src={profilePreview} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                      <Camera size={26} style={{ color: '#a78bfa' }} />
-                      <span style={{ fontSize: 10.5, color: '#a78bfa', fontWeight: 600 }}>Upload Photo</span>
-                    </div>
+                  : <div style={{ textAlign: 'center' }}><Camera size={22} style={{ color: 'rgba(0,188,212,0.6)', display: 'block', margin: '0 auto 4px' }} /><span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>Upload Photo</span></div>
                 }
               </div>
-              <span style={{ fontSize: 12, color: '#9ca3af' }}>JPG, PNG or GIF · max 5MB</span>
+              <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.2)' }}>JPG, PNG · max 5MB</span>
               <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={pickFile} />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 24px' }}>
-              {/* Full Name */}
+            <SecDivider title="Personal Info" />
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px 24px' }}>
               <div>
-                <label style={lbl}>Full Name <Req /></label>
+                <label style={lbl}>Full Name *</label>
                 <div style={{ position: 'relative' }}>
                   <User size={15} style={iconPos} />
                   <input value={form.full_name} onChange={e => set('full_name', e.target.value)} placeholder="Rahul Sharma" style={inp} />
                 </div>
               </div>
-              {/* Email */}
               <div>
-                <label style={lbl}>Email Address <Req /></label>
+                <label style={lbl}>Email Address *</label>
                 <div style={{ position: 'relative' }}>
                   <Mail size={15} style={iconPos} />
                   <input type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="rahul@creator.com" style={inp} />
                 </div>
               </div>
-              {/* Phone */}
               <div>
-                <label style={lbl}>Phone Number <Req /></label>
+                <label style={lbl}>Phone Number *</label>
                 <div style={{ position: 'relative' }}>
                   <Phone size={15} style={iconPos} />
                   <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="9876543210" style={inp} />
                 </div>
-                <p style={{ fontSize: 11.5, color: '#9ca3af', margin: '5px 0 0' }}>Enter 10-digit number</p>
               </div>
-              {/* Password */}
               <div>
-                <label style={lbl}>Create Password <Req /></label>
+                <label style={lbl}>Password *</label>
                 <div style={{ position: 'relative' }}>
                   <Lock size={15} style={iconPos} />
-                  <input type={showPw ? 'text' : 'password'} value={form.password} onChange={e => set('password', e.target.value)} placeholder="········" style={{ ...inp, paddingRight: 42 }} />
-                  <button type="button" onClick={() => setShowPw(v => !v)} tabIndex={-1} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex' }}>
+                  <input type={showPw ? 'text' : 'password'} value={form.password} onChange={e => set('password', e.target.value)} placeholder="At least 6 characters" style={{ ...inp, paddingRight: 44 }} />
+                  <button type="button" onClick={() => setShowPw(v => !v)} tabIndex={-1} style={{ position: 'absolute', right: 13, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: 0, display: 'flex' }}>
                     {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
               </div>
-              {/* Location */}
               <div>
-                <label style={lbl}>Location <Req /></label>
+                <label style={lbl}>Location *</label>
                 <div style={{ position: 'relative' }}>
                   <MapPin size={15} style={iconPos} />
                   <input value={form.location} onChange={e => set('location', e.target.value)} placeholder="Mumbai, India" style={inp} />
                 </div>
               </div>
-              {/* Gender */}
               <div>
                 <label style={lbl}>Gender</label>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {GENDERS.map(g => (
-                    <button
-                      key={g}
-                      type="button"
-                      onClick={() => set('gender', g)}
-                      style={{
-                        padding: '8px 16px', borderRadius: 8, border: `1.5px solid ${form.gender === g ? '#7c3aed' : '#e5e7eb'}`,
-                        background: form.gender === g ? '#f5f3ff' : '#f9fafb',
-                        color: form.gender === g ? '#7c3aed' : '#6b7280',
-                        fontSize: 13, fontWeight: form.gender === g ? 700 : 500,
-                        cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
-                      }}
-                    >
+                    <button key={g} type="button" onClick={() => set('gender', g)} style={{ padding: '7px 14px', borderRadius: 8, border: `1.5px solid ${form.gender === g ? '#00bcd4' : 'rgba(255,255,255,0.1)'}`, background: form.gender === g ? 'rgba(0,188,212,0.1)' : 'rgba(255,255,255,0.03)', color: form.gender === g ? '#00bcd4' : 'rgba(255,255,255,0.45)', fontSize: 13, fontWeight: form.gender === g ? 700 : 400, cursor: 'pointer', fontFamily: 'inherit' }}>
                       {g}
                     </button>
                   ))}
                 </div>
               </div>
-              {/* Bio */}
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={lbl}>Bio / About You</label>
-                <textarea value={form.bio} onChange={e => set('bio', e.target.value)} placeholder="Tell brands what you do and what you're passionate about..." rows={3} style={{ ...inp, paddingLeft: 14, resize: 'vertical', paddingTop: 12 }} />
+                <label style={lbl}>Bio</label>
+                <textarea value={form.bio} onChange={e => set('bio', e.target.value)} placeholder="Tell brands what you do and what you're passionate about..." rows={2} style={{ ...inp, paddingLeft: 14, resize: 'none', paddingTop: 12 }} />
               </div>
             </div>
 
-            {/* ── INFLUENCE STATISTICS ── */}
-            {secHeader('Influence Statistics')}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px 24px', marginTop: -16 }}>
-              {/* Niche — custom dropdown */}
+            <SecDivider title="Creator Stats" />
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '18px 24px' }}>
+              {/* Niche custom dropdown */}
               <div>
-                <label style={lbl}>Niche / Category <Req /></label>
+                <label style={lbl}>Niche / Category *</label>
                 <div style={{ position: 'relative' }} onBlur={() => setTimeout(() => setNicheOpen(false), 150)}>
-                  <div
-                    onClick={() => setNicheOpen(o => !o)}
-                    style={{ ...inp, paddingLeft: 40, display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none', color: form.niche ? '#111827' : '#9ca3af' }}
-                  >
-                    <Tag size={15} style={{ position: 'absolute', left: 12, color: '#9ca3af' }} />
-                    <span style={{ flex: 1 }}>{form.niche || 'Select your niche'}</span>
-                    <ChevronDown size={14} style={{ color: '#9ca3af', transform: nicheOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s', flexShrink: 0 }} />
+                  <div onClick={() => setNicheOpen(o => !o)} style={{ ...inp, paddingLeft: 42, display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none', color: form.niche ? '#fff' : 'rgba(255,255,255,0.3)' }}>
+                    <Tag size={15} style={{ position: 'absolute', left: 13, color: 'rgba(255,255,255,0.3)' }} />
+                    <span style={{ flex: 1 }}>{form.niche || 'Select niche'}</span>
+                    <ChevronDown size={14} style={{ color: 'rgba(255,255,255,0.3)', transform: nicheOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                   </div>
                   <AnimatePresence>
                     {nicheOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -6 }}
-                        transition={{ duration: 0.15 }}
-                        style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: 240, overflowY: 'auto' }}
+                      <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
+                        style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, background: '#1a2035', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.4)', zIndex: 100, maxHeight: 220, overflowY: 'auto' }}
                       >
                         {NICHES.map(n => (
-                          <div
-                            key={n}
-                            onMouseDown={() => { set('niche', n); setNicheOpen(false) }}
-                            style={{ padding: '10px 14px', fontSize: 13.5, color: form.niche === n ? '#7c3aed' : '#374151', fontWeight: form.niche === n ? 700 : 400, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: form.niche === n ? '#faf5ff' : 'transparent' }}
-                            onMouseEnter={e => { if (form.niche !== n) (e.currentTarget as HTMLElement).style.background = '#f9fafb' }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = form.niche === n ? '#faf5ff' : 'transparent' }}
+                          <div key={n} onMouseDown={() => { set('niche', n); setNicheOpen(false) }}
+                            style={{ padding: '10px 14px', fontSize: 13.5, color: form.niche === n ? '#00bcd4' : 'rgba(255,255,255,0.75)', fontWeight: form.niche === n ? 700 : 400, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: form.niche === n ? 'rgba(0,188,212,0.08)' : 'transparent' }}
+                            onMouseEnter={e => { if (form.niche !== n) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)' }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = form.niche === n ? 'rgba(0,188,212,0.08)' : 'transparent' }}
                           >
-                            {n}
-                            {form.niche === n && <Check size={13} style={{ color: '#7c3aed' }} />}
+                            {n} {form.niche === n && <Check size={13} style={{ color: '#00bcd4' }} />}
                           </div>
                         ))}
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
-                <p style={{ fontSize: 11.5, color: '#9ca3af', margin: '5px 0 0' }}>Choose one category</p>
               </div>
-              {/* Followers */}
               <div>
                 <label style={lbl}>Total Followers</label>
                 <div style={{ position: 'relative' }}>
@@ -300,7 +264,6 @@ export default function InfluencerRegisterPage() {
                   <input type="number" value={form.followers_count} onChange={e => set('followers_count', e.target.value)} placeholder="50000" style={inp} />
                 </div>
               </div>
-              {/* Price */}
               <div>
                 <label style={lbl}>Price Per Post (₹)</label>
                 <div style={{ position: 'relative' }}>
@@ -310,79 +273,57 @@ export default function InfluencerRegisterPage() {
               </div>
             </div>
 
-            {/* ── SOCIAL MEDIA PRESENCE ── */}
-            {secHeader('Social Media Presence')}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 24px', marginTop: -16 }}>
+            <SecDivider title="Social Media" />
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px 24px' }}>
               <div>
-                <label style={lbl}>Instagram Link</label>
+                <label style={lbl}>Instagram Handle</label>
                 <div style={{ position: 'relative' }}>
                   <AtSign size={15} style={{ ...iconPos, color: '#e1306c' }} />
-                  <input value={form.instagram_handle} onChange={e => set('instagram_handle', e.target.value)} placeholder="https://instagram.com/user" style={inp} />
+                  <input value={form.instagram_handle} onChange={e => set('instagram_handle', e.target.value)} placeholder="@yourhandle" style={inp} />
                 </div>
               </div>
               <div>
-                <label style={lbl}>YouTube Link</label>
+                <label style={lbl}>YouTube Channel</label>
                 <div style={{ position: 'relative' }}>
-                  <PlayCircle size={15} style={{ ...iconPos, color: '#ff0000' }} />
-                  <input value={form.youtube_handle} onChange={e => set('youtube_handle', e.target.value)} placeholder="https://youtube.com/c/user" style={inp} />
+                  <PlayCircle size={15} style={{ ...iconPos, color: '#ff4444' }} />
+                  <input value={form.youtube_handle} onChange={e => set('youtube_handle', e.target.value)} placeholder="@yourchannel" style={inp} />
                 </div>
-                <p style={{ fontSize: 11.5, color: '#9ca3af', margin: '5px 0 0' }}>Optional</p>
               </div>
             </div>
 
-            {/* Payout notice */}
-            <div style={{ padding: '16px 20px', borderRadius: 14, background: '#faf5ff', border: '1.5px solid #e9d5ff' }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#7c3aed', marginBottom: 8 }}>💰 Payout Policy</div>
-              <ul style={{ margin: 0, padding: '0 0 0 18px', fontSize: 13, color: '#4b5563', lineHeight: 1.8 }}>
-                <li>Earnings released <strong>once a month on the 20th</strong></li>
-                <li><strong>KYC verification</strong> (PAN + Aadhaar) required before your first payout</li>
-                <li>All completed collabs in the cycle bundled into one payout</li>
-              </ul>
-            </div>
-
-            {/* Terms */}
-            <div
-              onClick={() => set('terms_accepted', !form.terms_accepted)}
-              style={{ display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer', padding: '14px 16px', borderRadius: 12, background: '#fafafa', border: `1.5px solid ${form.terms_accepted ? '#7c3aed' : '#e5e7eb'}` }}
-            >
-              <div style={{ width: 20, height: 20, borderRadius: 6, flexShrink: 0, marginTop: 1, background: form.terms_accepted ? 'linear-gradient(135deg,#7c3aed,#4f46e5)' : '#fff', border: `1.5px solid ${form.terms_accepted ? 'transparent' : '#d1d5db'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {/* Terms — simple */}
+            <div onClick={() => set('terms_accepted', !form.terms_accepted)} style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: `1px solid ${form.terms_accepted ? 'rgba(0,188,212,0.4)' : 'rgba(255,255,255,0.08)'}` }}>
+              <div style={{ width: 20, height: 20, borderRadius: 6, flexShrink: 0, background: form.terms_accepted ? 'linear-gradient(135deg,#00bcd4,#1d4ed8)' : 'rgba(255,255,255,0.06)', border: `1.5px solid ${form.terms_accepted ? 'transparent' : 'rgba(255,255,255,0.15)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {form.terms_accepted && <Check size={12} color="#fff" />}
               </div>
-              <span style={{ fontSize: 12.5, color: '#6b7280', lineHeight: 1.6 }}>
-                I agree to CollabKaro's <span style={{ color: '#7c3aed', textDecoration: 'underline' }}>Terms of Service</span> and <span style={{ color: '#7c3aed', textDecoration: 'underline' }}>Privacy Policy</span>, confirm the information is accurate, and understand that payouts are processed on the 20th of every month. By accepting, I acknowledge all clauses including clause 8.3 (Platform Facilitation Margin), clause 11.2 (Settlement Timelines), and clause 14.7 (Fee Structures applicable to Collaboration payouts as determined solely by CollabKaro at its discretion from time to time).
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
+                I agree to CollabKaro's <span style={{ color: '#00bcd4' }}>Terms of Service</span> and <span style={{ color: '#00bcd4' }}>Privacy Policy</span>
               </span>
             </div>
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              style={{ width: '100%', padding: '16px', borderRadius: 14, border: 'none', background: loading ? '#c4b5fd' : 'linear-gradient(135deg,#7c3aed,#4f46e5)', color: '#fff', fontSize: 16, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 6px 24px rgba(124,58,237,0.25)', letterSpacing: 0.2 }}
-            >
-              {loading ? <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Creating your profile...</> : 'Create Creator Profile →'}
+            <button type="submit" disabled={loading} style={{ width: '100%', padding: '15px', borderRadius: 13, border: 'none', background: loading ? 'rgba(0,188,212,0.4)' : 'linear-gradient(135deg,#00bcd4,#1d4ed8)', color: '#fff', fontSize: 15, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 4px 20px rgba(0,188,212,0.25)', letterSpacing: 0.2 }}>
+              {loading ? <><Loader2 size={17} style={{ animation: 'spin 1s linear infinite' }} /> Creating your profile...</> : 'Create Creator Profile →'}
             </button>
           </form>
         </div>
 
-        <p style={{ textAlign: 'center', fontSize: 13, color: '#9ca3af', marginTop: 20 }}>
+        <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(255,255,255,0.3)', marginTop: 20 }}>
           Already have an account?{' '}
-          <Link href="/login" style={{ color: '#7c3aed', fontWeight: 700, textDecoration: 'none' }}>Log in</Link>
+          <Link href="/login" style={{ color: '#00bcd4', fontWeight: 700, textDecoration: 'none' }}>Log in</Link>
         </p>
       </motion.div>
 
       <style>{`
-        input::placeholder, textarea::placeholder { color: #9ca3af !important; }
-        input:focus, textarea:focus { border-color: #7c3aed !important; background: #fff !important; box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
+        input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.25) !important; }
+        input:focus, textarea:focus { border-color: rgba(0,188,212,0.5) !important; background: rgba(255,255,255,0.07) !important; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 640px) {
-          div[style*="gridTemplateColumns: 1fr 1fr"]:not([data-no-collapse]) { grid-template-columns: 1fr !important; }
+          div[style*="gridTemplateColumns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
           div[style*="gridTemplateColumns: 1fr 1fr 1fr"] { grid-template-columns: 1fr !important; }
+          div[style*="padding: '40px 44px'"] { padding: 24px 20px !important; }
         }
       `}</style>
     </div>
   )
-}
-
-function Req() {
-  return <span style={{ color: '#ef4444' }}>*</span>
 }
