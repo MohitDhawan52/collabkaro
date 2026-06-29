@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Megaphone, Plus, IndianRupee, Pause, Play, AlertTriangle,
-  Inbox, X, Edit2, Trash2, Wallet, Plus as PlusIcon,
+  Megaphone, Plus, Pause, Play, AlertTriangle,
+  X, Edit2, Trash2, Wallet, Plus as PlusIcon,
   Infinity, Calendar, ChevronRight, Info,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -20,7 +20,6 @@ interface GigAd {
   strike: boolean; strike_reason: string | null; created_at: string
   gigs?: { title: string } | null
 }
-interface Wallet { balance: number }
 
 function fmt(n: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(n)
@@ -49,7 +48,8 @@ export default function BrandAdsPage() {
   const [wallet, setWallet] = useState<number>(0)
 
   const [showCreate, setShowCreate] = useState(false)
-  const [editAd, setEditAd] = useState<GigAd | null>(null)
+  const [showEdit, setShowEdit] = useState(false)
+  const [editAdId, setEditAdId] = useState<string | null>(null)
   const [showAddFunds, setShowAddFunds] = useState(false)
   const [fundAmount, setFundAmount] = useState('500')
   const [form, setForm] = useState(EMPTY_FORM)
@@ -71,11 +71,10 @@ export default function BrandAdsPage() {
 
     setAds((adsRes.data as unknown as GigAd[]) ?? [])
     setGigs(gigsRes.data ?? [])
-    setWallet((walletRes.data as unknown as Wallet | null)?.balance ?? 0)
+    setWallet((walletRes.data as { balance: number } | null)?.balance ?? 0)
     setLoading(false)
   }
 
-  // GST calculations
   const dailyBudget = parseFloat(form.daily_budget) || 0
   const dailyGST = dailyBudget * GST
   const dailyTotal = dailyBudget + dailyGST
@@ -104,14 +103,14 @@ export default function BrandAdsPage() {
       total_amount: amount, description: 'Funds added to wallet',
       date: new Date().toISOString().split('T')[0],
     })
-    toast.success(`₹${amount.toLocaleString('en-IN')} added to your wallet!`)
+    toast.success(`${fmt(amount)} added to your wallet!`)
     setWallet(newBal)
     setShowAddFunds(false)
     setFundAmount('500')
     setActing(false)
   }
 
-  async function submitAd(isEdit = false) {
+  async function submitAd(isEdit: boolean) {
     if (!form.gig_id) { toast.error('Select a gig to promote'); return }
     const daily = parseFloat(form.daily_budget)
     if (!daily || daily < 85) { toast.error('Minimum daily budget is ₹85'); return }
@@ -137,8 +136,8 @@ export default function BrandAdsPage() {
     }
 
     let error
-    if (isEdit && editAd) {
-      ;({ error } = await supabase.from('gig_ads').update(payload).eq('id', editAd.id))
+    if (isEdit && editAdId) {
+      ;({ error } = await supabase.from('gig_ads').update(payload).eq('id', editAdId))
     } else {
       ;({ error } = await supabase.from('gig_ads').insert(payload))
     }
@@ -146,7 +145,8 @@ export default function BrandAdsPage() {
     if (error) { toast.error(error.message); setActing(false); return }
     toast.success(isEdit ? 'Ad updated!' : 'Ad submitted for review!')
     setShowCreate(false)
-    setEditAd(null)
+    setShowEdit(false)
+    setEditAdId(null)
     setForm(EMPTY_FORM)
     setActing(false)
     load()
@@ -176,103 +176,19 @@ export default function BrandAdsPage() {
       start_date: ad.start_date,
       end_date: ad.end_date ?? '',
     })
-    setEditAd(ad)
+    setEditAdId(ad.id)
+    setShowEdit(true)
   }
 
-  const AdFormModal = ({ isEdit }: { isEdit: boolean }) => (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(20,16,43,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}>
-      <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
-        style={{ background: '#fff', borderRadius: 20, padding: 28, width: '100%', maxWidth: 500, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <div style={{ fontWeight: 800, fontSize: 17, color: '#111827' }}>{isEdit ? 'Edit Ad Campaign' : 'Create Gig Ad'}</div>
-          <button onClick={() => { setShowCreate(false); setEditAd(null); setForm(EMPTY_FORM) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={20} /></button>
-        </div>
+  function closeModal() {
+    setShowCreate(false)
+    setShowEdit(false)
+    setEditAdId(null)
+    setForm(EMPTY_FORM)
+  }
 
-        {/* Wallet balance in modal */}
-        <div style={{ padding: '12px 14px', borderRadius: 12, background: wallet <= 0 ? '#fff1f2' : daysCanRun < 3 ? '#fef3c7' : '#ecfdf5', border: `1.5px solid ${wallet <= 0 ? '#fca5a5' : daysCanRun < 3 ? '#fde68a' : '#a7f3d0'}`, marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: wallet <= 0 ? '#b91c1c' : '#374151' }}>
-              Wallet Balance: <span style={{ fontSize: 15, color: wallet <= 0 ? '#ef4444' : '#10b981' }}>{fmt(wallet)}</span>
-            </div>
-            {dailyTotal > 0 && wallet > 0 && (
-              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                {daysCanRun} day{daysCanRun !== 1 ? 's' : ''} at ₹{dailyTotal.toFixed(2)}/day (incl. GST)
-              </div>
-            )}
-            {wallet <= 0 && <div style={{ fontSize: 12, color: '#b91c1c', marginTop: 2 }}>Add funds to launch your ad</div>}
-          </div>
-          <button onClick={() => setShowAddFunds(true)} style={{ padding: '7px 14px', borderRadius: 9, border: 'none', background: '#1d4ed8', color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0 }}>
-            + Add Funds
-          </button>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div>
-            <label style={lbl}>Select Gig *</label>
-            <select value={form.gig_id} onChange={e => setForm(p => ({ ...p, gig_id: e.target.value }))} style={inp}>
-              <option value="">Choose a gig to promote...</option>
-              {gigs.map(g => <option key={g.id} value={g.id}>{g.title}</option>)}
-            </select>
-          </div>
-
-          <div>
-            <label style={lbl}>Daily Budget (₹, excl. GST) *</label>
-            <input type="number" min={85} value={form.daily_budget} onChange={e => setForm(p => ({ ...p, daily_budget: e.target.value }))} placeholder="Min ₹85" style={inp} />
-            {dailyBudget >= 85 && (
-              <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, background: '#f8faff', border: '1px solid #e0e7ff' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#374151', marginBottom: 4 }}>
-                  <span>Daily budget</span><span>₹{dailyBudget.toFixed(2)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#374151', marginBottom: 4 }}>
-                  <span>GST (18%)</span><span>₹{dailyGST.toFixed(2)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, fontWeight: 800, color: '#1d4ed8', borderTop: '1px solid #e0e7ff', paddingTop: 6 }}>
-                  <span>Daily total charged</span><span>₹{dailyTotal.toFixed(2)}</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label style={lbl}>Start Date *</label>
-            <input type="date" value={form.start_date} onChange={e => setForm(p => ({ ...p, start_date: e.target.value }))} style={inp} min={new Date().toISOString().split('T')[0]} />
-          </div>
-
-          <div>
-            <label style={lbl}>Campaign End</label>
-            <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-              {[
-                { val: true, icon: Infinity, label: 'Run continuously' },
-                { val: false, icon: Calendar, label: 'Set end date' },
-              ].map(opt => (
-                <button key={String(opt.val)} type="button" onClick={() => setForm(p => ({ ...p, run_continuously: opt.val }))}
-                  style={{ flex: 1, padding: '10px 12px', borderRadius: 10, border: `1.5px solid ${form.run_continuously === opt.val ? '#1d4ed8' : '#e5e7eb'}`, background: form.run_continuously === opt.val ? '#eff6ff' : '#f9fafb', color: form.run_continuously === opt.val ? '#1d4ed8' : '#374151', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <opt.icon size={14} /> {opt.label}
-                </button>
-              ))}
-            </div>
-            {!form.run_continuously && (
-              <input type="date" value={form.end_date} onChange={e => setForm(p => ({ ...p, end_date: e.target.value }))} style={inp} min={form.start_date || new Date().toISOString().split('T')[0]} />
-            )}
-            {form.run_continuously && (
-              <div style={{ fontSize: 12, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 5 }}>
-                <Info size={12} /> Ad runs until your wallet runs out or you manually stop it.
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
-          <button onClick={() => { setShowCreate(false); setEditAd(null); setForm(EMPTY_FORM) }} style={{ flex: 1, padding: '12px', borderRadius: 12, border: '1.5px solid #e5e7eb', background: '#f9fafb', color: '#374151', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
-            Cancel
-          </button>
-          <button onClick={() => submitAd(isEdit)} disabled={acting} style={{ flex: 2, padding: '12px', borderRadius: 12, border: 'none', background: acting ? '#fde68a' : 'linear-gradient(135deg,#f59e0b,#f97316)', color: '#fff', fontWeight: 800, fontSize: 14, cursor: acting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
-            <Megaphone size={15} /> {acting ? 'Saving...' : isEdit ? 'Update Campaign' : 'Submit for Review'} <ChevronRight size={14} />
-          </button>
-        </div>
-      </motion.div>
-    </div>
-  )
+  const modalOpen = showCreate || showEdit
+  const isEditMode = showEdit
 
   return (
     <div>
@@ -344,7 +260,9 @@ export default function BrandAdsPage() {
                     {' · '}
                     {new Date(ad.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                     {' → '}
-                    {ad.run_continuously ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><Infinity size={12} /> Continuous</span> : ad.end_date ? new Date(ad.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                    {ad.run_continuously
+                      ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><Infinity size={12} /> Continuous</span>
+                      : ad.end_date ? new Date(ad.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
                   </div>
                 </div>
 
@@ -375,17 +293,122 @@ export default function BrandAdsPage() {
         })}
       </div>
 
-      {/* Create / Edit Modal */}
+      {/* ── Create / Edit Modal — inlined JSX, NOT a nested component ─────────── */}
       <AnimatePresence>
-        {showCreate && <AdFormModal isEdit={false} />}
-        {editAd && <AdFormModal isEdit={true} />}
+        {modalOpen && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(20,16,43,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}>
+            <motion.div key="ad-modal" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
+              style={{ background: '#fff', borderRadius: 20, padding: 28, width: '100%', maxWidth: 500, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <div style={{ fontWeight: 800, fontSize: 17, color: '#111827' }}>{isEditMode ? 'Edit Ad Campaign' : 'Create Gig Ad'}</div>
+                <button onClick={closeModal} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={20} /></button>
+              </div>
+
+              {/* Wallet strip */}
+              <div style={{ padding: '12px 14px', borderRadius: 12, background: wallet <= 0 ? '#fff1f2' : daysCanRun < 3 ? '#fef3c7' : '#ecfdf5', border: `1.5px solid ${wallet <= 0 ? '#fca5a5' : daysCanRun < 3 ? '#fde68a' : '#a7f3d0'}`, marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: wallet <= 0 ? '#b91c1c' : '#374151' }}>
+                    Wallet: <span style={{ fontSize: 15, color: wallet <= 0 ? '#ef4444' : '#10b981' }}>{fmt(wallet)}</span>
+                  </div>
+                  {dailyTotal > 0 && wallet > 0 && (
+                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                      {daysCanRun} day{daysCanRun !== 1 ? 's' : ''} at ₹{dailyTotal.toFixed(2)}/day (incl. GST)
+                    </div>
+                  )}
+                  {wallet <= 0 && <div style={{ fontSize: 12, color: '#b91c1c', marginTop: 2 }}>Add funds to launch your ad</div>}
+                </div>
+                <button onClick={() => setShowAddFunds(true)} style={{ padding: '7px 14px', borderRadius: 9, border: 'none', background: '#1d4ed8', color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  + Add Funds
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {/* Gig */}
+                <div>
+                  <label style={lbl}>Select Gig *</label>
+                  <select value={form.gig_id} onChange={e => setForm(p => ({ ...p, gig_id: e.target.value }))} style={inp}>
+                    <option value="">Choose a gig to promote...</option>
+                    {gigs.map(g => <option key={g.id} value={g.id}>{g.title}</option>)}
+                  </select>
+                </div>
+
+                {/* Budget — GST box always rendered to prevent height shift */}
+                <div>
+                  <label style={lbl}>Daily Budget (₹, excl. GST) *</label>
+                  <input
+                    type="number" min={85}
+                    value={form.daily_budget}
+                    onChange={e => setForm(p => ({ ...p, daily_budget: e.target.value }))}
+                    placeholder="Min ₹85"
+                    style={inp}
+                  />
+                  <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, background: '#f8faff', border: '1px solid #e0e7ff', visibility: dailyBudget >= 85 ? 'visible' : 'hidden' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#374151', marginBottom: 4 }}>
+                      <span>Daily budget</span><span>₹{dailyBudget.toFixed(2)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#374151', marginBottom: 4 }}>
+                      <span>GST (18%)</span><span>₹{dailyGST.toFixed(2)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, fontWeight: 800, color: '#1d4ed8', borderTop: '1px solid #e0e7ff', paddingTop: 6 }}>
+                      <span>Daily total charged</span><span>₹{dailyTotal.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Start date */}
+                <div>
+                  <label style={lbl}>Start Date *</label>
+                  <input type="date" value={form.start_date} onChange={e => setForm(p => ({ ...p, start_date: e.target.value }))} style={inp} min={new Date().toISOString().split('T')[0]} />
+                </div>
+
+                {/* Campaign end */}
+                <div>
+                  <label style={lbl}>Campaign End</label>
+                  <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+                    {([
+                      { val: true, Icon: Infinity, label: 'Run continuously' },
+                      { val: false, Icon: Calendar, label: 'Set end date' },
+                    ] as const).map(opt => (
+                      <button key={String(opt.val)} type="button"
+                        onClick={() => setForm(p => ({ ...p, run_continuously: opt.val }))}
+                        style={{ flex: 1, padding: '10px 12px', borderRadius: 10, border: `1.5px solid ${form.run_continuously === opt.val ? '#1d4ed8' : '#e5e7eb'}`, background: form.run_continuously === opt.val ? '#eff6ff' : '#f9fafb', color: form.run_continuously === opt.val ? '#1d4ed8' : '#374151', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                        <opt.Icon size={14} /> {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Fixed height placeholder so modal doesn't resize */}
+                  <div style={{ minHeight: 44 }}>
+                    {!form.run_continuously && (
+                      <input type="date" value={form.end_date} onChange={e => setForm(p => ({ ...p, end_date: e.target.value }))} style={inp} min={form.start_date || new Date().toISOString().split('T')[0]} />
+                    )}
+                    {form.run_continuously && (
+                      <div style={{ fontSize: 12, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 5, paddingTop: 10 }}>
+                        <Info size={12} /> Ad runs until your wallet runs out or you manually stop it.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+                <button onClick={closeModal} style={{ flex: 1, padding: '12px', borderRadius: 12, border: '1.5px solid #e5e7eb', background: '#f9fafb', color: '#374151', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  Cancel
+                </button>
+                <button onClick={() => submitAd(isEditMode)} disabled={acting} style={{ flex: 2, padding: '12px', borderRadius: 12, border: 'none', background: acting ? '#fde68a' : 'linear-gradient(135deg,#f59e0b,#f97316)', color: '#fff', fontWeight: 800, fontSize: 14, cursor: acting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
+                  <Megaphone size={15} /> {acting ? 'Saving...' : isEditMode ? 'Update Campaign' : 'Submit for Review'} <ChevronRight size={14} />
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
       {/* Add Funds Modal */}
       <AnimatePresence>
         {showAddFunds && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(20,16,43,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 110, padding: 16 }}>
-            <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
+            <motion.div key="funds-modal" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
               style={{ background: '#fff', borderRadius: 20, padding: 28, width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <div style={{ fontWeight: 800, fontSize: 18, color: '#111827' }}>Add Funds</div>
@@ -400,7 +423,6 @@ export default function BrandAdsPage() {
               <label style={lbl}>Amount to Add (₹)</label>
               <input type="number" value={fundAmount} onChange={e => setFundAmount(e.target.value)} placeholder="Enter amount" style={{ ...inp, marginBottom: 12 }} min={1} />
 
-              {/* Quick amounts */}
               <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
                 {[500, 1000, 2000, 5000].map(amt => (
                   <button key={amt} onClick={() => setFundAmount(String(amt))} style={{ padding: '6px 14px', borderRadius: 8, border: `1.5px solid ${fundAmount === String(amt) ? '#1d4ed8' : '#e5e7eb'}`, background: fundAmount === String(amt) ? '#eff6ff' : '#f9fafb', color: fundAmount === String(amt) ? '#1d4ed8' : '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
