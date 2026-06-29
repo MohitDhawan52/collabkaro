@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  User, Mail, Phone, Lock, MapPin, AtSign, Youtube,
+  User, Mail, Phone, Lock, MapPin, AtSign, PlayCircle,
   Users, IndianRupee, Tag, Loader2, Eye, EyeOff,
   Camera, ChevronDown, Check,
 } from 'lucide-react'
@@ -323,7 +323,7 @@ export default function InfluencerRegisterPage() {
               <div>
                 <label style={lbl}>YouTube Link</label>
                 <div style={{ position: 'relative' }}>
-                  <Youtube size={15} style={{ ...iconPos, color: '#ff0000' }} />
+                  <PlayCircle size={15} style={{ ...iconPos, color: '#ff0000' }} />
                   <input value={form.youtube_handle} onChange={e => set('youtube_handle', e.target.value)} placeholder="https://youtube.com/c/user" style={inp} />
                 </div>
                 <p style={{ fontSize: 11.5, color: '#9ca3af', margin: '5px 0 0' }}>Optional</p>

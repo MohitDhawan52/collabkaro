@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Mail, Lock, User, MapPin, Building2, Globe,
   Phone, Loader2, Eye, EyeOff, Camera,
-  Instagram, Linkedin, Youtube, Twitter,
+  AtSign, PlayCircle, Link2, MessageCircle,
   ChevronDown, Check, IndianRupee,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -280,28 +280,28 @@ export default function BrandRegisterPage() {
               <div>
                 <label style={lbl}>Instagram</label>
                 <div style={{ position: 'relative' }}>
-                  <Instagram size={15} style={{ ...iconPos, color: '#e1306c' }} />
+                  <AtSign size={15} style={{ ...iconPos, color: '#e1306c' }} />
                   <input value={form.instagram} onChange={e => set('instagram', e.target.value)} placeholder="https://instagram.com/yourbrand" style={inp} />
                 </div>
               </div>
               <div>
                 <label style={lbl}>LinkedIn</label>
                 <div style={{ position: 'relative' }}>
-                  <Linkedin size={15} style={{ ...iconPos, color: '#0a66c2' }} />
+                  <Link2 size={15} style={{ ...iconPos, color: '#0a66c2' }} />
                   <input value={form.linkedin} onChange={e => set('linkedin', e.target.value)} placeholder="https://linkedin.com/company/yourbrand" style={inp} />
                 </div>
               </div>
               <div>
                 <label style={lbl}>YouTube</label>
                 <div style={{ position: 'relative' }}>
-                  <Youtube size={15} style={{ ...iconPos, color: '#ff0000' }} />
+                  <PlayCircle size={15} style={{ ...iconPos, color: '#ff0000' }} />
                   <input value={form.youtube} onChange={e => set('youtube', e.target.value)} placeholder="https://youtube.com/c/yourbrand" style={inp} />
                 </div>
               </div>
               <div>
                 <label style={lbl}>X / Twitter</label>
                 <div style={{ position: 'relative' }}>
-                  <Twitter size={15} style={{ ...iconPos, color: '#000' }} />
+                  <MessageCircle size={15} style={{ ...iconPos, color: '#374151' }} />
                   <input value={form.twitter} onChange={e => set('twitter', e.target.value)} placeholder="https://x.com/yourbrand" style={inp} />
                 </div>
               </div>
