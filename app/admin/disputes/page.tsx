@@ -107,8 +107,8 @@ export default function AdminDisputesPage() {
     const favorLabel = fav === 'mutual' ? 'mutual resolution' : `in favor of the ${fav}`
     const msg = `Your dispute on "${gigTitle}" has been resolved (${favorLabel}). Resolution: ${res}`
 
-    if (brandUserId) await notify(brandUserId, 'Dispute Resolved', msg, 'system')
-    if (influencerUserId) await notify(influencerUserId, 'Dispute Resolved', msg, 'system')
+    if (brandUserId) await notify({ userId: brandUserId, title: 'Dispute Resolved', message: msg, type: 'system' })
+    if (influencerUserId) await notify({ userId: influencerUserId, title: 'Dispute Resolved', message: msg, type: 'system' })
 
     toast.success('Dispute resolved and both parties notified.')
     setActing(null)
