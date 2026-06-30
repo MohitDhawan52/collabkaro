@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Megaphone, Plus, Pause, Play, AlertTriangle,
   X, Edit2, Trash2, Wallet, Plus as PlusIcon,
-  Infinity, Calendar, ChevronRight, Info, Eye, Send, IndianRupee, BarChart2,
+  Infinity, Calendar, ChevronRight, Info, Eye, Send, IndianRupee, BarChart2, TrendingUp,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase'
@@ -48,7 +48,7 @@ export default function BrandAdsPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [wallet, setWallet] = useState<number>(0)
   const [spendMap, setSpendMap] = useState<Record<string, { total: number; gst: number }>>({})
-  const [eventMap, setEventMap] = useState<Record<string, { impressions: number; pitches: number }>>({})
+  const [eventMap, setEventMap] = useState<Record<string, { impressions: number; views: number; pitches: number }>>({})
 
   const searchParams = useSearchParams()
   const [showCreate, setShowCreate] = useState(false)
@@ -96,22 +96,24 @@ export default function BrandAdsPage() {
       })
       // Real-time event updates — patch eventMap on new impression/pitch
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ad_events' }, (payload) => {
-        const e = payload.new as { ad_id: string; event_type: 'impression' | 'pitch_click' }
+        const e = payload.new as { ad_id: string; event_type: 'impression' | 'view' | 'pitch_click' }
         if (!e.ad_id) return
         setEventMap(prev => {
-          const cur = prev[e.ad_id] ?? { ad_id: e.ad_id, impressions: 0, pitches: 0 }
+          const cur = prev[e.ad_id] ?? { impressions: 0, views: 0, pitches: 0 }
           return {
             ...prev,
             [e.ad_id]: {
-              ...cur,
               impressions: cur.impressions + (e.event_type === 'impression' ? 1 : 0),
+              views: cur.views + (e.event_type === 'view' ? 1 : 0),
               pitches: cur.pitches + (e.event_type === 'pitch_click' ? 1 : 0),
             },
           }
         })
       })
       .subscribe()
-    return () => { supabase.removeChannel(channel) }
+    // 15s polling fallback — ensures analytics strip updates even if realtime not configured
+    const poll = setInterval(() => { load() }, 15000)
+    return () => { supabase.removeChannel(channel); clearInterval(poll) }
   }, [])
 
   // Auto-open create modal if coming from "Boost this Gig"
@@ -161,10 +163,11 @@ export default function BrandAdsPage() {
         sm[t.ad_id].gst += t.gst_amount
       })
       setSpendMap(sm)
-      const em: Record<string, { impressions: number; pitches: number }> = {}
+      const em: Record<string, { impressions: number; views: number; pitches: number }> = {}
       ;((evRes.data ?? []) as { ad_id: string; event_type: string }[]).forEach(e => {
-        if (!em[e.ad_id]) em[e.ad_id] = { impressions: 0, pitches: 0 }
+        if (!em[e.ad_id]) em[e.ad_id] = { impressions: 0, views: 0, pitches: 0 }
         if (e.event_type === 'impression') em[e.ad_id].impressions++
+        else if (e.event_type === 'view') em[e.ad_id].views++
         else if (e.event_type === 'pitch_click') em[e.ad_id].pitches++
       })
       setEventMap(em)
@@ -336,7 +339,7 @@ export default function BrandAdsPage() {
           const dailyCharge = ad.daily_budget * 1.18
           const spend = spendMap[ad.id]
           const events = eventMap[ad.id]
-          const ctr = events && events.impressions > 0 ? ((events.pitches / events.impressions) * 100).toFixed(2) : '0.00'
+          const ctr = events && events.views > 0 ? ((events.pitches / events.views) * 100).toFixed(2) : '0.00'
           const isLive = ad.status === 'active' || ad.status === 'paused'
           return (
             <motion.div key={ad.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
@@ -398,10 +401,10 @@ export default function BrandAdsPage() {
                 <div style={{ padding: '12px 22px', background: 'linear-gradient(135deg,#f8faff,#eff6ff)', borderTop: '1px solid #e0e7ff', display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 0 }}>
                   {[
                     { icon: <IndianRupee size={11} />, label: 'Spent', value: fmt(spend?.total ?? 0), color: '#f59e0b' },
-                    { icon: <IndianRupee size={11} />, label: 'GST Paid', value: fmt(spend?.gst ?? 0), color: '#ef4444' },
                     { icon: <Eye size={11} />, label: 'Impressions', value: String(events?.impressions ?? 0), color: '#1d4ed8' },
+                    { icon: <BarChart2 size={11} />, label: 'Views', value: String(events?.views ?? 0), color: '#0ea5e9' },
                     { icon: <Send size={11} />, label: 'Pitches', value: String(events?.pitches ?? 0), color: '#8b5cf6' },
-                    { icon: <BarChart2 size={11} />, label: 'CTR', value: `${ctr}%`, color: '#10b981' },
+                    { icon: <TrendingUp size={11} />, label: 'CTR', value: `${ctr}%`, color: '#10b981' },
                   ].map((m, i) => (
                     <div key={m.label} style={{ padding: '6px 14px', borderRight: i < 4 ? '1px solid #e0e7ff' : 'none', textAlign: i === 0 ? 'left' : 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: i === 0 ? 'flex-start' : 'center', color: m.color, marginBottom: 2 }}>

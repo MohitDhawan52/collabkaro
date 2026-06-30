@@ -26,7 +26,7 @@ interface GigAd {
   brand_profiles?: { company_name: string } | null
 }
 interface TxnSummary { ad_id: string; total: number; gst: number }
-interface EventSummary { ad_id: string; impressions: number; pitches: number }
+interface EventSummary { ad_id: string; impressions: number; views: number; pitches: number }
 
 function fmt(n: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(n)
@@ -88,15 +88,16 @@ export default function AdminAdsPage() {
         })
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ad_events' }, (payload) => {
-        const e = payload.new as { ad_id: string; event_type: 'impression' | 'pitch_click' }
+        const e = payload.new as { ad_id: string; event_type: 'impression' | 'view' | 'pitch_click' }
         if (!e.ad_id) return
         setEventMap(prev => {
-          const cur = prev[e.ad_id] ?? { ad_id: e.ad_id, impressions: 0, pitches: 0 }
+          const cur = prev[e.ad_id] ?? { ad_id: e.ad_id, impressions: 0, views: 0, pitches: 0 }
           return {
             ...prev,
             [e.ad_id]: {
               ...cur,
               impressions: cur.impressions + (e.event_type === 'impression' ? 1 : 0),
+              views: cur.views + (e.event_type === 'view' ? 1 : 0),
               pitches: cur.pitches + (e.event_type === 'pitch_click' ? 1 : 0),
             },
           }
@@ -143,8 +144,9 @@ export default function AdminAdsPage() {
     // Build event map per ad
     const em: Record<string, EventSummary> = {}
     ;((eventRes.data ?? []) as { ad_id: string; event_type: string }[]).forEach(e => {
-      if (!em[e.ad_id]) em[e.ad_id] = { ad_id: e.ad_id, impressions: 0, pitches: 0 }
+      if (!em[e.ad_id]) em[e.ad_id] = { ad_id: e.ad_id, impressions: 0, views: 0, pitches: 0 }
       if (e.event_type === 'impression') em[e.ad_id].impressions++
+      else if (e.event_type === 'view') em[e.ad_id].views++
       else if (e.event_type === 'pitch_click') em[e.ad_id].pitches++
     })
     setEventMap(em)
@@ -278,7 +280,7 @@ export default function AdminAdsPage() {
           const spend = spendMap[ad.id]
           const events = eventMap[ad.id]
           const isExpanded = expandedId === ad.id
-          const ctr = events && events.impressions > 0 ? ((events.pitches / events.impressions) * 100).toFixed(2) : '0.00'
+          const ctr = events && events.views > 0 ? ((events.pitches / events.views) * 100).toFixed(2) : '0.00'
 
           return (
             <motion.div key={ad.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
@@ -391,10 +393,10 @@ export default function AdminAdsPage() {
 
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginTop: 14 }}>
                         {[
-                          { label: 'Impressions', value: String(events?.impressions ?? 0), sub: 'Times shown to creators', color: '#1d4ed8', icon: <Eye size={13} /> },
-                          { label: 'Pitch Clicks', value: String(events?.pitches ?? 0), sub: 'Pitches submitted via ad', color: '#8b5cf6', icon: <Send size={13} /> },
-                          { label: 'CTR', value: `${ctr}%`, sub: 'Pitches ÷ Impressions', color: ctr >= '3.00' ? '#10b981' : '#f59e0b', icon: <TrendingUp size={13} /> },
-                          { label: 'Cost/Pitch', value: (events?.pitches ?? 0) > 0 ? fmt((spend?.total ?? 0) / events!.pitches) : '—', sub: 'Total spend ÷ pitches', color: '#374151', icon: <IndianRupee size={13} /> },
+                          { label: 'Impressions', value: String(events?.impressions ?? 0), sub: 'Shown in gig lists', color: '#1d4ed8', icon: <Eye size={13} /> },
+                          { label: 'Views', value: String(events?.views ?? 0), sub: 'Detail page opens', color: '#0ea5e9', icon: <Eye size={13} /> },
+                          { label: 'Pitches', value: String(events?.pitches ?? 0), sub: 'Pitches submitted', color: '#8b5cf6', icon: <Send size={13} /> },
+                          { label: 'CTR', value: `${ctr}%`, sub: 'Pitches ÷ Views', color: parseFloat(ctr) >= 3 ? '#10b981' : '#f59e0b', icon: <TrendingUp size={13} /> },
                         ].map(c => (
                           <div key={c.label} style={{ background: '#fff', border: '1px solid #e0e7ff', borderRadius: 12, padding: '12px 14px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>

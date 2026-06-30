@@ -4,8 +4,9 @@ import { createAdminSupabaseClient } from '@/lib/supabase-server'
 export async function POST(req: NextRequest) {
   try {
     const { ad_id, event_type, viewer_user_id } = await req.json()
-    if (!ad_id || !event_type) {
-      return NextResponse.json({ ok: false, error: 'Missing ad_id or event_type' }, { status: 400 })
+    const VALID_EVENTS = ['impression', 'view', 'pitch_click']
+    if (!ad_id || !VALID_EVENTS.includes(event_type)) {
+      return NextResponse.json({ ok: false, error: 'Missing or invalid ad_id/event_type' }, { status: 400 })
     }
 
     // Service-role client bypasses RLS — tracking must always succeed

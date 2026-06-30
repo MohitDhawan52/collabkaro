@@ -27,12 +27,12 @@ function fmtDate(d: string) {
   return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-async function trackImpression(ad_id: string, viewer_user_id: string) {
+async function trackEvent(ad_id: string, event_type: 'impression' | 'view' | 'pitch_click', viewer_user_id: string) {
   try {
     await fetch('/api/ads/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ad_id, event_type: 'impression', viewer_user_id }),
+      body: JSON.stringify({ ad_id, event_type, viewer_user_id }),
     })
   } catch { /* silent */ }
 }
@@ -68,8 +68,8 @@ export default function GigDetailPage() {
       if (adRes.data?.id) {
         setIsSponsored(true)
         setAdId(adRes.data.id)
-        // Fire impression for viewing this sponsored gig detail
-        trackImpression(adRes.data.id, user.id)
+        // Fire VIEW — influencer opened the detail page (distinct from impression = list card shown)
+        trackEvent(adRes.data.id, 'view', user.id)
       }
 
       if (influencerRes.data) {
@@ -106,11 +106,7 @@ export default function GigDetailPage() {
     else {
       // Track pitch_click for sponsored gig
       if (adId && currentUserId) {
-        await fetch('/api/ads/track', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ad_id: adId, event_type: 'pitch_click', viewer_user_id: currentUserId }),
-        }).catch(() => {})
+        trackEvent(adId, 'pitch_click', currentUserId)
       }
       toast.success('Pitch sent!')
       setAlreadyPitched(true)
