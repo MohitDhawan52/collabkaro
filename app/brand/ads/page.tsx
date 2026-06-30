@@ -84,6 +84,32 @@ export default function BrandAdsPage() {
           return prev.map(a => a.id === updated.id ? { ...a, ...updated } : a)
         })
       })
+      // Real-time spend updates — patch spendMap when a new debit lands
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'wallet_transactions' }, (payload) => {
+        const t = payload.new as { brand_user_id: string; type: string; total_amount: number; gst_amount: number; ad_id: string | null }
+        if (!t.ad_id || t.type !== 'debit') return
+        if (userId && t.brand_user_id !== userId) return
+        setSpendMap(prev => {
+          const cur = prev[t.ad_id!] ?? { ad_id: t.ad_id!, total: 0, gst: 0 }
+          return { ...prev, [t.ad_id!]: { ...cur, total: cur.total + t.total_amount, gst: cur.gst + t.gst_amount } }
+        })
+      })
+      // Real-time event updates — patch eventMap on new impression/pitch
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ad_events' }, (payload) => {
+        const e = payload.new as { ad_id: string; event_type: 'impression' | 'pitch_click' }
+        if (!e.ad_id) return
+        setEventMap(prev => {
+          const cur = prev[e.ad_id] ?? { ad_id: e.ad_id, impressions: 0, pitches: 0 }
+          return {
+            ...prev,
+            [e.ad_id]: {
+              ...cur,
+              impressions: cur.impressions + (e.event_type === 'impression' ? 1 : 0),
+              pitches: cur.pitches + (e.event_type === 'pitch_click' ? 1 : 0),
+            },
+          }
+        })
+      })
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [])

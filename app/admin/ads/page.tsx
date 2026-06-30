@@ -79,6 +79,29 @@ export default function AdminAdsPage() {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'gig_ads' }, (payload) => {
         setAds(prev => prev.map(a => a.id === payload.new.id ? { ...a, ...(payload.new as Partial<GigAd>) } : a))
       })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'wallet_transactions' }, (payload) => {
+        const t = payload.new as { type: string; total_amount: number; gst_amount: number; ad_id: string | null }
+        if (!t.ad_id || t.type !== 'debit') return
+        setSpendMap(prev => {
+          const cur = prev[t.ad_id!] ?? { ad_id: t.ad_id!, total: 0, gst: 0 }
+          return { ...prev, [t.ad_id!]: { ...cur, total: cur.total + t.total_amount, gst: cur.gst + t.gst_amount } }
+        })
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ad_events' }, (payload) => {
+        const e = payload.new as { ad_id: string; event_type: 'impression' | 'pitch_click' }
+        if (!e.ad_id) return
+        setEventMap(prev => {
+          const cur = prev[e.ad_id] ?? { ad_id: e.ad_id, impressions: 0, pitches: 0 }
+          return {
+            ...prev,
+            [e.ad_id]: {
+              ...cur,
+              impressions: cur.impressions + (e.event_type === 'impression' ? 1 : 0),
+              pitches: cur.pitches + (e.event_type === 'pitch_click' ? 1 : 0),
+            },
+          }
+        })
+      })
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [])

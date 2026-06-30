@@ -93,6 +93,8 @@ export async function POST(req: NextRequest) {
       description: `Daily ad spend — ${today}`,
       balance_after: newBalance,
       ad_id: ad.id,
+      date: today,
+      created_at: new Date().toISOString(),
     })
 
     results.charged++

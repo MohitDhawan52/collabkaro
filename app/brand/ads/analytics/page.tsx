@@ -23,7 +23,7 @@ interface AdEvent {
   id: string; ad_id: string; event_type: 'impression' | 'pitch_click'; date: string; created_at: string
 }
 interface WalletTxn {
-  type: string; total_amount: number; gst_amount: number; date: string; ad_id: string | null
+  type: string; total_amount: number; gst_amount: number; date: string; ad_id: string | null; created_at?: string
 }
 
 type Range = '7d' | '14d' | '30d' | 'all'
@@ -56,29 +56,51 @@ export default function AdsAnalyticsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const [adsRes, eventsRes, txnRes] = await Promise.all([
-      supabase.from('gig_ads').select('*, gigs(title)').eq('brand_user_id', user.id).order('created_at', { ascending: false }),
-      supabase.from('ad_events').select('*').in(
-        'ad_id',
-        // will be replaced after ads load — fetch all for now
-        ['00000000-0000-0000-0000-000000000000']
-      ),
-      supabase.from('wallet_transactions').select('type,total_amount,gst_amount,date,ad_id').eq('brand_user_id', user.id).eq('type', 'debit'),
+    // First get ads for this brand
+    const { data: adsData } = await supabase
+      .from('gig_ads')
+      .select('*, gigs(title)')
+      .eq('brand_user_id', user.id)
+      .order('created_at', { ascending: false })
+
+    const loadedAds = (adsData as unknown as GigAd[]) ?? []
+    setAds(loadedAds)
+
+    if (loadedAds.length === 0) { setLoading(false); return }
+
+    const adIds = loadedAds.map(a => a.id)
+
+    // Fetch events and spend in parallel now that we have real ad IDs
+    const [evRes, txnRes] = await Promise.all([
+      supabase.from('ad_events').select('*').in('ad_id', adIds).order('created_at', { ascending: true }),
+      supabase.from('wallet_transactions')
+        .select('type,total_amount,gst_amount,created_at,ad_id')
+        .eq('brand_user_id', user.id)
+        .eq('type', 'debit')
+        .not('ad_id', 'is', null),
     ])
 
-    const loadedAds = (adsRes.data as unknown as GigAd[]) ?? []
-    setAds(loadedAds)
-    setTxns((txnRes.data as unknown as WalletTxn[]) ?? [])
-
-    // Now fetch events for real ad IDs
-    if (loadedAds.length > 0) {
-      const { data: ev } = await supabase.from('ad_events').select('*').in('ad_id', loadedAds.map(a => a.id)).order('date', { ascending: true })
-      setEvents((ev as unknown as AdEvent[]) ?? [])
-    }
+    setEvents((evRes.data as unknown as AdEvent[]) ?? [])
+    // Normalise date: use created_at date if `date` column absent
+    const rawTxns = (txnRes.data ?? []) as (WalletTxn & { created_at?: string })[]
+    setTxns(rawTxns.map(t => ({
+      ...t,
+      date: t.date ?? (t.created_at ? t.created_at.split('T')[0] : new Date().toISOString().split('T')[0]),
+    })))
     setLoading(false)
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+    const supabase = createClient()
+    // Real-time: re-fetch when new events or transactions arrive
+    const channel = supabase
+      .channel('analytics-rt')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ad_events' }, () => { load() })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'wallet_transactions' }, () => { load() })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [load])
 
   // Date cutoff
   const days = RANGE_DAYS[range]
