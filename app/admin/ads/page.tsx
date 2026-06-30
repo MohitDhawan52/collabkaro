@@ -160,6 +160,8 @@ export default function AdminAdsPage() {
     const { error } = await supabase.from('gig_ads').update({ status: 'active' }).eq('id', id)
     if (error) { toast.error(error.message); setActing(false); return }
     toast.success('Ad approved & now live')
+    // Immediately deduct today's spend — fire-and-forget, idempotent
+    fetch('/api/ads/process', { method: 'POST' }).catch(() => {})
     setActing(false); load()
   }
 

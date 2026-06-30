@@ -61,6 +61,8 @@ export default function BrandAdsPage() {
 
   useEffect(() => {
     load()
+    // Silently trigger daily ad cycle in background — idempotent, won't double-charge
+    fetch('/api/ads/process', { method: 'POST' }).catch(() => {})
     const supabase = createClient()
     let userId: string | null = null
     supabase.auth.getUser().then(({ data }) => {
