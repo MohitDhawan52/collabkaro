@@ -300,14 +300,19 @@ export default function BrowseGigsPage() {
                         })()}
                       </div>
                     )}
-                    <button
-                      onClick={() => { if (!alreadyPitched) { setPitchGig(gig); setPitchMessage('') } }}
-                      disabled={alreadyPitched}
-                      className={alreadyPitched ? 'btn btn-secondary' : 'btn btn-primary'}
-                      style={{ marginTop: 12, fontSize: 13, padding: '8px 18px', opacity: alreadyPitched ? 0.6 : 1 }}
-                    >
-                      {alreadyPitched ? '✓ Pitched' : <><Send size={13} /> Pitch</>}
-                    </button>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
+                      <a href={`/influencer/gigs/${gig.id}`} style={{ display: 'block', textAlign: 'center', fontSize: 13, padding: '7px 18px', borderRadius: 9, border: '1.5px solid #e5e7eb', background: '#f9fafb', color: '#374151', fontWeight: 600, textDecoration: 'none' }}>
+                        View Details
+                      </a>
+                      <button
+                        onClick={() => { if (!alreadyPitched) { setPitchGig(gig); setPitchMessage('') } }}
+                        disabled={alreadyPitched}
+                        className={alreadyPitched ? 'btn btn-secondary' : 'btn btn-primary'}
+                        style={{ fontSize: 13, padding: '8px 18px', opacity: alreadyPitched ? 0.6 : 1 }}
+                      >
+                        {alreadyPitched ? '✓ Pitched' : <><Send size={13} /> Pitch</>}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
