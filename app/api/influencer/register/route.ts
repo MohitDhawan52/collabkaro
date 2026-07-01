@@ -3,9 +3,18 @@ import { createAdminSupabaseClient } from '@/lib/supabase-server'
 
 export async function POST(req: NextRequest) {
   try {
+    // Guard: ensure service role key is present
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('[influencer/register] SUPABASE_SERVICE_ROLE_KEY is not set')
+      return NextResponse.json({ error: 'Server configuration error: missing service role key. Add SUPABASE_SERVICE_ROLE_KEY to your Vercel environment variables.' }, { status: 500 })
+    }
+
+    const body = await req.json().catch(() => null)
+    if (!body) return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+
     const { user_id, email, full_name, username, phone, location, gender, bio,
       niche, instagram_handle, youtube_handle, followers_count,
-      instagram_post_price, avatar_url } = await req.json()
+      instagram_post_price, avatar_url } = body
 
     if (!user_id || !full_name || !email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })

@@ -4,6 +4,10 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 
 export async function POST(req: NextRequest) {
   try {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json({ error: 'Server configuration error: missing SUPABASE_SERVICE_ROLE_KEY' }, { status: 500 })
+    }
+
     // Verify the caller is authenticated
     const serverClient = await createServerSupabaseClient()
     const { data: { user }, error: authErr } = await serverClient.auth.getUser()

@@ -150,8 +150,9 @@ export default function InfluencerRegisterPage() {
         clearTimeout(timeout)
       }
 
-      const json = await res!.json()
-      if (!res!.ok) { toast.error(json.error ?? 'Could not save profile details'); return }
+      let json: { ok?: boolean; error?: string } = {}
+      try { json = await res!.json() } catch { /* empty body */ }
+      if (!res!.ok) { toast.error(json.error ?? `Server error (${res!.status}). Check Vercel env vars.`); return }
 
       toast.success('Welcome to CollabKaro! You can add your profile photo from Settings.')
       window.location.href = '/influencer/pending'
