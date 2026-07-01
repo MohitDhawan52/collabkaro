@@ -85,22 +85,29 @@ export default function InfluencerRegisterPage() {
       }
     }
 
-    await supabase.from('profiles').upsert(
-      { id: data.user.id, email: form.email, role: 'influencer', status: 'pending' },
-      { onConflict: 'id' }
-    )
-    const username = form.username || form.full_name.toLowerCase().replace(/\s+/g, '_')
-    const { error: infErr } = await supabase.from('influencer_profiles').insert({
-      user_id: data.user.id, full_name: form.full_name, username,
-      location: form.location, niche: form.niche, bio: form.bio || null,
-      instagram_handle: form.instagram_handle || null,
-      youtube_handle: form.youtube_handle || null,
-      followers_count: form.followers_count ? parseInt(form.followers_count) : null,
-      phone: form.phone, avatar_url,
-      terms_accepted: true, terms_accepted_at: new Date().toISOString(),
+    const res = await fetch('/api/influencer/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: data.user.id,
+        email: form.email,
+        full_name: form.full_name,
+        username: form.username || null,
+        phone: form.phone,
+        location: form.location,
+        gender: form.gender || null,
+        bio: form.bio || null,
+        niche: form.niche,
+        instagram_handle: form.instagram_handle || null,
+        youtube_handle: form.youtube_handle || null,
+        followers_count: form.followers_count || null,
+        instagram_post_price: form.price || null,
+        avatar_url,
+      }),
     })
+    const json = await res.json()
     setLoading(false)
-    if (infErr) { toast.error(infErr.message); return }
+    if (!res.ok) { toast.error(json.error ?? 'Registration failed'); return }
     toast.success('Welcome to CollabKaro!')
     window.location.href = '/influencer/pending'
   }
