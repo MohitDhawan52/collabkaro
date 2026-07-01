@@ -66,10 +66,16 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // Pending approval
+  // Pending approval — brands must wait, influencers can browse (pitch is locked in UI)
   if (profile.status === 'pending' && !pathname.includes('/pending')) {
     if (profile.role === 'brand') return NextResponse.redirect(new URL('/brand/pending', request.url))
-    if (profile.role === 'influencer') return NextResponse.redirect(new URL('/influencer/pending', request.url))
+    // Influencers: allow dashboard, gigs, profile — only block pitching/earnings/collabs/kyc actions
+    if (profile.role === 'influencer') {
+      const blockedWhilePending = ['/influencer/pitches', '/influencer/earnings', '/influencer/collabs', '/influencer/kyc']
+      if (blockedWhilePending.some(p => pathname.startsWith(p))) {
+        return NextResponse.redirect(new URL('/influencer/pending', request.url))
+      }
+    }
   }
 
   // Rejected
