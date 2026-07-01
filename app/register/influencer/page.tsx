@@ -118,16 +118,21 @@ export default function InfluencerRegisterPage() {
 
       if (!userId) { toast.error('Could not get user ID'); return }
 
+      // Get access token to authenticate the API call
+      const { data: { session } } = await supabase.auth.getSession()
+      const accessToken = session?.access_token ?? null
+
       // Step 2: Create profile via server-side API (bypasses RLS)
-      // Avatar upload is skipped here — user can add photo from Profile page after login
-      // (avoids hanging if the storage bucket doesn't exist yet)
       const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 15000) // 15s hard timeout
+      const timeout = setTimeout(() => controller.abort(), 15000)
       let res: Response
       try {
         res = await fetch('/api/influencer/profile', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {}),
+          },
           signal: controller.signal,
           body: JSON.stringify({
             user_id: userId,

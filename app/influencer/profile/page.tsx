@@ -154,10 +154,16 @@ export default function InfluencerProfilePage() {
       }
     }
 
+    const { data: { session } } = await supabase.auth.getSession()
+    const accessToken = session?.access_token ?? null
+
     const clean = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, v === '' ? null : v]))
     const res = await fetch('/api/influencer/profile', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {}),
+      },
       body: JSON.stringify({ ...clean, avatar_url, updated_at: new Date().toISOString() }),
     })
     const json = await res.json()

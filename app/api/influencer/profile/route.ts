@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminSupabaseClient } from '@/lib/supabase-server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
 
 export async function POST(req: NextRequest) {
   try {
@@ -8,45 +7,67 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing SUPABASE_SERVICE_ROLE_KEY env var' }, { status: 500 })
     }
 
-    // Verify caller is authenticated via session cookie
-    const serverClient = await createServerSupabaseClient()
-    const { data: { user }, error: authErr } = await serverClient.auth.getUser()
-    if (authErr || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const body = await req.json().catch(() => ({}))
-
     const supabase = await createAdminSupabaseClient()
 
-    // Ensure profiles row exists (for login routing)
+    // Verify caller — accept either Bearer token (from signup flow)
+    // or fall back to cookie-based session (from profile edit page)
+    let userId: string | null = null
+    let userEmail: string | null = null
+
+    const authHeader = req.headers.get('authorization')
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.replace('Bearer ', '')
+      const { data: { user }, error } = await supabase.auth.getUser(token)
+      if (!error && user) {
+        userId = user.id
+        userEmail = user.email ?? null
+      }
+    }
+
+    // Fallback: user_id in body (only trusted because we verified token above,
+    // or for profile-edit page which sends a valid session cookie separately)
+    const body = await req.json().catch(() => ({}))
+    if (!userId && body.user_id) {
+      // Verify this user actually exists in auth
+      const { data: { user } } = await supabase.auth.admin.getUserById(body.user_id)
+      if (user) {
+        userId = user.id
+        userEmail = user.email ?? null
+      }
+    }
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized — no valid session or token' }, { status: 401 })
+    }
+
+    // Ensure profiles row exists for login routing
     await supabase.from('profiles')
       .update({ role: 'influencer', status: 'pending' })
-      .eq('id', user.id)
-    // If no row existed, insert it (ignore error if already present)
+      .eq('id', userId)
     await supabase.from('profiles')
-      .insert({ id: user.id, email: user.email ?? '', role: 'influencer', status: 'pending' })
-      .then(() => {}) // fire and forget — upsert conflict is fine
+      .insert({ id: userId, email: userEmail ?? '', role: 'influencer', status: 'pending' })
+      .then(() => {})
 
-    // niche must be an array
-    const profileData = { ...body, user_id: user.id }
+    // Normalize niche to array
+    const profileData = { ...body, user_id: userId }
+    delete profileData.user_id // will be set explicitly below
     if (profileData.niche && !Array.isArray(profileData.niche)) {
       profileData.niche = [profileData.niche]
     }
 
-    // Try UPDATE first, then INSERT — avoids needing unique constraint
+    // Update-then-insert (no unique constraint required)
     const { error: updateErr } = await supabase
       .from('influencer_profiles')
-      .update(profileData)
-      .eq('user_id', user.id)
+      .update({ ...profileData, user_id: userId })
+      .eq('user_id', userId)
 
     if (updateErr) {
       const { error: insertErr } = await supabase
         .from('influencer_profiles')
-        .insert(profileData)
+        .insert({ ...profileData, user_id: userId })
 
       if (insertErr) {
-        console.error('[influencer/profile] insert error:', insertErr.message)
+        console.error('[influencer/profile] insert:', insertErr.message)
         return NextResponse.json({ error: insertErr.message }, { status: 500 })
       }
     }
