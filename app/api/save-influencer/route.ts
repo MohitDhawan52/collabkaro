@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
     await supabase.from('profiles').insert({ id: userId, email: userEmail ?? '', role: 'influencer', status: 'pending' }).then(() => {})
 
     const profileData: Record<string, unknown> = { ...body, user_id: userId }
+    delete profileData.email // email lives in profiles table, not influencer_profiles
     if (profileData.niche && !Array.isArray(profileData.niche)) {
       profileData.niche = [profileData.niche]
     }
