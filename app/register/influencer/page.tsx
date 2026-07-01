@@ -61,46 +61,43 @@ export default function InfluencerRegisterPage() {
     if (!form.terms_accepted) { toast.error('Please accept the terms to continue'); return }
 
     setLoading(true)
-    const supabase = createClient()
+    try {
+      const supabase = createClient()
 
-    // Try sign up first
-    let userId: string | null = null
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email: form.email, password: form.password,
-      options: { data: { role: 'influencer' } },
-    })
+      // Step 1: Create auth user (or sign in if already exists)
+      let userId: string | null = null
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: form.email, password: form.password,
+        options: { data: { role: 'influencer' } },
+      })
 
-    if (signUpError) {
-      // If already registered, try signing in with same credentials to complete profile
-      const alreadyExists = signUpError.message.toLowerCase().includes('already registered') ||
-        signUpError.message.toLowerCase().includes('already been registered') ||
-        signUpError.message.toLowerCase().includes('user already')
-      if (alreadyExists) {
-        const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
-          email: form.email, password: form.password,
-        })
-        if (signInErr) {
-          setLoading(false)
-          toast.error('An account with this email already exists. Please log in or use "Forgot password" to reset it.')
-          window.location.href = '/login'
+      if (signUpError) {
+        const alreadyExists = signUpError.message.toLowerCase().includes('already registered') ||
+          signUpError.message.toLowerCase().includes('already been registered') ||
+          signUpError.message.toLowerCase().includes('user already')
+        if (alreadyExists) {
+          // Auth user exists but profile may be missing — sign in to recover
+          const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+            email: form.email, password: form.password,
+          })
+          if (signInErr) {
+            toast.error('This email is already registered. Please log in or reset your password.')
+            window.location.href = '/login'
+            return
+          }
+          userId = signInData.user?.id ?? null
+        } else {
+          toast.error(signUpError.message)
           return
         }
-        userId = signInData.user?.id ?? null
       } else {
-        setLoading(false)
-        toast.error(signUpError.message)
-        return
-      }
-    } else {
-      if (!data.user) { setLoading(false); toast.error('Something went wrong'); return }
-      userId = data.user.id
-      // Email confirmation required — account created but not confirmed yet
-      if (!data.session) {
-        // Still try to create the profile so it's ready when they confirm
-        await fetch('/api/influencer/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        if (!data.user) { toast.error('Could not create account'); return }
+        userId = data.user.id
+
+        // Email confirmation required
+        if (!data.session) {
+          // Create profile immediately so it's ready post-confirmation
+          const profileBody = {
             user_id: data.user.id, email: form.email, full_name: form.full_name,
             username: form.username || null, phone: form.phone, location: form.location,
             gender: form.gender || null, bio: form.bio || null, niche: form.niche,
@@ -108,53 +105,66 @@ export default function InfluencerRegisterPage() {
             youtube_handle: form.youtube_handle || null,
             followers_count: form.followers_count || null,
             instagram_post_price: form.price || null, avatar_url: null,
+          }
+          await Promise.race([
+            fetch('/api/influencer/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profileBody) }),
+            new Promise(r => setTimeout(r, 8000)), // 8s timeout — don't block redirect
+          ])
+          toast.success('Account created! Check your email to confirm, then log in.')
+          window.location.href = '/login'
+          return
+        }
+      }
+
+      if (!userId) { toast.error('Could not get user ID'); return }
+
+      // Step 2: Create profile via server-side API (bypasses RLS)
+      // Avatar upload is skipped here — user can add photo from Profile page after login
+      // (avoids hanging if the storage bucket doesn't exist yet)
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 15000) // 15s hard timeout
+      let res: Response
+      try {
+        res = await fetch('/api/influencer/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            user_id: userId,
+            email: form.email,
+            full_name: form.full_name,
+            username: form.username || null,
+            phone: form.phone,
+            location: form.location,
+            gender: form.gender || null,
+            bio: form.bio || null,
+            niche: form.niche,
+            instagram_handle: form.instagram_handle || null,
+            youtube_handle: form.youtube_handle || null,
+            followers_count: form.followers_count || null,
+            instagram_post_price: form.price || null,
+            avatar_url: null,
           }),
         })
-        setLoading(false)
-        toast.success('Account created! Check your email to confirm, then log in.')
-        window.location.href = '/login'
-        return
+      } finally {
+        clearTimeout(timeout)
       }
-    }
 
-    if (!userId) { setLoading(false); toast.error('Could not get user ID'); return }
+      const json = await res!.json()
+      if (!res!.ok) { toast.error(json.error ?? 'Could not save profile details'); return }
 
-    let avatar_url: string | null = null
-    if (profileFile) {
-      const ext = profileFile.name.split('.').pop()
-      const path = `${userId}/avatar.${ext}`
-      const { error: upErr } = await supabase.storage.from('avatars').upload(path, profileFile, { upsert: true })
-      if (!upErr) {
-        const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
-        avatar_url = publicUrl
+      toast.success('Welcome to CollabKaro! You can add your profile photo from Settings.')
+      window.location.href = '/influencer/pending'
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Something went wrong'
+      if (msg.includes('abort') || msg.includes('signal')) {
+        toast.error('Request timed out. Please check your connection and try again.')
+      } else {
+        toast.error(msg)
       }
+    } finally {
+      setLoading(false)
     }
-
-    const res = await fetch('/api/influencer/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        user_id: userId,
-        email: form.email,
-        full_name: form.full_name,
-        username: form.username || null,
-        phone: form.phone,
-        location: form.location,
-        gender: form.gender || null,
-        bio: form.bio || null,
-        niche: form.niche,
-        instagram_handle: form.instagram_handle || null,
-        youtube_handle: form.youtube_handle || null,
-        followers_count: form.followers_count || null,
-        instagram_post_price: form.price || null,
-        avatar_url,
-      }),
-    })
-    const json = await res.json()
-    setLoading(false)
-    if (!res.ok) { toast.error(json.error ?? 'Registration failed'); return }
-    toast.success('Welcome to CollabKaro!')
-    window.location.href = '/influencer/pending'
   }
 
   const inp: React.CSSProperties = {
