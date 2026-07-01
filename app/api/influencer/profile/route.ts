@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminSupabaseClient } from '@/lib/supabase-server'
 
+export async function GET() {
+  return NextResponse.json({ ok: true, route: '/api/influencer/profile', methods: ['POST'] })
+}
+
 export async function POST(req: NextRequest) {
   try {
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
