@@ -38,16 +38,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    await supabase.from('profiles').update({ role: 'influencer', status: 'pending' }).eq('id', userId)
-    await supabase.from('profiles').insert({ id: userId, email: userEmail ?? '', role: 'influencer', status: 'pending' }).then(() => {})
+    // Step 1: profiles row MUST exist first (influencer_profiles has FK to profiles)
+    const { error: profilesErr } = await supabase.from('profiles').upsert(
+      { id: userId, email: userEmail ?? '', role: 'influencer', status: 'pending' },
+      { onConflict: 'id' }
+    )
+    if (profilesErr) return NextResponse.json({ error: `profiles: ${profilesErr.message}` }, { status: 500 })
 
+    // Step 2: insert influencer_profiles
     const profileData: Record<string, unknown> = { ...body, user_id: userId }
-    delete profileData.email // email lives in profiles table, not influencer_profiles
+    delete profileData.email
     if (profileData.niche && !Array.isArray(profileData.niche)) {
       profileData.niche = [profileData.niche]
     }
 
-    // INSERT first; if duplicate key (23505), UPDATE instead; any other error → return it
     const { error: insertErr } = await supabase.from('influencer_profiles').insert(profileData)
     if (insertErr) {
       if (insertErr.code === '23505') {
@@ -60,12 +64,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: `insert failed [${insertErr.code}]: ${insertErr.message}` }, { status: 500 })
       }
     }
-
-    // Also ensure profiles row exists for login routing
-    await supabase.from('profiles').upsert(
-      { id: userId, email: userEmail ?? '', role: 'influencer', status: 'pending' },
-      { onConflict: 'id' }
-    )
 
     return NextResponse.json({ ok: true })
   } catch (err) {
