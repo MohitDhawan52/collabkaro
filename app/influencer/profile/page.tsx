@@ -155,11 +155,12 @@ export default function InfluencerProfilePage() {
     }
 
     const clean = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, v === '' ? null : v]))
-    const { error } = await supabase.from('influencer_profiles').update({
+    const { error } = await supabase.from('influencer_profiles').upsert({
       ...clean,
+      user_id: user.id,
       avatar_url,
       updated_at: new Date().toISOString(),
-    }).eq('user_id', user.id)
+    }, { onConflict: 'user_id' })
 
     if (error) toast.error('Could not save: ' + error.message)
     else toast.success('Profile updated!')

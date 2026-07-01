@@ -23,6 +23,10 @@ ALTER TABLE influencer_profiles
 ALTER TABLE influencer_profiles
   ADD COLUMN IF NOT EXISTS followers_count integer;
 
+-- Gender (used on profile edit page)
+ALTER TABLE influencer_profiles
+  ADD COLUMN IF NOT EXISTS gender text;
+
 -- ================================================================
 -- Missing columns referenced by the ads / analytics features
 -- ================================================================
