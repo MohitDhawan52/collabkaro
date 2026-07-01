@@ -155,14 +155,14 @@ export default function InfluencerProfilePage() {
     }
 
     const clean = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, v === '' ? null : v]))
-    const { error } = await supabase.from('influencer_profiles').upsert({
-      ...clean,
-      user_id: user.id,
-      avatar_url,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id' })
+    const res = await fetch('/api/influencer/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...clean, avatar_url, updated_at: new Date().toISOString() }),
+    })
+    const json = await res.json()
 
-    if (error) toast.error('Could not save: ' + error.message)
+    if (!res.ok) toast.error('Could not save: ' + (json.error ?? res.statusText))
     else toast.success('Profile updated!')
     setSaving(false)
   }
