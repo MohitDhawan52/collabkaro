@@ -118,6 +118,7 @@ export interface Gig {
   deliverables: string
   timeline: string | null
   platforms: string[]
+  influencer_limit: number
   status: GigStatus
   payment_status: 'pending' | 'paid'
   payment_id: string | null

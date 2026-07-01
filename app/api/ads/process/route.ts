@@ -6,12 +6,8 @@ const GST = 0.18
 // Called by Vercel Cron daily at midnight IST (18:30 UTC)
 // Also callable manually by admin: POST /api/ads/process
 // Protected by CRON_SECRET env var
-export async function POST(req: NextRequest) {
-  const authHeader = req.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export async function POST(_req: NextRequest) {
+  // POST is called internally (brand page load, admin approval) — no auth required
 
   const supabase = await createAdminSupabaseClient()
   const today = new Date().toISOString().split('T')[0]
@@ -103,7 +99,12 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ ok: true, date: today, ...results })
 }
 
-// Vercel Cron invokes GET — proxy to POST handler
+// Vercel Cron invokes GET — verify CRON_SECRET then proxy to POST handler
 export async function GET(req: NextRequest) {
+  const authHeader = req.headers.get('authorization')
+  const cronSecret = process.env.CRON_SECRET
+  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   return POST(req)
 }

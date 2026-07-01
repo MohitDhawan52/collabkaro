@@ -173,11 +173,15 @@ export default function PostGigPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not logged in')
-      const { data: wallet } = await supabase.from('brand_wallet').select('id, balance').eq('user_id', user.id).single()
-      if (!wallet) throw new Error('Wallet not found')
-      const newBalance = (wallet.balance ?? 0) + amount
-      await supabase.from('brand_wallet').update({ balance: newBalance }).eq('id', wallet.id)
-      await supabase.from('wallet_transactions').insert({ user_id: user.id, type: 'credit', amount, description: 'Funds added', balance_after: newBalance })
+      const { data: wallet } = await supabase.from('brand_wallet').select('id, balance').eq('brand_user_id', user.id).maybeSingle()
+      const newBalance = ((wallet?.balance ?? 0) + amount)
+      if (wallet) {
+        await supabase.from('brand_wallet').update({ balance: newBalance }).eq('brand_user_id', user.id)
+      } else {
+        await supabase.from('brand_wallet').insert({ brand_user_id: user.id, balance: newBalance })
+      }
+      const today = new Date().toISOString().split('T')[0]
+      await supabase.from('wallet_transactions').insert({ brand_user_id: user.id, type: 'credit', amount, total_amount: amount, gst_amount: 0, description: 'Funds added', balance_after: newBalance, date: today, created_at: new Date().toISOString() })
       setWalletBalance(newBalance)
       setAddAmount('')
       toast.success(`₹${amount.toLocaleString('en-IN')} added to wallet!`)
@@ -212,7 +216,7 @@ export default function PostGigPage() {
       if (deliverables.some(d => !d.due_date)) { toast.error('Set a due date for every deliverable'); setSubmitting(false); return }
 
       // Wallet check — ₹250 gig listing fee
-      const { data: wallet } = await supabase.from('brand_wallet').select('balance').eq('user_id', user.id).single()
+      const { data: wallet } = await supabase.from('brand_wallet').select('balance').eq('brand_user_id', user.id).maybeSingle()
       const balance = wallet?.balance ?? 0
       setWalletBalance(balance)
       if (balance < 250) {
