@@ -25,16 +25,24 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       setLoading(false)
-      const msg = typeof error.message === 'string' && error.message ? error.message : JSON.stringify(error)
-      toast.error(msg === 'Invalid login credentials' ? 'Incorrect email or password' : msg)
+      const msg = error.message ?? ''
+      if (msg.toLowerCase().includes('email not confirmed')) {
+        toast.error('Please confirm your email first. Check your inbox for the confirmation link.')
+      } else if (msg === 'Invalid login credentials') {
+        toast.error('Incorrect email or password. Use "Forgot password?" to reset.')
+      } else {
+        toast.error(msg || 'Login failed')
+      }
       return
     }
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setLoading(false); toast.error('Login failed'); return }
-    const { data: profile, error: profileError } = await supabase.from('profiles').select('role, status').eq('id', user.id).single()
+    const { data: profile } = await supabase.from('profiles').select('role, status').eq('id', user.id).maybeSingle()
     toast.success('Welcome back!')
-    if (profileError || !profile) { window.location.href = '/' }
-    else if (profile.role === 'admin') { window.location.href = '/admin/dashboard' }
+    if (!profile) {
+      // Profile row missing — send to home, middleware will handle redirect
+      window.location.href = '/'
+    } else if (profile.role === 'admin') { window.location.href = '/admin/dashboard' }
     else if (profile.status === 'pending') { window.location.href = profile.role === 'brand' ? '/brand/pending' : '/influencer/pending' }
     else if (profile.status === 'rejected') { window.location.href = '/rejected' }
     else if (profile.role === 'brand') { window.location.href = '/brand/dashboard' }
