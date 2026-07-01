@@ -107,7 +107,7 @@ export default function InfluencerRegisterPage() {
             instagram_post_price: form.price || null, avatar_url: null,
           }
           await Promise.race([
-            fetch('/api/influencer/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profileBody) }),
+            fetch('/api/save-influencer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profileBody) }),
             new Promise(r => setTimeout(r, 8000)), // 8s timeout — don't block redirect
           ])
           toast.success('Account created! Check your email to confirm, then log in.')
@@ -127,7 +127,7 @@ export default function InfluencerRegisterPage() {
       const timeout = setTimeout(() => controller.abort(), 15000)
       let res: Response
       try {
-        res = await fetch('/api/influencer/profile', {
+        res = await fetch('/api/save-influencer', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

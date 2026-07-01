@@ -158,7 +158,7 @@ export default function InfluencerProfilePage() {
     const accessToken = session?.access_token ?? null
 
     const clean = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, v === '' ? null : v]))
-    const res = await fetch('/api/influencer/profile', {
+    const res = await fetch('/api/save-influencer', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
