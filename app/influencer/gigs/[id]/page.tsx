@@ -68,8 +68,10 @@ export default function GigDetailPage() {
       if (adRes.data?.id) {
         setIsSponsored(true)
         setAdId(adRes.data.id)
-        // Fire VIEW — influencer opened the detail page (distinct from impression = list card shown)
         trackEvent(adRes.data.id, 'view', user.id)
+      } else {
+        // Debug: log why view didn't fire
+        console.log('[gig detail] no active ad found for gig', id, 'adRes:', adRes)
       }
 
       if (influencerRes.data) {
