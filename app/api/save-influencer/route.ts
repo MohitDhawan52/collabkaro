@@ -47,10 +47,15 @@ export async function POST(req: NextRequest) {
       profileData.niche = [profileData.niche]
     }
 
-    const { error: updateErr } = await supabase.from('influencer_profiles').update(profileData).eq('user_id', userId)
-    if (updateErr) {
-      const { error: insertErr } = await supabase.from('influencer_profiles').insert(profileData)
-      if (insertErr) return NextResponse.json({ error: insertErr.message }, { status: 500 })
+    // INSERT first; if row already exists, UPDATE instead
+    const { error: insertErr } = await supabase.from('influencer_profiles').insert(profileData)
+    if (insertErr) {
+      // Row exists — update it
+      const { error: updateErr } = await supabase
+        .from('influencer_profiles')
+        .update(profileData)
+        .eq('user_id', userId)
+      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
     }
 
     return NextResponse.json({ ok: true })
