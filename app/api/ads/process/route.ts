@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminSupabaseClient } from '@/lib/supabase-server'
+import { createClient } from '@supabase/supabase-js'
 
 const GST = 0.18
 
-// Called by Vercel Cron daily at midnight IST (18:30 UTC)
-// Also callable manually by admin: POST /api/ads/process
-// Protected by CRON_SECRET env var
-export async function POST(_req: NextRequest) {
-  // POST is called internally (brand page load, admin approval) — no auth required
+function getAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  )
+}
 
-  const supabase = await createAdminSupabaseClient()
+export async function POST(_req: NextRequest) {
+  const supabase = getAdminClient()
   const today = new Date().toISOString().split('T')[0]
 
   // 1. Fetch all active ads
@@ -106,5 +109,5 @@ export async function GET(req: NextRequest) {
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  return POST(req)
+  return POST(req as NextRequest)
 }
