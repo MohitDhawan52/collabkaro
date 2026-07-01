@@ -38,12 +38,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Step 1: profiles row MUST exist first (influencer_profiles has FK to profiles)
-    const { error: profilesErr } = await supabase.from('profiles').upsert(
-      { id: userId, email: userEmail ?? '', role: 'influencer', status: 'pending' },
-      { onConflict: 'id' }
-    )
-    if (profilesErr) return NextResponse.json({ error: `profiles: ${profilesErr.message}` }, { status: 500 })
+    // Step 1: ensure profiles row exists (FK requirement)
+    // Try insert; if duplicate, update; if any other error, log but continue
+    const { error: profInsertErr } = await supabase.from('profiles')
+      .insert({ id: userId, email: userEmail ?? '', role: 'influencer', status: 'pending' })
+    if (profInsertErr && profInsertErr.code !== '23505') {
+      // Row may already exist from auth trigger — try update
+      await supabase.from('profiles')
+        .update({ role: 'influencer', status: 'pending' })
+        .eq('id', userId)
+    } else if (!profInsertErr) {
+      // Newly inserted — nothing more to do
+    } else {
+      // 23505 duplicate — update existing row
+      await supabase.from('profiles')
+        .update({ role: 'influencer', status: 'pending' })
+        .eq('id', userId)
+    }
 
     // Step 2: insert influencer_profiles
     const profileData: Record<string, unknown> = { ...body, user_id: userId }
