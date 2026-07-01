@@ -47,16 +47,25 @@ export async function POST(req: NextRequest) {
       profileData.niche = [profileData.niche]
     }
 
-    // INSERT first; if row already exists, UPDATE instead
+    // INSERT first; if duplicate key (23505), UPDATE instead; any other error → return it
     const { error: insertErr } = await supabase.from('influencer_profiles').insert(profileData)
     if (insertErr) {
-      // Row exists — update it
-      const { error: updateErr } = await supabase
-        .from('influencer_profiles')
-        .update(profileData)
-        .eq('user_id', userId)
-      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
+      if (insertErr.code === '23505') {
+        const { error: updateErr } = await supabase
+          .from('influencer_profiles')
+          .update(profileData)
+          .eq('user_id', userId)
+        if (updateErr) return NextResponse.json({ error: `update: ${updateErr.message}` }, { status: 500 })
+      } else {
+        return NextResponse.json({ error: `insert failed [${insertErr.code}]: ${insertErr.message}` }, { status: 500 })
+      }
     }
+
+    // Also ensure profiles row exists for login routing
+    await supabase.from('profiles').upsert(
+      { id: userId, email: userEmail ?? '', role: 'influencer', status: 'pending' },
+      { onConflict: 'id' }
+    )
 
     return NextResponse.json({ ok: true })
   } catch (err) {
