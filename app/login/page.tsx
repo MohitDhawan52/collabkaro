@@ -64,48 +64,59 @@ export default function LoginPage() {
   }
 
   const inp: React.CSSProperties = {
-    width: '100%', padding: '12px 14px 12px 42px', borderRadius: 10,
-    border: '1.5px solid #e5e7eb', background: '#f9fafb',
-    color: '#111827', fontSize: 14, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
+    width: '100%', padding: '11px 14px 11px 40px', borderRadius: 10,
+    border: '1.5px solid var(--bg-border)', background: 'var(--bg-input)',
+    color: 'var(--text-primary)', fontSize: 14, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
+    transition: 'border-color 0.12s ease, box-shadow 0.12s ease',
   }
   const lbl: React.CSSProperties = {
-    display: 'block', fontSize: 11.5, fontWeight: 700, color: '#6b7280',
+    display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)',
     textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 7,
   }
   const iconPos: React.CSSProperties = {
-    position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
-    color: '#9ca3af', pointerEvents: 'none',
+    position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)',
+    color: 'var(--text-muted)', pointerEvents: 'none',
+  }
+
+  const C = {
+    bg: 'var(--bg-base)',
+    card: 'var(--bg-card)',
+    border: 'var(--bg-border)',
+    primary: 'var(--brand-primary)',
+    text: 'var(--text-primary)',
+    muted: 'var(--text-muted)',
+    secondary: 'var(--text-secondary)',
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f4ff', padding: '24px 16px', fontFamily: 'inherit' }}>
+    <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.bg, padding: '24px 16px', fontFamily: 'inherit' }}>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
+        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
         style={{ width: '100%', maxWidth: 400 }}
       >
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 11, background: 'linear-gradient(135deg,#1d4ed8,#06b6d4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: '#fff', fontWeight: 900, fontSize: 18 }}>C</span>
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 9 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--gradient-brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(99,102,241,0.30)' }}>
+              <span style={{ color: '#fff', fontWeight: 900, fontSize: 17, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>C</span>
             </div>
-            <span style={{ color: '#111827', fontWeight: 800, fontSize: 22, letterSpacing: -0.4 }}>CollabKaro</span>
+            <span style={{ color: C.text, fontWeight: 800, fontSize: 20, letterSpacing: -0.4, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>CollabKaro</span>
           </Link>
         </div>
 
         <AnimatePresence mode="wait">
           {/* LOGIN VIEW */}
           {view === 'login' && (
-            <motion.div key="login" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.2 }}>
-              <div style={{ background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 20, padding: '36px', boxShadow: '0 2px 24px rgba(29,78,216,0.07)' }}>
-                <div style={{ marginBottom: 28 }}>
-                  <h1 style={{ fontSize: 24, fontWeight: 800, color: '#111827', margin: '0 0 6px', letterSpacing: -0.5 }}>Welcome back</h1>
-                  <p style={{ fontSize: 13, color: '#9ca3af', margin: 0 }}>Sign in to your CollabKaro dashboard</p>
+            <motion.div key="login" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }}>
+              <div style={{ background: C.card, border: `1.5px solid ${C.border}`, borderRadius: 20, padding: '32px', boxShadow: 'var(--shadow-card)' }}>
+                <div style={{ marginBottom: 24 }}>
+                  <h1 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: '0 0 5px', letterSpacing: -0.4, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Welcome back</h1>
+                  <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>Sign in to your CollabKaro dashboard</p>
                 </div>
 
-                <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <div>
                     <label style={lbl}>Email</label>
                     <div style={{ position: 'relative' }}>
@@ -117,55 +128,55 @@ export default function LoginPage() {
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 }}>
                       <label style={{ ...lbl, marginBottom: 0 }}>Password</label>
-                      <button type="button" onClick={() => { setResetEmail(email); setView('forgot') }} style={{ fontSize: 12, color: '#1d4ed8', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600, fontFamily: 'inherit' }}>
+                      <button type="button" onClick={() => { setResetEmail(email); setView('forgot') }} style={{ fontSize: 12, color: C.primary, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600, fontFamily: 'inherit' }}>
                         Forgot password?
                       </button>
                     </div>
                     <div style={{ position: 'relative' }}>
                       <Lock size={15} style={iconPos} />
                       <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••••" autoComplete="current-password" disabled={loading} style={{ ...inp, paddingRight: 44 }} />
-                      <button type="button" onClick={() => setShowPassword(v => !v)} tabIndex={-1} style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
+                      <button type="button" onClick={() => setShowPassword(v => !v)} tabIndex={-1} aria-label={showPassword ? 'Hide password' : 'Show password'} style={{ position: 'absolute', right: 13, top: '50%', transform: 'translateY(-50%)', color: C.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
                         {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                       </button>
                     </div>
                   </div>
 
-                  <button type="submit" disabled={loading} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px', borderRadius: 12, border: 'none', background: loading ? '#93c5fd' : 'linear-gradient(135deg,#1d4ed8,#06b6d4)', color: '#fff', fontSize: 15, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 4, boxShadow: '0 4px 16px rgba(29,78,216,0.22)' }}>
-                    {loading ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Signing in...</> : <>Sign in <ArrowRight size={15} /></>}
+                  <button type="submit" disabled={loading} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 10, border: 'none', background: loading ? 'rgba(99,102,241,0.55)' : C.primary, color: '#fff', fontSize: 14, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 2, boxShadow: '0 3px 12px rgba(99,102,241,0.25)', transition: 'all 0.15s ease' }}>
+                    {loading ? <><Loader2 size={14} style={{ animation: 'spin 0.65s linear infinite' }} /> Signing in...</> : <>Sign in <ArrowRight size={14} /></>}
                   </button>
                 </form>
 
-                <p style={{ textAlign: 'center', fontSize: 13, color: '#9ca3af', marginTop: 20, marginBottom: 0 }}>
+                <p style={{ textAlign: 'center', fontSize: 13, color: C.muted, marginTop: 18, marginBottom: 0 }}>
                   New here?{' '}
-                  <Link href="/register" style={{ color: '#1d4ed8', fontWeight: 600, textDecoration: 'none' }}>Create account</Link>
+                  <Link href="/register" style={{ color: C.primary, fontWeight: 600, textDecoration: 'none' }}>Create account</Link>
                 </p>
               </div>
 
-              <p style={{ textAlign: 'center', fontSize: 12, color: '#c4c8d4', marginTop: 20 }}>
-                Trusted by 500+ brands & creators across India
+              <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--bg-border)', marginTop: 18 }}>
+                Trusted by 500+ brands &amp; creators across India
               </p>
             </motion.div>
           )}
 
           {/* FORGOT PASSWORD VIEW */}
           {view === 'forgot' && (
-            <motion.div key="forgot" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.2 }}>
-              <div style={{ background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 20, padding: '36px', boxShadow: '0 2px 24px rgba(29,78,216,0.07)' }}>
-                <button onClick={() => setView('login')} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 24, fontFamily: 'inherit', fontWeight: 600 }}>
+            <motion.div key="forgot" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }}>
+              <div style={{ background: C.card, border: `1.5px solid ${C.border}`, borderRadius: 20, padding: '32px', boxShadow: 'var(--shadow-card)' }}>
+                <button onClick={() => setView('login')} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: C.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 22, fontFamily: 'inherit', fontWeight: 600 }}>
                   <ArrowLeft size={14} /> Back to login
                 </button>
 
-                <div style={{ marginBottom: 24 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 14, background: '#eff6ff', border: '1.5px solid #bfdbfe', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-                    <Mail size={20} style={{ color: '#1d4ed8' }} />
+                <div style={{ marginBottom: 22 }}>
+                  <div style={{ width: 42, height: 42, borderRadius: 12, background: 'var(--brand-primary-light)', border: `1px solid rgba(99,102,241,0.22)`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+                    <Mail size={18} style={{ color: C.primary }} />
                   </div>
-                  <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', margin: '0 0 6px', letterSpacing: -0.4 }}>Reset your password</h1>
-                  <p style={{ fontSize: 13, color: '#9ca3af', margin: 0, lineHeight: 1.6 }}>
-                    Enter your registered email and we'll send you a reset link.
+                  <h1 style={{ fontSize: 20, fontWeight: 800, color: C.text, margin: '0 0 6px', letterSpacing: -0.4, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Reset your password</h1>
+                  <p style={{ fontSize: 13, color: C.muted, margin: 0, lineHeight: 1.6 }}>
+                    Enter your registered email and we&apos;ll send you a reset link.
                   </p>
                 </div>
 
-                <form onSubmit={handleForgotPassword} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <form onSubmit={handleForgotPassword} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <div>
                     <label style={lbl}>Email address</label>
                     <div style={{ position: 'relative' }}>
@@ -173,8 +184,8 @@ export default function LoginPage() {
                       <input type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" disabled={loading} style={inp} />
                     </div>
                   </div>
-                  <button type="submit" disabled={loading} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px', borderRadius: 12, border: 'none', background: loading ? '#93c5fd' : 'linear-gradient(135deg,#1d4ed8,#06b6d4)', color: '#fff', fontSize: 15, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 16px rgba(29,78,216,0.22)' }}>
-                    {loading ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Sending...</> : <>Send reset link <ArrowRight size={15} /></>}
+                  <button type="submit" disabled={loading} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 10, border: 'none', background: loading ? 'rgba(99,102,241,0.55)' : C.primary, color: '#fff', fontSize: 14, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 3px 12px rgba(99,102,241,0.25)' }}>
+                    {loading ? <><Loader2 size={14} style={{ animation: 'spin 0.65s linear infinite' }} /> Sending...</> : <>Send reset link <ArrowRight size={14} /></>}
                   </button>
                 </form>
               </div>
@@ -183,23 +194,23 @@ export default function LoginPage() {
 
           {/* SENT CONFIRMATION */}
           {view === 'forgot-sent' && (
-            <motion.div key="sent" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.25 }}>
-              <div style={{ background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 20, padding: '40px 36px', boxShadow: '0 2px 24px rgba(29,78,216,0.07)', textAlign: 'center' }}>
-                <div style={{ width: 56, height: 56, borderRadius: 18, background: '#ecfdf5', border: '1.5px solid #a7f3d0', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-                  <CheckCircle2 size={26} style={{ color: '#10b981' }} />
+            <motion.div key="sent" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.22 }}>
+              <div style={{ background: C.card, border: `1.5px solid ${C.border}`, borderRadius: 20, padding: '36px 32px', boxShadow: 'var(--shadow-card)', textAlign: 'center' }}>
+                <div style={{ width: 52, height: 52, borderRadius: 16, background: 'rgba(16,185,129,0.10)', border: '1px solid rgba(16,185,129,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px' }}>
+                  <CheckCircle2 size={24} style={{ color: '#10b981' }} />
                 </div>
-                <h2 style={{ fontSize: 20, fontWeight: 800, color: '#111827', margin: '0 0 10px', letterSpacing: -0.3 }}>Check your inbox</h2>
-                <p style={{ fontSize: 14, color: '#6b7280', margin: '0 0 24px', lineHeight: 1.6 }}>
+                <h2 style={{ fontSize: 19, fontWeight: 800, color: C.text, margin: '0 0 8px', letterSpacing: -0.3, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Check your inbox</h2>
+                <p style={{ fontSize: 14, color: C.secondary, margin: '0 0 22px', lineHeight: 1.6 }}>
                   We sent a reset link to<br />
-                  <strong style={{ color: '#111827' }}>{resetEmail}</strong>
+                  <strong style={{ color: C.text }}>{resetEmail}</strong>
                 </p>
-                <p style={{ fontSize: 12.5, color: '#c4c8d4', margin: '0 0 20px' }}>
-                  Didn't get it? Check spam or{' '}
-                  <button onClick={() => setView('forgot')} style={{ color: '#1d4ed8', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit' }}>
+                <p style={{ fontSize: 12.5, color: C.muted, margin: '0 0 18px' }}>
+                  Didn&apos;t get it? Check spam or{' '}
+                  <button onClick={() => setView('forgot')} style={{ color: C.primary, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit' }}>
                     try again
                   </button>
                 </p>
-                <button onClick={() => setView('login')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: '12px', borderRadius: 12, border: '1.5px solid #e5e7eb', background: '#f9fafb', color: '#6b7280', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                <button onClick={() => setView('login')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: '11px', borderRadius: 10, border: `1.5px solid ${C.border}`, background: 'var(--bg-input)', color: C.secondary, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
                   <ArrowLeft size={14} /> Back to login
                 </button>
               </div>
@@ -209,8 +220,6 @@ export default function LoginPage() {
       </motion.div>
 
       <style>{`
-        input::placeholder { color: #9ca3af !important; }
-        input:focus { border-color: #1d4ed8 !important; background: #fff !important; }
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
     </div>

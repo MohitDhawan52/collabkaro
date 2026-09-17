@@ -115,17 +115,17 @@ export default function LandingPage() {
         <div style={{
           position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%, -50%)',
           width: 800, height: 800,
-          background: 'radial-gradient(ellipse, rgba(124,58,237,0.12) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse, rgba(99,102,241,0.10) 0%, transparent 70%)',
           pointerEvents: 'none',
         }} />
 
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 8,
-          background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.3)',
+          background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.25)',
           borderRadius: 100, padding: '6px 16px', marginBottom: 32,
-          fontSize: 13, fontWeight: 600, color: '#A78BFA',
+          fontSize: 13, fontWeight: 600, color: 'var(--brand-primary)',
         }}>
-          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#7C3AED', display: 'inline-block', animation: 'pulse 2s infinite' }} />
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--brand-primary)', display: 'inline-block', animation: 'pulse 2s infinite' }} />
           India&apos;s Smartest Influencer Platform
         </div>
 
@@ -256,8 +256,8 @@ export default function LandingPage() {
             {(activeTab === 'brand' ? HOW_IT_WORKS_BRAND : HOW_IT_WORKS_INFLUENCER).map((item) => (
               <div key={item.step} style={{ position: 'relative' }}>
                 <div style={{
-                  fontSize: 48, fontFamily: 'Syne, sans-serif', fontWeight: 800,
-                  color: 'rgba(124,58,237,0.15)', lineHeight: 1, marginBottom: 12,
+                  fontSize: 48, fontFamily: 'Plus Jakarta Sans, sans-serif', fontWeight: 800,
+                  color: 'rgba(99,102,241,0.14)', lineHeight: 1, marginBottom: 12,
                 }}>{item.step}</div>
                 <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>{item.title}</h3>
                 <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>{item.desc}</p>
@@ -277,7 +277,7 @@ export default function LandingPage() {
               width: 160, height: 160,
               background: 'radial-gradient(ellipse, rgba(124,58,237,0.15) 0%, transparent 70%)',
             }} />
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#A78BFA', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.08em' }}>For Brands</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--brand-primary)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.08em' }}>For Brands</div>
             <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 42, color: 'var(--text-primary)', marginBottom: 4 }}>
               ₹250
             </div>
