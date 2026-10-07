@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Search, AtSign, Play, MapPin, X, Users, SlidersHorizontal, Star } from 'lucide-react'
+import { Search, AtSign, Play, MapPin, X, Users, SlidersHorizontal, Star, Instagram, Youtube } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import { NICHES } from '@/types/index'
 
@@ -47,7 +47,19 @@ const FOLLOWER_RANGES = [
   { label: '1M+', min: 1000000 },
 ]
 
-const PLATFORMS = ['Instagram', 'YouTube']
+const AVATAR_GRADIENTS = [
+  'linear-gradient(135deg,#FF5533,#FF8A00)',
+  'linear-gradient(135deg,#8B5CF6,#EC4899)',
+  'linear-gradient(135deg,#06B6D4,#3B82F6)',
+  'linear-gradient(135deg,#10B981,#06B6D4)',
+  'linear-gradient(135deg,#F59E0B,#EF4444)',
+  'linear-gradient(135deg,#6366F1,#8B5CF6)',
+]
+
+function getGradient(name: string) {
+  const i = name.charCodeAt(0) % AVATAR_GRADIENTS.length
+  return AVATAR_GRADIENTS[i]
+}
 
 export default function BrowseInfluencersPage() {
   const [all, setAll] = useState<Influencer[]>([])
@@ -65,7 +77,6 @@ export default function BrowseInfluencersPage() {
     async function load() {
       setLoading(true)
       const supabase = createClient()
-      // Only fetch approved influencers
       const { data: approvedProfiles } = await supabase
         .from('profiles')
         .select('id')
@@ -83,7 +94,6 @@ export default function BrowseInfluencersPage() {
 
       const influencers = (data as Influencer[]) ?? []
 
-      // Fetch ratings for all influencers
       const userIds = influencers.map(i => i.user_id)
       if (userIds.length > 0) {
         const { data: ratingData } = await supabase
@@ -111,7 +121,6 @@ export default function BrowseInfluencersPage() {
     load()
   }, [])
 
-  // Filters applied client-side
   const filtered = all
     .filter(inf => {
       if (search) {
@@ -146,98 +155,106 @@ export default function BrowseInfluencersPage() {
   const activeFilterCount = selectedNiches.length + (selectedPlatform !== 'All' ? 1 : 0) + (minFollowers > 0 ? 1 : 0) + (barterOnly ? 1 : 0) + (location ? 1 : 0)
 
   return (
-    <div>
-      <div style={{ fontSize: 26, fontWeight: 800, color: '#0c1445', fontFamily: 'Plus Jakarta Sans,sans-serif', letterSpacing: -0.4 }}>Browse Influencers</div>
-      <div style={{ fontSize: 13.5, color: '#6b7280', marginTop: 4, marginBottom: 24 }}>
-        Discover and connect with creators that match your brand. {!loading && <strong style={{ color: '#0c1445' }}>{filtered.length}</strong>} {!loading && 'creators found.'}
+    <div style={{ maxWidth: 1100 }}>
+
+      {/* Page header */}
+      <div style={{ marginBottom: 28 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: '#111113', fontFamily: "'Outfit', sans-serif", letterSpacing: -0.6, margin: 0 }}>
+          Browse Creators
+        </h1>
+        <p style={{ fontSize: 14, color: '#6B6B78', marginTop: 5, margin: '5px 0 0' }}>
+          {loading ? 'Loading creators…' : <><strong style={{ color: '#111113' }}>{filtered.length}</strong> creators available to collaborate with</>}
+        </p>
       </div>
 
-      {/* Search + Filter bar */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: 140, position: 'relative' }}>
-          <Search size={15} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }} />
+      {/* Search + controls */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: 200, position: 'relative' }}>
+          <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
           <input
-            placeholder="Search by name, niche, location, bio..."
+            placeholder="Search by name, niche, location…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            style={{ width: '100%', padding: '10px 14px 10px 36px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', fontSize: 13.5, outline: 'none', boxSizing: 'border-box', color: '#0c1445' }}
+            style={{ width: '100%', padding: '11px 14px 11px 38px', borderRadius: 12, border: '1.5px solid #E6E4DE', background: '#fff', fontSize: 13.5, outline: 'none', boxSizing: 'border-box', color: '#111113', fontFamily: "'DM Sans', sans-serif" }}
           />
         </div>
+
         <button onClick={() => setShowFilters(!showFilters)}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12, border: showFilters ? '1.5px solid #1d4ed8' : '1px solid rgba(255,255,255,0.7)', background: showFilters ? 'rgba(29,78,216,0.08)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', fontSize: 13.5, fontWeight: 600, color: showFilters ? '#1d4ed8' : '#374151', cursor: 'pointer' }}>
-          <SlidersHorizontal size={15} /> Filters
-          {activeFilterCount > 0 && <span style={{ background: '#1d4ed8', color: '#fff', fontSize: 11, fontWeight: 800, width: 18, height: 18, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{activeFilterCount}</span>}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 18px', borderRadius: 12, border: showFilters ? '1.5px solid #FF5533' : '1.5px solid #E6E4DE', background: showFilters ? 'rgba(255,85,51,0.06)' : '#fff', fontSize: 13.5, fontWeight: 600, color: showFilters ? '#FF5533' : '#374151', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.14s' }}>
+          <SlidersHorizontal size={15} />
+          Filters
+          {activeFilterCount > 0 && (
+            <span style={{ background: '#FF5533', color: '#fff', fontSize: 10.5, fontWeight: 800, width: 18, height: 18, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {activeFilterCount}
+            </span>
+          )}
         </button>
+
         <select value={sortBy} onChange={e => setSortBy(e.target.value as 'followers' | 'recent')}
-          style={{ padding: '10px 14px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.7)', fontSize: 13.5, color: '#374151', cursor: 'pointer', outline: 'none' }}>
-          <option value="followers">Sort: Most Followers</option>
-          <option value="recent">Sort: Recently Joined</option>
+          style={{ padding: '11px 14px', borderRadius: 12, border: '1.5px solid #E6E4DE', background: '#fff', fontSize: 13.5, color: '#374151', cursor: 'pointer', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}>
+          <option value="followers">Most Followers</option>
+          <option value="recent">Recently Joined</option>
         </select>
       </div>
 
       {/* Filter panel */}
       {showFilters && (
-        <div style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.8)', borderRadius: 18, padding: '20px 24px', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', marginBottom: 20 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 20 }}>
+        <div style={{ background: '#fff', border: '1.5px solid #E6E4DE', borderRadius: 16, padding: '20px 24px', marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 20 }}>
 
-            {/* Platform */}
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>Platform</div>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#6B6B78', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Platform</div>
+              <div style={{ display: 'flex', gap: 6 }}>
                 {['All', 'Instagram', 'YouTube'].map(p => (
                   <button key={p} onClick={() => setSelectedPlatform(p)}
-                    style={{ padding: '6px 14px', borderRadius: 999, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none', background: selectedPlatform === p ? 'linear-gradient(135deg,#1d4ed8,#06b6d4)' : 'rgba(0,0,0,0.06)', color: selectedPlatform === p ? '#fff' : '#374151' }}>
+                    style={{ padding: '6px 13px', borderRadius: 999, fontSize: 12.5, fontWeight: 500, cursor: 'pointer', border: '1.5px solid', borderColor: selectedPlatform === p ? '#FF5533' : '#E6E4DE', background: selectedPlatform === p ? '#FF5533' : '#fff', color: selectedPlatform === p ? '#fff' : '#374151', transition: 'all 0.12s', fontFamily: "'DM Sans', sans-serif" }}>
                     {p}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Min followers */}
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>Min Followers</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#6B6B78', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Min Followers</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {FOLLOWER_RANGES.map(r => (
                   <button key={r.label} onClick={() => setMinFollowers(r.min)}
-                    style={{ padding: '5px 12px', borderRadius: 999, fontSize: 12.5, fontWeight: 500, cursor: 'pointer', border: 'none', background: minFollowers === r.min ? 'linear-gradient(135deg,#a855f7,#ec4899)' : 'rgba(0,0,0,0.06)', color: minFollowers === r.min ? '#fff' : '#374151' }}>
+                    style={{ padding: '5px 11px', borderRadius: 999, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: '1.5px solid', borderColor: minFollowers === r.min ? '#FF5533' : '#E6E4DE', background: minFollowers === r.min ? 'rgba(255,85,51,0.08)' : '#fff', color: minFollowers === r.min ? '#FF5533' : '#374151', transition: 'all 0.12s', fontFamily: "'DM Sans', sans-serif" }}>
                     {r.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Location */}
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>Location</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#6B6B78', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Location</div>
               <div style={{ position: 'relative' }}>
-                <MapPin size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
-                <input placeholder="e.g. Mumbai, Delhi..." value={location} onChange={e => setLocation(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px 8px 28px', borderRadius: 10, border: '1px solid rgba(0,0,0,0.1)', fontSize: 13, background: 'rgba(255,255,255,0.8)', outline: 'none', boxSizing: 'border-box' }} />
+                <MapPin size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
+                <input placeholder="e.g. Mumbai, Delhi…" value={location} onChange={e => setLocation(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px 8px 28px', borderRadius: 10, border: '1.5px solid #E6E4DE', fontSize: 13, background: '#fff', outline: 'none', boxSizing: 'border-box', fontFamily: "'DM Sans', sans-serif" }} />
               </div>
             </div>
 
-            {/* Barter toggle */}
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>Collaboration Type</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#6B6B78', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Collab Type</div>
               <button onClick={() => setBarterOnly(!barterOnly)}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px', borderRadius: 999, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none', background: barterOnly ? 'rgba(16,185,129,0.15)' : 'rgba(0,0,0,0.06)', color: barterOnly ? '#059669' : '#374151' }}>
-                <div style={{ width: 16, height: 16, borderRadius: 4, border: barterOnly ? 'none' : '2px solid #d1d5db', background: barterOnly ? '#10b981' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px', borderRadius: 999, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: '1.5px solid', borderColor: barterOnly ? '#10B981' : '#E6E4DE', background: barterOnly ? 'rgba(16,185,129,0.08)' : '#fff', color: barterOnly ? '#059669' : '#374151', transition: 'all 0.12s', fontFamily: "'DM Sans', sans-serif" }}>
+                <div style={{ width: 16, height: 16, borderRadius: 4, border: barterOnly ? 'none' : '1.5px solid #D1D5DB', background: barterOnly ? '#10B981' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   {barterOnly && <span style={{ color: '#fff', fontSize: 10, fontWeight: 800 }}>✓</span>}
                 </div>
-                Open to Barter
+                Barter Open
               </button>
             </div>
           </div>
 
-          {/* Niches */}
           <div style={{ marginTop: 20 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>Niche</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#6B6B78', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Niche</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
               {NICHES.map(n => {
                 const active = selectedNiches.includes(n)
                 return (
                   <button key={n} onClick={() => toggleNiche(n)}
-                    style={{ padding: '5px 14px', borderRadius: 999, fontSize: 12.5, fontWeight: 500, cursor: 'pointer', border: active ? 'none' : '1px solid rgba(0,0,0,0.1)', background: active ? 'linear-gradient(135deg,#1d4ed8,#a855f7)' : 'rgba(255,255,255,0.8)', color: active ? '#fff' : '#374151', transition: 'all 0.12s' }}>
+                    style={{ padding: '5px 13px', borderRadius: 999, fontSize: 12.5, fontWeight: 500, cursor: 'pointer', border: '1.5px solid', borderColor: active ? '#FF5533' : '#E6E4DE', background: active ? '#FF5533' : '#fff', color: active ? '#fff' : '#374151', transition: 'all 0.12s', fontFamily: "'DM Sans', sans-serif" }}>
                     {n}
                   </button>
                 )
@@ -247,97 +264,123 @@ export default function BrowseInfluencersPage() {
 
           {activeFilterCount > 0 && (
             <button onClick={() => { setSelectedNiches([]); setSelectedPlatform('All'); setMinFollowers(0); setBarterOnly(false); setLocation('') }}
-              style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#dc2626', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#EF4444', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: "'DM Sans', sans-serif" }}>
               <X size={13} /> Clear all filters
             </button>
           )}
         </div>
       )}
 
-      {/* Results */}
+      {/* Results grid */}
       {loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
-          {[1,2,3,4,5,6].map(i => <div key={i} style={{ height: 200, borderRadius: 18, background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.7)' }} />)}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: 14 }}>
+          {[1,2,3,4,5,6].map(i => (
+            <div key={i} style={{ height: 220, borderRadius: 16, background: '#fff', border: '1.5px solid #E6E4DE' }}
+              className="shimmer" />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.75)', borderRadius: 20, padding: '60px 24px', textAlign: 'center', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)' }}>
-          <Users size={32} style={{ color: '#d1d5db', margin: '0 auto 14px', display: 'block' }} />
-          <div style={{ fontWeight: 700, fontSize: 16, color: '#0c1445' }}>No influencers match your filters</div>
-          <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 5 }}>Try adjusting your search or removing some filters.</div>
+        <div style={{ background: '#fff', border: '1.5px solid #E6E4DE', borderRadius: 18, padding: '64px 24px', textAlign: 'center' }}>
+          <Users size={36} style={{ color: '#D1D5DB', margin: '0 auto 14px', display: 'block' }} />
+          <div style={{ fontWeight: 700, fontSize: 16, color: '#111113', fontFamily: "'Outfit', sans-serif" }}>No creators match your filters</div>
+          <div style={{ fontSize: 13.5, color: '#9CA3AF', marginTop: 5 }}>Try adjusting or clearing some filters.</div>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: 14 }}>
           {filtered.map(inf => {
             const igFollowers = fmt(inf.instagram_followers)
             const ytSubs = fmt(inf.youtube_subscribers)
             const initials = inf.full_name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() ?? 'I'
+            const grad = getGradient(inf.full_name ?? 'A')
+
             return (
               <Link key={inf.id} href={`/brand/influencers/${inf.id}`} style={{ textDecoration: 'none' }}>
-                <div style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid rgba(255,255,255,0.8)', borderRadius: 20, padding: '20px', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', boxShadow: '0 2px 16px rgba(29,78,216,0.08)', cursor: 'pointer', transition: 'all 0.15s', height: '100%', boxSizing: 'border-box' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 28px rgba(29,78,216,0.14)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'none'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 16px rgba(29,78,216,0.08)' }}>
+                <div
+                  style={{ background: '#fff', border: '1.5px solid #E6E4DE', borderRadius: 18, padding: '20px', cursor: 'pointer', transition: 'all 0.16s', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 14 }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = 'translateY(-3px)'; el.style.boxShadow = '0 10px 32px rgba(0,0,0,0.10)'; el.style.borderColor = '#FF5533' }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = 'none'; el.style.boxShadow = 'none'; el.style.borderColor = '#E6E4DE' }}>
 
-                  {/* Header */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                    <div style={{ width: 50, height: 50, borderRadius: 14, background: 'linear-gradient(135deg,#a855f7,#ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 20, color: '#fff', flexShrink: 0 }}>
+                  {/* Avatar + name row */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                    <div style={{ width: 52, height: 52, borderRadius: 14, background: grad, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 20, color: '#fff', flexShrink: 0, fontFamily: "'Outfit', sans-serif" }}>
                       {initials}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: 15, color: '#0c1445', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{inf.full_name}</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2, flexWrap: 'wrap' }}>
+                      <div style={{ fontWeight: 700, fontSize: 15.5, color: '#111113', fontFamily: "'Outfit', sans-serif", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {inf.full_name}
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginTop: 4 }}>
                         {inf.location && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#6b7280' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, color: '#6B6B78' }}>
                             <MapPin size={11} /> {inf.location}
-                          </div>
+                          </span>
                         )}
                         {inf.avg_rating != null && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 700, color: '#f59e0b' }}>
-                            <Star size={11} fill="#f59e0b" /> {inf.avg_rating.toFixed(1)}
-                            <span style={{ color: '#9ca3af', fontWeight: 400 }}>({inf.review_count})</span>
-                          </div>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 700, color: '#F59E0B' }}>
+                            <Star size={10} fill="#F59E0B" /> {inf.avg_rating.toFixed(1)}
+                            <span style={{ color: '#9CA3AF', fontWeight: 400 }}>({inf.review_count})</span>
+                          </span>
                         )}
                       </div>
                     </div>
-                    {inf.barter_open && (
-                      <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: 'rgba(16,185,129,0.12)', color: '#059669', border: '1px solid rgba(16,185,129,0.25)', whiteSpace: 'nowrap', flexShrink: 0 }}>Barter ✓</span>
-                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 5, alignItems: 'flex-end' }}>
+                      {inf.barter_open && (
+                        <span style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: 'rgba(16,185,129,0.10)', color: '#059669', border: '1px solid rgba(16,185,129,0.22)', whiteSpace: 'nowrap' }}>
+                          Barter ✓
+                        </span>
+                      )}
+                      {inf.instagram_verified && (
+                        <span style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: 'rgba(131,58,180,0.08)', color: '#7C3AED', border: '1px solid rgba(131,58,180,0.18)', whiteSpace: 'nowrap' }}>
+                          IG Verified
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Bio */}
-                  {inf.bio && (
-                    <div style={{ fontSize: 12.5, color: '#6b7280', lineHeight: 1.5, marginBottom: 12, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  {inf.bio ? (
+                    <p style={{ fontSize: 12.5, color: '#6B6B78', lineHeight: 1.55, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       {inf.bio}
-                    </div>
-                  )}
+                    </p>
+                  ) : <div />}
 
-                  {/* Social stats */}
-                  <div style={{ display: 'flex', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
+                  {/* Platform stats */}
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {igFollowers && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 10, background: inf.instagram_verified ? 'rgba(131,58,180,0.1)' : 'rgba(249,115,22,0.08)', fontSize: 12.5, fontWeight: 600, color: inf.instagram_verified ? '#7c3aed' : '#ea580c' }}>
-                        <AtSign size={12} /> {igFollowers}
-                        {inf.instagram_verified && <span style={{ fontSize: 11, background: 'linear-gradient(135deg,#833ab4,#fd1d1d)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 800 }}>✓IG</span>}
-                        {inf.instagram_engagement_rate && <span style={{ fontWeight: 400, color: '#9ca3af', fontSize: 11 }}>· {inf.instagram_engagement_rate}%</span>}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', borderRadius: 10, background: '#FFF7F5', border: '1px solid rgba(255,85,51,0.15)', fontSize: 12.5, fontWeight: 600, color: '#FF5533' }}>
+                        <Instagram size={13} /> {igFollowers}
+                        {inf.instagram_engagement_rate && (
+                          <span style={{ fontWeight: 400, color: '#9CA3AF', fontSize: 11 }}>· {inf.instagram_engagement_rate}%</span>
+                        )}
                       </div>
                     )}
                     {ytSubs && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 10, background: 'rgba(239,68,68,0.07)', fontSize: 12.5, fontWeight: 600, color: '#dc2626' }}>
-                        <Play size={12} /> {ytSubs}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', borderRadius: 10, background: '#FFF5F5', border: '1px solid rgba(239,68,68,0.15)', fontSize: 12.5, fontWeight: 600, color: '#DC2626' }}>
+                        <Youtube size={13} /> {ytSubs}
                       </div>
                     )}
                     {inf.instagram_reel_price && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 10, background: 'rgba(29,78,216,0.06)', fontSize: 12.5, fontWeight: 600, color: '#1d4ed8' }}>
+                      <div style={{ padding: '6px 11px', borderRadius: 10, background: '#F8F7F3', border: '1px solid #E6E4DE', fontSize: 12.5, fontWeight: 600, color: '#374151' }}>
                         Reel {formatINR(inf.instagram_reel_price)}
                       </div>
                     )}
                   </div>
 
                   {/* Niches */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                    {(inf.niche ?? []).slice(0, 3).map(n => (
-                      <span key={n} style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999, background: selectedNiches.includes(n) ? 'rgba(29,78,216,0.15)' : 'rgba(168,85,247,0.08)', color: selectedNiches.includes(n) ? '#1d4ed8' : '#7c3aed', border: `1px solid ${selectedNiches.includes(n) ? 'rgba(29,78,216,0.3)' : 'rgba(168,85,247,0.15)'}` }}>{n}</span>
-                    ))}
-                    {(inf.niche ?? []).length > 3 && <span style={{ fontSize: 11, color: '#9ca3af', padding: '3px 0' }}>+{(inf.niche ?? []).length - 3} more</span>}
-                  </div>
+                  {(inf.niche ?? []).length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                      {(inf.niche ?? []).slice(0, 3).map(n => (
+                        <span key={n} style={{ fontSize: 11.5, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: selectedNiches.includes(n) ? 'rgba(255,85,51,0.10)' : '#F3F2EE', color: selectedNiches.includes(n) ? '#FF5533' : '#6B6B78', border: `1px solid ${selectedNiches.includes(n) ? 'rgba(255,85,51,0.25)' : '#E6E4DE'}` }}>
+                          {n}
+                        </span>
+                      ))}
+                      {(inf.niche ?? []).length > 3 && (
+                        <span style={{ fontSize: 11.5, color: '#9CA3AF', padding: '3px 0' }}>
+                          +{(inf.niche ?? []).length - 3}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </Link>
             )
