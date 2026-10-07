@@ -65,10 +65,10 @@ export default function BrandDashboardPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const { data: brand } = await supabase.from('brand_profiles').select('id, brand_name').eq('user_id', user.id).single()
+      const { data: brand } = await supabase.from('brand_profiles').select('id, company_name').eq('user_id', user.id).single()
       if (!brand) { setLoading(false); return }
 
-      setBrandName(brand.brand_name)
+      setBrandName(brand.company_name)
 
       const [gigsRes, pitchesRes, collabsRes, paymentsRes] = await Promise.all([
         supabase.from('gigs').select('*').eq('brand_id', brand.id).order('created_at', { ascending: false }).limit(5),

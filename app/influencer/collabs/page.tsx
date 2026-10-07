@@ -68,7 +68,7 @@ export default function InfluencerCollabsPage() {
 
     const { data } = await supabase
       .from('collaborations')
-      .select('*, gigs(title, deliverables, timeline), brand_profiles(brand_name, location, user_id)')
+      .select('*, gigs(title, deliverables, timeline), brand_profiles(company_name, location, user_id)')
       .eq('influencer_id', influencer.id)
       .order('created_at', { ascending: false })
 
@@ -100,7 +100,7 @@ export default function InfluencerCollabsPage() {
           message: `The influencer has signed the agreement for "${gigTitle}". Go to Collaborations, sign and complete payment to go live.`,
           type: 'info',
         })
-        const { subject, html } = influencerSignedEmail(collab.brand_profiles?.brand_name ?? 'Brand', myName, gigTitle)
+        const { subject, html } = influencerSignedEmail(((collab.brand_profiles as unknown as { company_name?: string }))?.company_name ?? 'Brand', myName, gigTitle)
         await sendEmail(brandUserId, subject, html)
       }
     }
@@ -174,7 +174,7 @@ export default function InfluencerCollabsPage() {
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 15, color: '#0c1445' }}>{collab.gigs?.title ?? 'Collaboration'}</div>
                       <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                        {collab.brand_profiles?.brand_name ?? 'Brand'}
+                        {((collab.brand_profiles as unknown as { company_name?: string }))?.company_name ?? 'Brand'}
                         {collab.brand_profiles?.location && ` · ${collab.brand_profiles.location}`}
                       </div>
                     </div>
@@ -192,7 +192,7 @@ export default function InfluencerCollabsPage() {
                             timeline: collab.gigs?.timeline,
                             collabType: collab.collab_type,
                             agreedAmount: collab.agreed_amount,
-                            brandName: collab.brand_profiles?.brand_name ?? 'Brand',
+                            brandName: ((collab.brand_profiles as unknown as { company_name?: string }))?.company_name ?? 'Brand',
                             influencerName: myName,
                             brandSignedAt: collab.brand_signed_at,
                             influencerSignedAt: collab.influencer_signed_at,
@@ -304,7 +304,7 @@ export default function InfluencerCollabsPage() {
                           collabId={collab.id}
                           myRole="influencer"
                           revieweeId={(collab.brand_profiles as unknown as { user_id: string }).user_id}
-                          revieweeName={collab.brand_profiles?.brand_name ?? 'Brand'}
+                          revieweeName={((collab.brand_profiles as unknown as { company_name?: string }))?.company_name ?? 'Brand'}
                         />
                       )}
                     </div>

@@ -22,11 +22,11 @@ export default function BrandPendingPage() {
 
       const { data: brand } = await supabase
         .from('brand_profiles')
-        .select('brand_name')
+        .select('company_name')
         .eq('user_id', user.id)
         .single()
 
-      setName(brand?.brand_name ?? null)
+      setName((brand as unknown as { company_name?: string })?.company_name ?? null)
       setLoading(false)
     }
 

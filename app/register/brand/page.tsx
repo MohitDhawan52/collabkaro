@@ -89,7 +89,7 @@ export default function BrandRegisterPage() {
     }
 
     await supabase.from('profiles').upsert(
-      { id: data.user.id, email: form.email, role: 'brand', status: 'pending' },
+      { id: data.user.id, email: form.email, role: 'brand', status: 'approved' },
       { onConflict: 'id' }
     )
     const { error: brandError } = await supabase.from('brand_profiles').insert({
@@ -102,8 +102,8 @@ export default function BrandRegisterPage() {
     })
     setLoading(false)
     if (brandError) { toast.error(brandError.message); return }
-    toast.success('Welcome to CollabKaro!')
-    window.location.href = '/brand/pending'
+    toast.success('Welcome to CollabKaro! Your account is ready.')
+    window.location.href = '/brand/dashboard'
   }
 
   const inp: React.CSSProperties = {

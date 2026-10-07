@@ -18,6 +18,7 @@ interface Influencer {
   instagram_followers: number | null
   instagram_engagement_rate: number | null
   instagram_reel_price: number | null
+  instagram_verified?: boolean
   youtube_channel: string | null
   youtube_subscribers: number | null
   avg_rating?: number | null
@@ -76,7 +77,7 @@ export default function BrowseInfluencersPage() {
 
       const { data } = await supabase
         .from('influencer_profiles')
-        .select('id, user_id, full_name, bio, location, niche, barter_open, instagram_handle, instagram_followers, instagram_engagement_rate, instagram_reel_price, youtube_channel, youtube_subscribers')
+        .select('id, user_id, full_name, bio, location, niche, barter_open, instagram_handle, instagram_followers, instagram_engagement_rate, instagram_reel_price, instagram_verified, youtube_channel, youtube_subscribers')
         .in('user_id', approvedIds)
         .order('instagram_followers', { ascending: false, nullsFirst: false })
 
@@ -159,11 +160,11 @@ export default function BrowseInfluencersPage() {
             placeholder="Search by name, niche, location, bio..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            style={{ width: '100%', padding: '10px 14px 10px 36px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', fontSize: 13.5, outline: 'none', boxSizing: 'border-box', color: '#0c1445' }}
+            style={{ width: '100%', padding: '10px 14px 10px 36px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', fontSize: 13.5, outline: 'none', boxSizing: 'border-box', color: '#0c1445' }}
           />
         </div>
         <button onClick={() => setShowFilters(!showFilters)}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12, border: showFilters ? '1.5px solid #1d4ed8' : '1px solid rgba(255,255,255,0.7)', background: showFilters ? 'rgba(29,78,216,0.08)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', fontSize: 13.5, fontWeight: 600, color: showFilters ? '#1d4ed8' : '#374151', cursor: 'pointer' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12, border: showFilters ? '1.5px solid #1d4ed8' : '1px solid rgba(255,255,255,0.7)', background: showFilters ? 'rgba(29,78,216,0.08)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', fontSize: 13.5, fontWeight: 600, color: showFilters ? '#1d4ed8' : '#374151', cursor: 'pointer' }}>
           <SlidersHorizontal size={15} /> Filters
           {activeFilterCount > 0 && <span style={{ background: '#1d4ed8', color: '#fff', fontSize: 11, fontWeight: 800, width: 18, height: 18, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{activeFilterCount}</span>}
         </button>
@@ -176,7 +177,7 @@ export default function BrowseInfluencersPage() {
 
       {/* Filter panel */}
       {showFilters && (
-        <div style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.8)', borderRadius: 18, padding: '20px 24px', backdropFilter: 'blur(14px)', marginBottom: 20 }}>
+        <div style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.8)', borderRadius: 18, padding: '20px 24px', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', marginBottom: 20 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 20 }}>
 
             {/* Platform */}
@@ -259,7 +260,7 @@ export default function BrowseInfluencersPage() {
           {[1,2,3,4,5,6].map(i => <div key={i} style={{ height: 200, borderRadius: 18, background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.7)' }} />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.75)', borderRadius: 20, padding: '60px 24px', textAlign: 'center', backdropFilter: 'blur(14px)' }}>
+        <div style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.75)', borderRadius: 20, padding: '60px 24px', textAlign: 'center', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)' }}>
           <Users size={32} style={{ color: '#d1d5db', margin: '0 auto 14px', display: 'block' }} />
           <div style={{ fontWeight: 700, fontSize: 16, color: '#0c1445' }}>No influencers match your filters</div>
           <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 5 }}>Try adjusting your search or removing some filters.</div>
@@ -272,7 +273,7 @@ export default function BrowseInfluencersPage() {
             const initials = inf.full_name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() ?? 'I'
             return (
               <Link key={inf.id} href={`/brand/influencers/${inf.id}`} style={{ textDecoration: 'none' }}>
-                <div style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid rgba(255,255,255,0.8)', borderRadius: 20, padding: '20px', backdropFilter: 'blur(14px)', boxShadow: '0 2px 16px rgba(29,78,216,0.08)', cursor: 'pointer', transition: 'all 0.15s', height: '100%', boxSizing: 'border-box' }}
+                <div style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid rgba(255,255,255,0.8)', borderRadius: 20, padding: '20px', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', boxShadow: '0 2px 16px rgba(29,78,216,0.08)', cursor: 'pointer', transition: 'all 0.15s', height: '100%', boxSizing: 'border-box' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 28px rgba(29,78,216,0.14)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'none'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 16px rgba(29,78,216,0.08)' }}>
 
@@ -312,8 +313,9 @@ export default function BrowseInfluencersPage() {
                   {/* Social stats */}
                   <div style={{ display: 'flex', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
                     {igFollowers && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 10, background: 'rgba(249,115,22,0.08)', fontSize: 12.5, fontWeight: 600, color: '#ea580c' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 10, background: inf.instagram_verified ? 'rgba(131,58,180,0.1)' : 'rgba(249,115,22,0.08)', fontSize: 12.5, fontWeight: 600, color: inf.instagram_verified ? '#7c3aed' : '#ea580c' }}>
                         <AtSign size={12} /> {igFollowers}
+                        {inf.instagram_verified && <span style={{ fontSize: 11, background: 'linear-gradient(135deg,#833ab4,#fd1d1d)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 800 }}>✓IG</span>}
                         {inf.instagram_engagement_rate && <span style={{ fontWeight: 400, color: '#9ca3af', fontSize: 11 }}>· {inf.instagram_engagement_rate}%</span>}
                       </div>
                     )}

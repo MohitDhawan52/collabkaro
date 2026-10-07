@@ -42,6 +42,8 @@ export interface InfluencerProfile {
   instagram_engagement_rate: number | null
   instagram_avg_likes: number | null
   instagram_avg_comments: number | null
+  instagram_user_id: string | null
+  instagram_verified: boolean
 
   // YouTube
   youtube_channel: string | null
@@ -89,7 +91,8 @@ export interface InfluencerProfile {
 export interface BrandProfile {
   id: string
   user_id: string
-  brand_name: string
+  brand_name: string        // legacy alias — DB column is company_name
+  company_name: string
   logo_url: string | null
   website: string | null
   industry: string | null

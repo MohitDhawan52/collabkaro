@@ -83,8 +83,8 @@ export default function BrandLayout({ children }: { children: React.ReactNode })
       const { data: profile } = await supabase.from('profiles').select('role, status').eq('id', user.id).single()
       if (!profile || profile.role !== 'brand') { router.replace('/login'); return }
       if (profile.status !== 'approved') { router.replace('/brand/pending'); return }
-      const { data: brand } = await supabase.from('brand_profiles').select('brand_name').eq('user_id', user.id).single()
-      setBrandName(brand?.brand_name ?? null)
+      const { data: brand } = await supabase.from('brand_profiles').select('company_name').eq('user_id', user.id).single()
+      setBrandName((brand as unknown as { company_name?: string })?.company_name ?? null)
       setChecking(false)
     }
     checkAccess()

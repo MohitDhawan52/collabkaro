@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -75,6 +76,7 @@ const lbl: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: 'var(--
 const errStyle: React.CSSProperties = { fontSize: 12, color: '#DC2626', marginTop: 5, display: 'block' }
 
 export default function InfluencerProfilePage() {
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
@@ -90,6 +92,11 @@ export default function InfluencerProfilePage() {
   })
 
   const gender = watch('gender')
+
+  useEffect(() => {
+    if (searchParams.get('ig_connected') === '1') toast.success('Instagram connected! Your stats have been imported.')
+    if (searchParams.get('ig_error') === '1') toast.error('Instagram connection failed. Please try again.')
+  }, [searchParams])
 
   useEffect(() => {
     async function load() {
@@ -258,6 +265,19 @@ export default function InfluencerProfilePage() {
         {/* Social Media */}
         <Card>
           <SectionDivider title="Social Media" />
+          {/* Instagram OAuth connect */}
+          <div style={{ margin: '14px 0', padding: '12px 14px', borderRadius: 12, background: 'linear-gradient(135deg,#fdf2f8,#fce7f3)', border: '1.5px solid #f9a8d4', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <AtSign size={16} color="#fff" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#831843' }}>Connect Instagram via Meta</div>
+              <div style={{ fontSize: 12, color: '#9d174d', marginTop: 1 }}>Auto-import your handle & follower count. Brands see a verified badge.</div>
+            </div>
+            <a href="/api/instagram/connect" style={{ padding: '7px 14px', borderRadius: 8, background: 'linear-gradient(135deg,#833ab4,#fd1d1d)', color: '#fff', fontSize: 12.5, fontWeight: 700, textDecoration: 'none', flexShrink: 0 }}>
+              Connect
+            </a>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 18px', marginTop: 18 }}>
             <div>
               <label style={lbl}>Instagram Handle</label>

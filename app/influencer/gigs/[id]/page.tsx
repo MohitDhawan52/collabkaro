@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase'
 import { sendEmail } from '@/lib/sendEmail'
 import { pitchReceivedEmail } from '@/lib/emailTemplates'
 import type { Gig } from '@/types/index'
+import { useInfluencerContext } from '@/lib/influencerContext'
 
 interface ParsedDeliverable { type: string; emoji: string; qty: number; due_date: string }
 
@@ -38,6 +39,7 @@ async function trackEvent(ad_id: string, event_type: 'impression' | 'view' | 'pi
 }
 
 export default function GigDetailPage() {
+  const { isPending } = useInfluencerContext()
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const [gig, setGig] = useState<Gig | null>(null)
@@ -58,7 +60,7 @@ export default function GigDetailPage() {
       setCurrentUserId(user.id)
 
       const [gigRes, influencerRes, adRes] = await Promise.all([
-        supabase.from('gigs').select('*, brand_profiles(brand_name, industry, location, description)').eq('id', id).single(),
+        supabase.from('gigs').select('*, brand_profiles(company_name, industry, location, description)').eq('id', id).single(),
         supabase.from('influencer_profiles').select('id').eq('user_id', user.id).single(),
         supabase.from('gig_ads').select('id').eq('gig_id', id).eq('status', 'active').maybeSingle(),
       ])
@@ -115,10 +117,10 @@ export default function GigDetailPage() {
       setShowModal(false)
       setPitchMessage('')
       const { data: brandProfile } = await supabase
-        .from('brand_profiles').select('user_id, brand_name').eq('id', gig.brand_id).single()
+        .from('brand_profiles').select('user_id, company_name').eq('id', gig.brand_id).single()
       if (brandProfile?.user_id) {
         const { subject, html } = pitchReceivedEmail(
-          brandProfile.brand_name ?? 'Brand',
+          (brandProfile as unknown as { company_name?: string }).company_name ?? 'Brand',
           (influencer as unknown as { full_name: string }).full_name ?? 'Influencer',
           gig.title,
           pitchMessage.trim(),
@@ -178,7 +180,7 @@ export default function GigDetailPage() {
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>{gig.title}</div>
             <div style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 4 }}>
-              by {gig.brand_profiles?.brand_name ?? 'Brand'}
+              by {(gig.brand_profiles as unknown as { company_name?: string })?.company_name ?? 'Brand'}
               {gig.brand_profiles?.location && ` · ${gig.brand_profiles.location}`}
               {gig.brand_profiles?.industry && ` · ${gig.brand_profiles.industry}`}
             </div>
@@ -236,13 +238,18 @@ export default function GigDetailPage() {
       </div>
 
       {/* CTA */}
+      {isPending && (
+        <div style={{ padding: '14px 18px', borderRadius: 14, background: '#fef9c3', border: '1.5px solid #fcd34d', fontSize: 13.5, color: '#92400e', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>
+          ⏳ Your profile is under review. You can browse gigs but pitching is unlocked after approval.
+        </div>
+      )}
       <button
-        onClick={() => { if (!alreadyPitched) setShowModal(true) }}
-        disabled={alreadyPitched}
-        className={alreadyPitched ? 'btn btn-secondary' : 'btn btn-primary'}
-        style={{ width: '100%', fontSize: 15, padding: '14px', opacity: alreadyPitched ? 0.7 : 1 }}
+        onClick={() => { if (!alreadyPitched && !isPending) setShowModal(true) }}
+        disabled={alreadyPitched || isPending}
+        className={alreadyPitched || isPending ? 'btn btn-secondary' : 'btn btn-primary'}
+        style={{ width: '100%', fontSize: 15, padding: '14px', opacity: alreadyPitched || isPending ? 0.7 : 1 }}
       >
-        {alreadyPitched ? '✓ You already pitched for this gig' : <><Send size={15} /> Send Pitch to this Brand</>}
+        {alreadyPitched ? '✓ You already pitched for this gig' : isPending ? '🔒 Approval Required to Pitch' : <><Send size={15} /> Send Pitch to this Brand</>}
       </button>
 
       {/* Pitch Modal */}

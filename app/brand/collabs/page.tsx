@@ -55,9 +55,9 @@ export default function BrandCollabsPage() {
     if (!user) return
 
     const { data: brand } = await supabase
-      .from('brand_profiles').select('id, brand_name').eq('user_id', user.id).single()
+      .from('brand_profiles').select('id, company_name').eq('user_id', user.id).single()
     if (!brand) { setLoading(false); return }
-    setMyName(brand.brand_name ?? 'Brand')
+    setMyName((brand as unknown as { company_name?: string }).company_name ?? 'Brand')
 
     const { data } = await supabase
       .from('collaborations')

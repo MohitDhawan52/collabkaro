@@ -7,6 +7,7 @@ import { LayoutDashboard, Search, Send, Briefcase, Wallet, User, ShieldCheck, Lo
 import { createClient } from '@/lib/supabase'
 import NotificationBell from '@/app/components/NotificationBell'
 import { useIsMobile } from '@/lib/useIsMobile'
+import { InfluencerContext } from '@/lib/influencerContext'
 
 const NAV_ITEMS = [
   { href: '/influencer/dashboard', label: 'Overview',       icon: LayoutDashboard, iconBg: 'rgba(255,255,255,0.25)' },
@@ -72,6 +73,7 @@ export default function InfluencerLayout({ children }: { children: React.ReactNo
   const [checking, setChecking] = useState(true)
   const [name, setName] = useState<string | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [isPending, setIsPending] = useState(false)
 
   useEffect(() => {
     async function checkAccess() {
@@ -80,7 +82,8 @@ export default function InfluencerLayout({ children }: { children: React.ReactNo
       if (!user) { router.replace('/login'); return }
       const { data: profile } = await supabase.from('profiles').select('role, status').eq('id', user.id).single()
       if (!profile || profile.role !== 'influencer') { router.replace('/login'); return }
-      if (profile.status !== 'approved') { router.replace('/influencer/pending'); return }
+      if (profile.status === 'rejected') { router.replace('/influencer/pending'); return }
+      if (profile.status !== 'approved') setIsPending(true)
       const { data: influencer } = await supabase.from('influencer_profiles').select('full_name').eq('user_id', user.id).single()
       setName(influencer?.full_name ?? null)
       setChecking(false)
@@ -135,7 +138,20 @@ export default function InfluencerLayout({ children }: { children: React.ReactNo
           ) : <div />}
           <NotificationBell />
         </div>
-        <div style={{ flex: 1, padding: isMobile ? '20px 16px' : '28px 32px' }}>{children}</div>
+        {isPending && (
+          <div style={{ margin: isMobile ? '12px 16px 0' : '16px 32px 0', padding: '12px 16px', borderRadius: 12, background: 'linear-gradient(135deg,#fef9c3,#fef3c7)', border: '1.5px solid #fcd34d', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 18 }}>⏳</span>
+            <div>
+              <div style={{ fontSize: 13.5, fontWeight: 700, color: '#92400e' }}>Profile under review — Browse mode active</div>
+              <div style={{ fontSize: 12.5, color: '#b45309', marginTop: 2 }}>You can explore gigs and the platform, but pitching and collaborations are unlocked once your profile is approved.</div>
+            </div>
+          </div>
+        )}
+        <div style={{ flex: 1, padding: isMobile ? '20px 16px' : '28px 32px' }}>
+          <InfluencerContext.Provider value={{ isPending }}>
+            {children}
+          </InfluencerContext.Provider>
+        </div>
       </main>
     </div>
   )

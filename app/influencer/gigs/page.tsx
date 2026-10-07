@@ -6,6 +6,7 @@ import { Search, Sparkles, IndianRupee, Send, X, Inbox, Megaphone, Lock } from '
 import { createClient } from '@/lib/supabase'
 import type { Gig } from '@/types/index'
 import { NICHES, PLATFORMS } from '@/types/index'
+import { useInfluencerContext } from '@/lib/influencerContext'
 
 // Fire-and-forget ad event tracker — never blocks UI
 async function trackAdEvent(ad_id: string, event_type: 'impression' | 'pitch_click', viewer_user_id: string) {
@@ -40,6 +41,7 @@ function BadgeCheckSvg({ size = 14 }: { size?: number }) {
 }
 
 export default function BrowseGigsPage() {
+  const { isPending } = useInfluencerContext()
   const [loading, setLoading] = useState(true)
   const [gigs, setGigs] = useState<Gig[]>([])
   const [sponsoredGigIds, setSponsoredGigIds] = useState<Set<string>>(new Set())
@@ -84,7 +86,7 @@ export default function BrowseGigsPage() {
     const [gigsRes, influencerRes, adsRes] = await Promise.all([
       supabase
         .from('gigs')
-        .select('*, brand_profiles(brand_name, industry, location), collaborations(id)')
+        .select('*, brand_profiles(company_name, industry, location), collaborations(id)')
         .eq('status', 'active')
         .order('created_at', { ascending: false }),
       supabase
@@ -175,7 +177,7 @@ export default function BrowseGigsPage() {
 
   const filtered = gigs.filter((g) => {
     const matchSearch = !search || g.title.toLowerCase().includes(search.toLowerCase()) ||
-      g.brand_profiles?.brand_name?.toLowerCase().includes(search.toLowerCase())
+      (g.brand_profiles as unknown as { company_name?: string })?.company_name?.toLowerCase().includes(search.toLowerCase())
     const matchNiche = !nicheFilter || (g.niche_required ?? []).includes(nicheFilter)
     const matchPlatform = !platformFilter || (g.platforms ?? []).includes(platformFilter)
     return matchSearch && matchNiche && matchPlatform
@@ -266,7 +268,7 @@ export default function BrowseGigsPage() {
                       <span className="badge badge-gray">{gig.collab_type}</span>
                     </div>
                     <div className="dash-row-meta" style={{ marginTop: 3 }}>
-                      {gig.brand_profiles?.brand_name ?? 'Brand'}
+                      {(gig.brand_profiles as unknown as { company_name?: string })?.company_name ?? 'Brand'}
                       {gig.brand_profiles?.location && ` · ${gig.brand_profiles.location}`}
                     </div>
                     <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 8, lineHeight: 1.5 }}>
@@ -305,12 +307,13 @@ export default function BrowseGigsPage() {
                         View Details
                       </a>
                       <button
-                        onClick={() => { if (!alreadyPitched) { setPitchGig(gig); setPitchMessage('') } }}
-                        disabled={alreadyPitched}
-                        className={alreadyPitched ? 'btn btn-secondary' : 'btn btn-primary'}
-                        style={{ fontSize: 13, padding: '8px 18px', opacity: alreadyPitched ? 0.6 : 1 }}
+                        onClick={() => { if (!alreadyPitched && !isPending) { setPitchGig(gig); setPitchMessage('') } }}
+                        disabled={alreadyPitched || isPending}
+                        className={alreadyPitched || isPending ? 'btn btn-secondary' : 'btn btn-primary'}
+                        style={{ fontSize: 13, padding: '8px 18px', opacity: alreadyPitched || isPending ? 0.6 : 1 }}
+                        title={isPending ? 'Profile approval required to pitch' : undefined}
                       >
-                        {alreadyPitched ? '✓ Pitched' : <><Send size={13} /> Pitch</>}
+                        {alreadyPitched ? '✓ Pitched' : isPending ? '🔒 Pending Approval' : <><Send size={13} /> Pitch</>}
                       </button>
                     </div>
                   </div>

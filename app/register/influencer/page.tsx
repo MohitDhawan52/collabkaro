@@ -340,6 +340,23 @@ export default function InfluencerRegisterPage() {
 
             <SecDivider title="Social Media" />
 
+            {/* Instagram connect via Meta OAuth */}
+            <div style={{ padding: '14px 16px', borderRadius: 14, background: 'linear-gradient(135deg,#fdf2f8,#fce7f3)', border: '1.5px solid #f9a8d4', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+              <div style={{ width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <AtSign size={18} color="#fff" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: '#831843' }}>Connect Instagram (Recommended)</div>
+                <div style={{ fontSize: 12, color: '#9d174d', marginTop: 2 }}>Auto-fetch your followers & stats — builds trust with brands. You can also type it manually below.</div>
+              </div>
+              <a
+                href="/api/instagram/connect"
+                style={{ padding: '8px 16px', borderRadius: 9, background: 'linear-gradient(135deg,#833ab4,#fd1d1d)', color: '#fff', fontSize: 13, fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap' as const, flexShrink: 0 }}
+              >
+                Connect Instagram
+              </a>
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 22px' }}>
               <div>
                 <label style={lbl}>Instagram Handle</label>
