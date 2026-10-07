@@ -122,7 +122,7 @@ export default function BrandDashboardPage() {
         {stats.map((s, i) => {
           const cfg = STATS_CONFIG[i]
           return (
-            <div key={s.label} style={{ background: '#fff', border: `1.5px solid ${cfg.border}`, borderRadius: 16, padding: '18px 18px 16px', position: 'relative', overflow: 'hidden' }}>
+            <div key={s.label} className="dash-stat-card" style={{ background: '#fff', border: `1.5px solid ${cfg.border}`, borderRadius: 16, padding: '18px 18px 16px', position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', top: -20, right: -20, width: 70, height: 70, borderRadius: '50%', background: cfg.bg, pointerEvents: 'none' }} />
               <div style={{ width: 34, height: 34, borderRadius: 9, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
                 {s.icon}
