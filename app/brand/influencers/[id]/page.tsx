@@ -22,6 +22,7 @@ interface InfluencerDetail {
   youtube_avg_views: number | null
   youtube_dedicated_price: number | null
   barter_open: boolean
+  collab_open: 'paid' | 'barter' | 'both' | null
   brands_worked_with: string[]
   portfolio_links: string[]
 }
