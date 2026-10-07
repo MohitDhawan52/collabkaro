@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Search, AtSign, Play, MapPin, X, Users, SlidersHorizontal, Star, Instagram, Youtube } from 'lucide-react'
+import { Search, AtSign, Play, MapPin, X, Users, SlidersHorizontal, Star } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import { NICHES } from '@/types/index'
 
@@ -348,7 +348,7 @@ export default function BrowseInfluencersPage() {
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {igFollowers && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', borderRadius: 10, background: '#FFF7F5', border: '1px solid rgba(255,85,51,0.15)', fontSize: 12.5, fontWeight: 600, color: '#FF5533' }}>
-                        <Instagram size={13} /> {igFollowers}
+                        <AtSign size={13} /> {igFollowers}
                         {inf.instagram_engagement_rate && (
                           <span style={{ fontWeight: 400, color: '#9CA3AF', fontSize: 11 }}>· {inf.instagram_engagement_rate}%</span>
                         )}
@@ -356,7 +356,7 @@ export default function BrowseInfluencersPage() {
                     )}
                     {ytSubs && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', borderRadius: 10, background: '#FFF5F5', border: '1px solid rgba(239,68,68,0.15)', fontSize: 12.5, fontWeight: 600, color: '#DC2626' }}>
-                        <Youtube size={13} /> {ytSubs}
+                        <Play size={13} /> {ytSubs}
                       </div>
                     )}
                     {inf.instagram_reel_price && (
