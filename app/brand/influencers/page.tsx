@@ -14,6 +14,7 @@ interface Influencer {
   location: string | null
   niche: string[]
   barter_open: boolean
+  collab_open: 'paid' | 'barter' | 'both' | null
   instagram_handle: string | null
   instagram_followers: number | null
   instagram_engagement_rate: number | null
