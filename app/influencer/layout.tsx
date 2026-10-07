@@ -100,13 +100,13 @@ export default function InfluencerLayout({ children }: { children: React.ReactNo
   }
 
   if (checking) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F8F7F3' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0E0D1A' }}>
       <div className="dash-spinner" />
     </div>
   )
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8F7F3' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#0E0D1A' }}>
 
       {!isMobile && (
         <aside style={{ width: 240, flexShrink: 0, position: 'sticky', top: 0, height: '100vh' }}>
@@ -127,13 +127,13 @@ export default function InfluencerLayout({ children }: { children: React.ReactNo
       )}
 
       <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: isMobile ? '12px 16px' : '12px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(248,247,243,0.92)', backdropFilter: 'blur(14px)', borderBottom: '1px solid #E6E4DE', position: 'sticky', top: 0, zIndex: 20 }}>
+        <div style={{ padding: isMobile ? '12px 16px' : '12px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(14,13,26,0.92)', backdropFilter: 'blur(18px) saturate(1.6)', borderBottom: '1px solid rgba(255,255,255,0.07)', position: 'sticky', top: 0, zIndex: 20 }}>
           {isMobile ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <button onClick={() => setDrawerOpen(true)} style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,85,51,0.08)', border: '1px solid rgba(255,85,51,0.15)', color: '#FF5533', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <button onClick={() => setDrawerOpen(true)} style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,85,51,0.12)', border: '1px solid rgba(255,85,51,0.22)', color: '#FF5533', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Menu size={18} />
               </button>
-              <span style={{ fontSize: 15, fontWeight: 800, color: '#111113', fontFamily: "'Outfit', sans-serif" }}>CollabKaro</span>
+              <span style={{ fontSize: 15, fontWeight: 800, color: '#FFFFFF', fontFamily: "'Outfit', sans-serif" }}>CollabKaro</span>
             </div>
           ) : <div />}
           <NotificationBell />
