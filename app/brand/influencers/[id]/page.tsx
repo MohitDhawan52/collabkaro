@@ -147,9 +147,12 @@ export default function InfluencerProfilePage() {
               {(profile.niche ?? []).map(n => (
                 <span key={n} style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: 'rgba(168,85,247,0.12)', color: '#7c3aed', border: '1px solid rgba(168,85,247,0.2)' }}>{n}</span>
               ))}
-              {profile.barter_open && (
-                <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: 'rgba(16,185,129,0.12)', color: '#059669', border: '1px solid rgba(16,185,129,0.25)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <CheckCircle2 size={10} /> Open to Barter
+              {profile.collab_open && (
+                <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 4,
+                  ...(profile.collab_open === 'paid' ? { background: 'rgba(255,85,51,0.10)', color: '#FF5533', border: '1px solid rgba(255,85,51,0.25)' }
+                    : profile.collab_open === 'barter' ? { background: 'rgba(16,185,129,0.12)', color: '#059669', border: '1px solid rgba(16,185,129,0.25)' }
+                    : { background: 'rgba(234,179,8,0.12)', color: '#B45309', border: '1px solid rgba(234,179,8,0.28)' }) }}>
+                  {profile.collab_open === 'paid' ? '💰 Paid Only' : profile.collab_open === 'barter' ? '🎁 Barter Only' : '🤝 Paid & Barter'}
                 </span>
               )}
             </div>

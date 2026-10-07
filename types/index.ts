@@ -68,6 +68,7 @@ export interface InfluencerProfile {
   youtube_integration_price: number | null
   facebook_post_price: number | null
   barter_open: boolean
+  collab_open: 'paid' | 'barter' | 'both' | null
 
   // Past work
   brands_worked_with: string[]

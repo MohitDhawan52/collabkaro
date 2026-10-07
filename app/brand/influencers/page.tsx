@@ -69,6 +69,7 @@ export default function BrowseInfluencersPage() {
   const [selectedPlatform, setSelectedPlatform] = useState<string>('All')
   const [minFollowers, setMinFollowers] = useState(0)
   const [barterOnly, setBarterOnly] = useState(false)
+  const [collabFilter, setCollabFilter] = useState<'all' | 'paid' | 'barter' | 'both'>('all')
   const [location, setLocation] = useState('')
   const [showFilters, setShowFilters] = useState(false)
   const [sortBy, setSortBy] = useState<'followers' | 'recent'>('followers')
@@ -88,7 +89,7 @@ export default function BrowseInfluencersPage() {
 
       const { data } = await supabase
         .from('influencer_profiles')
-        .select('id, user_id, full_name, bio, location, niche, barter_open, instagram_handle, instagram_followers, instagram_engagement_rate, instagram_reel_price, instagram_verified, youtube_channel, youtube_subscribers')
+        .select('id, user_id, full_name, bio, location, niche, barter_open, collab_open, instagram_handle, instagram_followers, instagram_engagement_rate, instagram_reel_price, instagram_verified, youtube_channel, youtube_subscribers')
         .in('user_id', approvedIds)
         .order('instagram_followers', { ascending: false, nullsFirst: false })
 
@@ -134,6 +135,11 @@ export default function BrowseInfluencersPage() {
       if (selectedPlatform === 'Instagram' && !inf.instagram_handle) return false
       if (selectedPlatform === 'YouTube' && !inf.youtube_channel) return false
       if (barterOnly && !inf.barter_open) return false
+      if (collabFilter !== 'all') {
+        if (collabFilter === 'paid' && !['paid', 'both'].includes(inf.collab_open ?? '')) return false
+        if (collabFilter === 'barter' && !['barter', 'both'].includes(inf.collab_open ?? '')) return false
+        if (collabFilter === 'both' && inf.collab_open !== 'both') return false
+      }
       if (location && !inf.location?.toLowerCase().includes(location.toLowerCase())) return false
       const totalFollowers = Math.max(inf.instagram_followers ?? 0, inf.youtube_subscribers ?? 0)
       if (minFollowers > 0 && totalFollowers < minFollowers) return false
@@ -152,7 +158,7 @@ export default function BrowseInfluencersPage() {
     setSelectedNiches(prev => prev.includes(n) ? prev.filter(x => x !== n) : [...prev, n])
   }
 
-  const activeFilterCount = selectedNiches.length + (selectedPlatform !== 'All' ? 1 : 0) + (minFollowers > 0 ? 1 : 0) + (barterOnly ? 1 : 0) + (location ? 1 : 0)
+  const activeFilterCount = selectedNiches.length + (selectedPlatform !== 'All' ? 1 : 0) + (minFollowers > 0 ? 1 : 0) + (collabFilter !== 'all' ? 1 : 0) + (location ? 1 : 0)
 
   return (
     <div style={{ maxWidth: 1100 }}>
@@ -237,13 +243,23 @@ export default function BrowseInfluencersPage() {
 
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#6B6B78', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Collab Type</div>
-              <button onClick={() => setBarterOnly(!barterOnly)}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px', borderRadius: 999, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: '1.5px solid', borderColor: barterOnly ? '#10B981' : '#E6E4DE', background: barterOnly ? 'rgba(16,185,129,0.08)' : '#fff', color: barterOnly ? '#059669' : '#374151', transition: 'all 0.12s', fontFamily: "'DM Sans', sans-serif" }}>
-                <div style={{ width: 16, height: 16, borderRadius: 4, border: barterOnly ? 'none' : '1.5px solid #D1D5DB', background: barterOnly ? '#10B981' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  {barterOnly && <span style={{ color: '#fff', fontSize: 10, fontWeight: 800 }}>✓</span>}
-                </div>
-                Barter Open
-              </button>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {([
+                  { value: 'all', label: 'All' },
+                  { value: 'paid', label: '💰 Paid' },
+                  { value: 'barter', label: '🎁 Barter' },
+                  { value: 'both', label: '🤝 Both' },
+                ] as const).map(opt => (
+                  <button key={opt.value} onClick={() => setCollabFilter(opt.value)}
+                    style={{ padding: '6px 12px', borderRadius: 999, fontSize: 12.5, fontWeight: 500, cursor: 'pointer', border: '1.5px solid',
+                      borderColor: collabFilter === opt.value ? '#FF5533' : '#E6E4DE',
+                      background: collabFilter === opt.value ? 'rgba(255,85,51,0.08)' : '#fff',
+                      color: collabFilter === opt.value ? '#FF5533' : '#374151',
+                      transition: 'all 0.12s', fontFamily: "'DM Sans', sans-serif" }}>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -324,9 +340,12 @@ export default function BrowseInfluencersPage() {
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 5, alignItems: 'flex-end' }}>
-                      {inf.barter_open && (
-                        <span style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: 'rgba(16,185,129,0.10)', color: '#059669', border: '1px solid rgba(16,185,129,0.22)', whiteSpace: 'nowrap' }}>
-                          Barter ✓
+                      {inf.collab_open && (
+                        <span style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 8px', borderRadius: 999, whiteSpace: 'nowrap',
+                          ...(inf.collab_open === 'paid' ? { background: 'rgba(255,85,51,0.10)', color: '#FF5533', border: '1px solid rgba(255,85,51,0.25)' }
+                            : inf.collab_open === 'barter' ? { background: 'rgba(16,185,129,0.10)', color: '#059669', border: '1px solid rgba(16,185,129,0.22)' }
+                            : { background: 'rgba(234,179,8,0.10)', color: '#B45309', border: '1px solid rgba(234,179,8,0.25)' }) }}>
+                          {inf.collab_open === 'paid' ? '💰 Paid' : inf.collab_open === 'barter' ? '🎁 Barter' : '🤝 Paid & Barter'}
                         </span>
                       )}
                       {inf.instagram_verified && (

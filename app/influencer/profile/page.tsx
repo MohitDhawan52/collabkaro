@@ -29,6 +29,7 @@ const schema = z.object({
   instagram_story_price: z.coerce.number().min(0).optional().or(z.literal('')),
   youtube_dedicated_price: z.coerce.number().min(0).optional().or(z.literal('')),
   barter_open: z.boolean(),
+  collab_open: z.enum(['paid', 'barter', 'both'], { required_error: 'Select your collaboration type' }),
   address: z.string().optional(),
   clothing_size: z.string().optional(),
   bank_account_name: z.string().optional(),
@@ -90,7 +91,7 @@ export default function InfluencerProfilePage() {
   const { register, handleSubmit, reset, control, watch, setValue, formState: { errors } } = useForm<ProfileForm>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(schema) as any,
-    defaultValues: { niche: [], barter_open: false, gender: '' },
+    defaultValues: { niche: [], barter_open: false, gender: '', collab_open: undefined },
   })
 
   const gender = watch('gender')
@@ -126,6 +127,7 @@ export default function InfluencerProfilePage() {
           instagram_story_price: data.instagram_story_price ?? '',
           youtube_dedicated_price: data.youtube_dedicated_price ?? '',
           barter_open: data.barter_open ?? false,
+          collab_open: (data.collab_open as 'paid' | 'barter' | 'both') ?? undefined,
           address: data.address ?? '',
           clothing_size: data.clothing_size ?? '',
           bank_account_name: data.bank_account_name ?? '',
@@ -332,11 +334,28 @@ export default function InfluencerProfilePage() {
               <label style={lbl}><IndianRupee size={11} style={{ display: 'inline' }} /> YouTube Dedicated</label>
               <input {...register('youtube_dedicated_price')} type="number" className="input" placeholder="e.g. 25000" min={0} />
             </div>
-            <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <input {...register('barter_open')} type="checkbox" id="barter" style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#FF5533' }} />
-              <label htmlFor="barter" style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-primary)', cursor: 'pointer' }}>
-                I'm open to barter / product collaborations
-              </label>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={{ ...lbl, color: '#FF5533' }}>Collaboration Type *</label>
+              <div style={{ display: 'flex', gap: 10, marginTop: 6, flexWrap: 'wrap' }}>
+                {([
+                  { value: 'paid', label: '💰 Paid Only', desc: 'Monetary payment only' },
+                  { value: 'barter', label: '🎁 Barter Only', desc: 'Product / gifting only' },
+                  { value: 'both', label: '🤝 Both', desc: 'Paid & barter welcome' },
+                ] as const).map(opt => {
+                  const selected = watch('collab_open') === opt.value
+                  return (
+                    <button key={opt.value} type="button" onClick={() => { setValue('collab_open', opt.value, { shouldValidate: true }); setValue('barter_open', opt.value !== 'paid') }}
+                      style={{ flex: 1, minWidth: 120, padding: '12px 14px', borderRadius: 12, cursor: 'pointer', textAlign: 'left',
+                        border: selected ? '2px solid #FF5533' : '1.5px solid var(--bg-border)',
+                        background: selected ? 'rgba(255,85,51,0.07)' : 'var(--bg-input)',
+                        transition: 'all 0.14s ease' }}>
+                      <div style={{ fontSize: 13.5, fontWeight: 700, color: selected ? '#FF5533' : 'var(--text-primary)' }}>{opt.label}</div>
+                      <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>{opt.desc}</div>
+                    </button>
+                  )
+                })}
+              </div>
+              {errors.collab_open && <span style={errStyle}>{errors.collab_open.message}</span>}
             </div>
           </div>
         </Card>
