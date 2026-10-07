@@ -29,7 +29,7 @@ const schema = z.object({
   instagram_story_price: z.coerce.number().min(0).optional().or(z.literal('')),
   youtube_dedicated_price: z.coerce.number().min(0).optional().or(z.literal('')),
   barter_open: z.boolean(),
-  collab_open: z.enum(['paid', 'barter', 'both'], { required_error: 'Select your collaboration type' }),
+  collab_open: z.enum(['paid', 'barter', 'both'] as const),
   address: z.string().optional(),
   clothing_size: z.string().optional(),
   bank_account_name: z.string().optional(),
