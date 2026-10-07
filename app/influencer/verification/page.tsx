@@ -115,7 +115,7 @@ export default function VerificationPage() {
             </div>
             {request.status === 'rejected' && (
               <button onClick={applyForVerification} disabled={applying} style={{ marginTop: 10, padding: '8px 16px', borderRadius: 10, border: 'none', background: '#ef4444', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
-                {applying ? 'Submitting...' : 'Re-apply (₹1,999)'}
+                {applying ? 'Submitting...' : 'Re-apply (₹2,358.82 incl. GST)'}
               </button>
             )}
           </div>
@@ -146,8 +146,8 @@ export default function VerificationPage() {
               <BadgeCheck size={26} color="#fff" />
             </div>
             <div>
-              <div style={{ fontWeight: 800, fontSize: 17, color: 'var(--text-primary)' }}>Get Verified for ₹1,999</div>
-              <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>One-time fee · Admin KYC review · Badge never expires</div>
+              <div style={{ fontWeight: 800, fontSize: 17, color: 'var(--text-primary)' }}>Get Verified for ₹1,999 <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-muted)' }}>+ 18% GST</span></div>
+              <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>Total ₹2,358.82 · One-time fee · Admin KYC review · Badge never expires</div>
             </div>
           </div>
 
@@ -160,7 +160,7 @@ export default function VerificationPage() {
             disabled={applying}
             style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: applying ? '#93c5fd' : 'linear-gradient(135deg,#1d4ed8,#06b6d4)', color: '#fff', fontSize: 15, fontWeight: 800, cursor: applying ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 4px 18px rgba(29,78,216,0.25)', fontFamily: 'inherit' }}
           >
-            {applying ? 'Submitting...' : <><IndianRupee size={16} /> Pay ₹1,999 & Apply for Verification <ChevronRight size={16} /></>}
+            {applying ? 'Submitting...' : <><IndianRupee size={16} /> Pay ₹2,358.82 (₹1,999 + GST) & Apply <ChevronRight size={16} /></>}
           </button>
           <p style={{ fontSize: 11.5, color: 'var(--text-muted)', textAlign: 'center', marginTop: 10 }}>
             Payment collected offline / via UPI. Mention your registered email when paying.
@@ -169,7 +169,7 @@ export default function VerificationPage() {
       )}
       {!isVerified && request && request.status !== 'rejected' && (
         <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 16 }}>
-          Applied on {new Date(request.applied_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })} · Payment: ₹1,999
+          Applied on {new Date(request.applied_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })} · Payment: ₹1,999 + 18% GST = ₹2,358.82
         </p>
       )}
     </div>

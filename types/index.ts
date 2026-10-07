@@ -74,6 +74,10 @@ export interface InfluencerProfile {
   portfolio_links: string[]
   media_kit_url: string | null
 
+  // Shipping
+  address: string | null
+  clothing_size: string | null
+
   // Bank
   bank_account_name: string | null
   bank_account_number: string | null

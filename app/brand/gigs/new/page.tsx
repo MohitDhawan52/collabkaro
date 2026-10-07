@@ -215,11 +215,11 @@ export default function PostGigPage() {
       if (deliverables.length === 0) { toast.error('Select at least one deliverable'); setSubmitting(false); return }
       if (deliverables.some(d => !d.due_date)) { toast.error('Set a due date for every deliverable'); setSubmitting(false); return }
 
-      // Wallet check — ₹250 gig listing fee
+      // Wallet check — ₹49 gig listing fee + 18% GST = ₹57.82
       const { data: wallet } = await supabase.from('brand_wallet').select('balance').eq('brand_user_id', user.id).maybeSingle()
       const balance = wallet?.balance ?? 0
       setWalletBalance(balance)
-      if (balance < 250) {
+      if (balance < 58) {
         setPendingSubmit(data)
         setSubmitting(false)
         setShowAddFunds(true)
@@ -240,7 +240,7 @@ export default function PostGigPage() {
         timeline: deliverables.map(d => `${d.qty}× ${d.label} by ${new Date(d.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`).join(', '),
         status: 'active',
         payment_status: 'pending',
-        gig_fee: 250,
+        gig_fee: 49,
       })
 
       if (error) throw error
@@ -584,7 +584,7 @@ export default function PostGigPage() {
               }}>
                 <Monitor size={15} style={{ flexShrink: 0, marginTop: 1 }} />
                 <div>
-                  <strong>Platform fee: ₹250</strong> — A one-time gig listing fee will be charged when you publish.
+                  <strong>Platform fee: ₹49</strong> + 18% GST = <strong>₹57.82</strong> — A one-time launch price gig listing fee will be charged when you publish.
                   Your gig goes live instantly and stays active until you pause or close it.
                 </div>
               </div>
@@ -637,7 +637,7 @@ export default function PostGigPage() {
             <div style={{ fontSize: 28, textAlign: 'center', marginBottom: 8 }}>💳</div>
             <div style={{ fontSize: 19, fontWeight: 900, textAlign: 'center', color: 'var(--text-primary)', marginBottom: 6 }}>Add Funds to Wallet</div>
             <div style={{ fontSize: 13.5, color: 'var(--text-muted)', textAlign: 'center', marginBottom: 24, lineHeight: 1.5 }}>
-              Publishing a gig costs <strong style={{ color: '#f59e0b' }}>₹250</strong>. Your current wallet balance is <strong style={{ color: walletBalance !== null && walletBalance < 250 ? '#ef4444' : '#10b981' }}>₹{(walletBalance ?? 0).toLocaleString('en-IN')}</strong>. Add funds to continue.
+              Publishing a gig costs <strong style={{ color: '#f59e0b' }}>₹49 + 18% GST = ₹57.82</strong>. Your current wallet balance is <strong style={{ color: walletBalance !== null && walletBalance < 58 ? '#ef4444' : '#10b981' }}>₹{(walletBalance ?? 0).toLocaleString('en-IN')}</strong>. Add funds to continue.
             </div>
 
             {/* Quick amounts */}

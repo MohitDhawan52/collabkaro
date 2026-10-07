@@ -6,7 +6,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { User, Save, IndianRupee, AtSign, Camera, MapPin, Phone, PlayCircle } from 'lucide-react'
+import { User, Save, IndianRupee, AtSign, Camera, MapPin, Phone, PlayCircle, Home, Ruler } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import { NICHES } from '@/types/index'
 
@@ -29,6 +29,8 @@ const schema = z.object({
   instagram_story_price: z.coerce.number().min(0).optional().or(z.literal('')),
   youtube_dedicated_price: z.coerce.number().min(0).optional().or(z.literal('')),
   barter_open: z.boolean(),
+  address: z.string().optional(),
+  clothing_size: z.string().optional(),
   bank_account_name: z.string().optional(),
   bank_account_number: z.string().optional(),
   bank_ifsc: z.string().optional(),
@@ -40,7 +42,7 @@ function SectionDivider({ title }: { title: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '8px 0 4px' }}>
       <div style={{ flex: 1, height: 1.5, background: 'var(--bg-border)' }} />
-      <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#1d4ed8', whiteSpace: 'nowrap' as const }}>{title}</span>
+      <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#FF5533', whiteSpace: 'nowrap' as const }}>{title}</span>
       <div style={{ flex: 1, height: 1.5, background: 'var(--bg-border)' }} />
     </div>
   )
@@ -63,7 +65,7 @@ function ChipSelect({ options, selected, onChange }: { options: string[]; select
       {options.map(opt => {
         const active = selected.includes(opt)
         return (
-          <button key={opt} type="button" onClick={() => toggle(opt)} style={{ padding: '6px 14px', borderRadius: 999, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: active ? '1.5px solid #1d4ed8' : '1.5px solid var(--bg-border)', background: active ? '#eff6ff' : 'var(--bg-input)', color: active ? '#1d4ed8' : 'var(--text-secondary)', transition: 'all 0.14s ease' }}>
+          <button key={opt} type="button" onClick={() => toggle(opt)} style={{ padding: '6px 14px', borderRadius: 999, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: active ? '1.5px solid #FF5533' : '1.5px solid var(--bg-border)', background: active ? 'rgba(255,85,51,0.08)' : 'var(--bg-input)', color: active ? '#FF5533' : 'var(--text-secondary)', transition: 'all 0.14s ease' }}>
             {opt}
           </button>
         )
@@ -124,6 +126,8 @@ export default function InfluencerProfilePage() {
           instagram_story_price: data.instagram_story_price ?? '',
           youtube_dedicated_price: data.youtube_dedicated_price ?? '',
           barter_open: data.barter_open ?? false,
+          address: data.address ?? '',
+          clothing_size: data.clothing_size ?? '',
           bank_account_name: data.bank_account_name ?? '',
           bank_account_number: data.bank_account_number ?? '',
           bank_ifsc: data.bank_ifsc ?? '',
@@ -202,16 +206,16 @@ export default function InfluencerProfilePage() {
 
           {/* Avatar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, margin: '18px 0 22px' }}>
-            <div onClick={() => fileRef.current?.click()} style={{ width: 76, height: 76, borderRadius: '50%', cursor: 'pointer', border: '2px dashed #bfdbfe', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+            <div onClick={() => fileRef.current?.click()} style={{ width: 76, height: 76, borderRadius: '50%', cursor: 'pointer', border: '2px dashed rgba(255,85,51,0.35)', background: 'rgba(255,85,51,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
               {(avatarPreview || currentAvatar)
                 ? <img src={avatarPreview ?? currentAvatar!} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <div style={{ textAlign: 'center' }}><Camera size={20} style={{ color: '#93c5fd', display: 'block', margin: '0 auto 2px' }} /><span style={{ fontSize: 9.5, color: '#93c5fd', fontWeight: 600 }}>Photo</span></div>
+                : <div style={{ textAlign: 'center' }}><Camera size={20} style={{ color: '#FF5533', display: 'block', margin: '0 auto 2px' }} /><span style={{ fontSize: 9.5, color: '#FF5533', fontWeight: 600 }}>Photo</span></div>
               }
             </div>
             <div>
               <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-primary)' }}>Profile Photo</div>
               <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>JPG or PNG · max 5MB</div>
-              <button type="button" onClick={() => fileRef.current?.click()} style={{ marginTop: 8, padding: '6px 14px', borderRadius: 8, border: '1.5px solid #bfdbfe', background: '#eff6ff', color: '#1d4ed8', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+              <button type="button" onClick={() => fileRef.current?.click()} style={{ marginTop: 8, padding: '6px 14px', borderRadius: 8, border: '1.5px solid rgba(255,85,51,0.30)', background: 'rgba(255,85,51,0.07)', color: '#FF5533', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 Change Photo
               </button>
             </div>
@@ -242,7 +246,7 @@ export default function InfluencerProfilePage() {
               <label style={lbl}>Gender</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, paddingTop: 4 }}>
                 {GENDERS.map(g => (
-                  <button key={g} type="button" onClick={() => setValue('gender', g)} style={{ padding: '6px 12px', borderRadius: 8, border: `1.5px solid ${gender === g ? '#1d4ed8' : 'var(--bg-border)'}`, background: gender === g ? '#eff6ff' : 'var(--bg-input)', color: gender === g ? '#1d4ed8' : 'var(--text-secondary)', fontSize: 12.5, fontWeight: gender === g ? 700 : 400, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  <button key={g} type="button" onClick={() => setValue('gender', g)} style={{ padding: '6px 12px', borderRadius: 8, border: `1.5px solid ${gender === g ? '#FF5533' : 'var(--bg-border)'}`, background: gender === g ? 'rgba(255,85,51,0.08)' : 'var(--bg-input)', color: gender === g ? '#FF5533' : 'var(--text-secondary)', fontSize: 12.5, fontWeight: gender === g ? 700 : 400, cursor: 'pointer', fontFamily: 'inherit' }}>
                     {g}
                   </button>
                 ))}
@@ -329,10 +333,44 @@ export default function InfluencerProfilePage() {
               <input {...register('youtube_dedicated_price')} type="number" className="input" placeholder="e.g. 25000" min={0} />
             </div>
             <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <input {...register('barter_open')} type="checkbox" id="barter" style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#1d4ed8' }} />
+              <input {...register('barter_open')} type="checkbox" id="barter" style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#FF5533' }} />
               <label htmlFor="barter" style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-primary)', cursor: 'pointer' }}>
                 I'm open to barter / product collaborations
               </label>
+            </div>
+          </div>
+        </Card>
+
+        {/* Shipping & Size */}
+        <Card>
+          <SectionDivider title="Shipping & Size" />
+          <div style={{ margin: '14px 0 18px', padding: '10px 14px', borderRadius: 10, background: 'rgba(255,85,51,0.04)', border: '1px solid rgba(255,85,51,0.14)', fontSize: 12.5, color: '#6B7280', lineHeight: 1.55 }}>
+            <strong style={{ color: '#111113' }}>Private info:</strong> Your address is only shown to brands after a collab is confirmed. Your clothing size is only shown for fashion & beauty gigs.
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div>
+              <label style={lbl}><Home size={11} style={{ display: 'inline', marginRight: 4 }} />Shipping Address</label>
+              <textarea {...register('address')} className="input" rows={3} placeholder="Full address for product deliveries — flat/house no., street, city, state, PIN code" />
+            </div>
+            <div>
+              <label style={lbl}><Ruler size={11} style={{ display: 'inline', marginRight: 4 }} />Clothing Size</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'].map(sz => {
+                  const current = watch('clothing_size')
+                  return (
+                    <button key={sz} type="button" onClick={() => setValue('clothing_size', sz)}
+                      style={{ padding: '6px 16px', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                        border: current === sz ? '1.5px solid #FF5533' : '1.5px solid var(--bg-border)',
+                        background: current === sz ? 'rgba(255,85,51,0.08)' : 'var(--bg-input)',
+                        color: current === sz ? '#FF5533' : 'var(--text-secondary)', transition: 'all 0.14s ease' }}>
+                      {sz}
+                    </button>
+                  )
+                })}
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <input {...register('clothing_size')} className="input" placeholder="Or enter custom size (e.g. 32W/30L, UK 10)" style={{ fontSize: 13 }} />
+              </div>
             </div>
           </div>
         </Card>

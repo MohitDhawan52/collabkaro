@@ -61,7 +61,7 @@ export default function BrandCollabsPage() {
 
     const { data } = await supabase
       .from('collaborations')
-      .select('*, gigs(title, deliverables, timeline), influencer_profiles(full_name, instagram_handle, user_id)')
+      .select('*, gigs(title, deliverables, timeline, niche_required), influencer_profiles(full_name, instagram_handle, user_id, address, clothing_size)')
       .eq('brand_id', brand.id)
       .order('created_at', { ascending: false })
 
@@ -237,6 +237,30 @@ export default function BrandCollabsPage() {
                     {collab.gigs.timeline && <span style={{ color: '#6b7280' }}> · Timeline: {collab.gigs.timeline}</span>}
                   </div>
                 )}
+
+                {/* Shipping address — shown only after collab is confirmed (active or beyond) */}
+                {['active', 'deliverable_submitted', 'completed', 'disputed'].includes(collab.status) && (() => {
+                  const inf = collab.influencer_profiles as unknown as { address?: string; clothing_size?: string }
+                  const niches: string[] = (collab.gigs as unknown as { niche_required?: string[] })?.niche_required ?? []
+                  const isFashion = niches.some(n => ['Fashion', 'Beauty'].includes(n))
+                  if (!inf?.address && !inf?.clothing_size) return null
+                  return (
+                    <div style={{ marginTop: 12, padding: '12px 14px', background: 'rgba(255,85,51,0.04)', border: '1px solid rgba(255,85,51,0.14)', borderRadius: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#FF5533', marginBottom: 8 }}>📦 Product Shipping Info</div>
+                      {inf.address && (
+                        <div style={{ fontSize: 12.5, color: '#374151', lineHeight: 1.5 }}>
+                          <span style={{ fontWeight: 600, color: '#111113' }}>Ship to: </span>{inf.address}
+                        </div>
+                      )}
+                      {isFashion && inf.clothing_size && (
+                        <div style={{ fontSize: 12.5, color: '#374151', marginTop: 6 }}>
+                          <span style={{ fontWeight: 600, color: '#111113' }}>Size: </span>
+                          <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 6, background: 'rgba(255,85,51,0.10)', color: '#FF5533', fontWeight: 700, fontSize: 12 }}>{inf.clothing_size}</span>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
 
                 {/* ACTION AREA */}
                 <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(0,0,0,0.06)' }}>
