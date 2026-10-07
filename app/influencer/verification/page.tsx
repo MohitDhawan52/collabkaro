@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { BadgeCheck, Clock, CheckCircle2, XCircle, IndianRupee, Star, Zap, Eye, ChevronRight } from 'lucide-react'
+import { BadgeCheck, Clock, CheckCircle2, XCircle, IndianRupee, Star, Zap, Eye, ChevronRight, Shield, Headphones, BarChart2, Trophy, Sparkles, FileText, AlertTriangle, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase'
 
@@ -10,16 +10,66 @@ interface VerifRequest {
   id: string
   status: 'pending' | 'approved' | 'rejected'
   payment_status: 'paid' | 'unpaid'
+  plan: 'starter' | 'pro'
   applied_at: string
   admin_note: string | null
 }
+
+const PLANS = [
+  {
+    id: 'starter' as const,
+    name: 'Starter',
+    price: 499,
+    gst: Math.round(499 * 0.18 * 100) / 100,
+    total: Math.round(499 * 1.18 * 100) / 100,
+    color: '#FF5533',
+    gradient: 'linear-gradient(135deg,#FF5533,#FF8A00)',
+    shadow: 'rgba(255,85,51,0.28)',
+    border: 'rgba(255,85,51,0.30)',
+    bg: 'rgba(255,85,51,0.05)',
+    perks: [
+      { icon: Eye,       text: '4-hour early access to all new gigs' },
+      { icon: BadgeCheck,text: 'Verified ✓ badge on your profile' },
+      { icon: Star,      text: 'Priority placement in brand search' },
+      { icon: Trophy,    text: 'Highlighted card (coral border) in browse' },
+      { icon: Zap,       text: 'Higher pitch acceptance — brands trust you more' },
+    ],
+  },
+  {
+    id: 'pro' as const,
+    name: 'Pro',
+    price: 1999,
+    gst: Math.round(1999 * 0.18 * 100) / 100,
+    total: Math.round(1999 * 1.18 * 100) / 100,
+    color: '#7C3AED',
+    gradient: 'linear-gradient(135deg,#7C3AED,#4F46E5)',
+    shadow: 'rgba(124,58,237,0.28)',
+    border: 'rgba(124,58,237,0.30)',
+    bg: 'rgba(124,58,237,0.05)',
+    perks: [
+      { icon: Eye,        text: '4-hour early access to all new gigs' },
+      { icon: BadgeCheck, text: 'Verified ✓ badge on your profile' },
+      { icon: Star,       text: 'Priority placement in brand search' },
+      { icon: Trophy,     text: 'Highlighted card (purple border) in browse' },
+      { icon: Zap,        text: 'Higher pitch acceptance — brands trust you more' },
+      { icon: IndianRupee,text: 'Payment released within 48 hours of approval' },
+      { icon: Lock,       text: 'Exclusive verified-only brand campaigns' },
+      { icon: Sparkles,   text: 'Featured in "Top Creators" section for brands' },
+      { icon: BarChart2,  text: 'Analytics — views, pitch rate, earnings summary' },
+      { icon: FileText,   text: 'Monthly performance report (PDF)' },
+      { icon: AlertTriangle, text: 'Dispute priority — faster resolution' },
+      { icon: Headphones, text: 'Dedicated priority support' },
+    ],
+  },
+]
 
 export default function VerificationPage() {
   const [loading, setLoading] = useState(true)
   const [request, setRequest] = useState<VerifRequest | null>(null)
   const [isVerified, setIsVerified] = useState(false)
-  const [applying, setApplying] = useState(false)
+  const [applying, setApplying] = useState<'starter' | 'pro' | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
+  const [selectedPlan, setSelectedPlan] = useState<'starter' | 'pro'>('pro')
 
   useEffect(() => { load() }, [])
 
@@ -39,34 +89,29 @@ export default function VerificationPage() {
     setLoading(false)
   }
 
-  async function applyForVerification() {
+  async function applyForVerification(planId: 'starter' | 'pro') {
     if (!userId) return
-    setApplying(true)
+    setApplying(planId)
     const supabase = createClient()
+    const plan = PLANS.find(p => p.id === planId)!
 
     const { error } = await supabase.from('verification_requests').insert({
       user_id: userId,
       status: 'pending',
       payment_status: 'paid',
-      amount: 1999,
+      plan: planId,
+      amount: plan.price,
       applied_at: new Date().toISOString(),
     })
 
     if (error) {
       toast.error('Could not submit request: ' + error.message)
     } else {
-      toast.success('Verification request submitted! Admin will review within 24–48 hours.')
+      toast.success('Request submitted! Admin will review within 24–48 hours.')
       load()
     }
-    setApplying(false)
+    setApplying(null)
   }
-
-  const benefits = [
-    { icon: Eye, title: '4-Hour Priority Access', desc: 'See every new gig 4 hours before unverified creators.' },
-    { icon: BadgeCheck, title: 'Blue Tick Badge', desc: 'Your profile shows the Instagram-style ✓ badge everywhere.' },
-    { icon: Star, title: 'Priority in Search', desc: 'Brands see your profile higher in influencer search results.' },
-    { icon: Zap, title: 'Trusted Creator Status', desc: 'Brands trust verified creators more — higher pitch acceptance.' },
-  ]
 
   if (loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -74,112 +119,168 @@ export default function VerificationPage() {
     </div>
   )
 
+  const activePlan = request ? PLANS.find(p => p.id === request.plan) ?? PLANS[1] : null
+
   return (
-    <div style={{ maxWidth: 680 }}>
+    <div style={{ maxWidth: 720 }}>
       <div className="dash-page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         Verified Creator Badge
-        {isVerified && (
-          <span title="Verified">
-            <BadgeCheckIcon size={26} />
-          </span>
-        )}
+        {isVerified && <BadgeCheckIcon size={26} color={activePlan?.color ?? '#FF5533'} />}
       </div>
-      <div className="dash-page-subtitle">Get the blue tick and unlock priority access to every new brand gig.</div>
+      <div className="dash-page-subtitle">Choose a plan, get verified, and unlock exclusive perks every month.</div>
 
-      {/* Status card */}
-      {isVerified ? (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: 24, padding: '24px 28px', borderRadius: 20, background: 'linear-gradient(135deg,#ecfdf5,#d1fae5)', border: '1.5px solid #6ee7b7', display: 'flex', alignItems: 'center', gap: 18 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 16, background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      {/* Active status card */}
+      {isVerified && activePlan && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          style={{ marginTop: 24, padding: '22px 26px', borderRadius: 20, background: `linear-gradient(135deg,${activePlan.bg},rgba(255,255,255,0))`, border: `1.5px solid ${activePlan.border}`, display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 52, height: 52, borderRadius: 16, background: activePlan.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <CheckCircle2 size={26} color="#fff" />
           </div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 17, color: '#065f46' }}>You're Verified! <BadgeCheckIcon size={18} inline /></div>
-            <div style={{ fontSize: 13.5, color: '#047857', marginTop: 3 }}>Your profile shows the blue tick. You get 4-hour early access to all new gigs.</div>
+            <div style={{ fontWeight: 800, fontSize: 17, color: '#111113' }}>
+              You&apos;re on the <span style={{ color: activePlan.color }}>{activePlan.name} Plan</span>! <BadgeCheckIcon size={16} color={activePlan.color} inline />
+            </div>
+            <div style={{ fontSize: 13, color: '#6B7280', marginTop: 3 }}>
+              ₹{activePlan.price.toLocaleString('en-IN')} + GST/month · All {activePlan.name} perks are active on your profile.
+            </div>
           </div>
         </motion.div>
-      ) : request ? (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: 24, padding: '24px 28px', borderRadius: 20, background: request.status === 'rejected' ? 'linear-gradient(135deg,#fff1f2,#ffe4e6)' : 'linear-gradient(135deg,#eff6ff,#dbeafe)', border: `1.5px solid ${request.status === 'rejected' ? '#fca5a5' : '#93c5fd'}`, display: 'flex', alignItems: 'center', gap: 18 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 16, background: request.status === 'rejected' ? '#ef4444' : request.status === 'approved' ? '#10b981' : '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            {request.status === 'rejected' ? <XCircle size={26} color="#fff" /> : request.status === 'approved' ? <CheckCircle2 size={26} color="#fff" /> : <Clock size={26} color="#fff" />}
+      )}
+
+      {/* Pending / rejected status */}
+      {!isVerified && request && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          style={{ marginTop: 24, padding: '22px 26px', borderRadius: 20,
+            background: request.status === 'rejected' ? 'linear-gradient(135deg,#fff1f2,#ffe4e6)' : 'linear-gradient(135deg,#fffbeb,#fef3c7)',
+            border: `1.5px solid ${request.status === 'rejected' ? '#fca5a5' : '#fcd34d'}`,
+            display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 52, height: 52, borderRadius: 16,
+            background: request.status === 'rejected' ? '#ef4444' : '#f59e0b',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            {request.status === 'rejected' ? <XCircle size={26} color="#fff" /> : <Clock size={26} color="#fff" />}
           </div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: 16, color: request.status === 'rejected' ? '#991b1b' : '#1e3a8a' }}>
-              {request.status === 'pending' && 'Request Under Review'}
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 800, fontSize: 16, color: request.status === 'rejected' ? '#991b1b' : '#92400e' }}>
+              {request.status === 'pending' && `${activePlan?.name ?? 'Plan'} — Under Review`}
               {request.status === 'approved' && 'Request Approved!'}
               {request.status === 'rejected' && 'Request Rejected'}
             </div>
-            <div style={{ fontSize: 13, color: request.status === 'rejected' ? '#b91c1c' : '#1d4ed8', marginTop: 3 }}>
+            <div style={{ fontSize: 13, color: request.status === 'rejected' ? '#b91c1c' : '#78350f', marginTop: 3 }}>
               {request.status === 'pending' && 'Admin is reviewing your KYC. Usually takes 24–48 hours.'}
-              {request.status === 'approved' && 'Your badge is active.'}
-              {request.status === 'rejected' && (request.admin_note ?? 'Your application was not approved. You may re-apply.')}
+              {request.status === 'approved' && 'Your badge is now active.'}
+              {request.status === 'rejected' && (request.admin_note ?? 'Your application was not approved. You may re-apply below.')}
             </div>
-            {request.status === 'rejected' && (
-              <button onClick={applyForVerification} disabled={applying} style={{ marginTop: 10, padding: '8px 16px', borderRadius: 10, border: 'none', background: '#ef4444', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
-                {applying ? 'Submitting...' : 'Re-apply (₹2,358.82 incl. GST)'}
-              </button>
+            {request.status === 'pending' && (
+              <div style={{ fontSize: 11.5, color: '#92400e', marginTop: 5 }}>
+                Applied {new Date(request.applied_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                {' · '}₹{activePlan?.price.toLocaleString('en-IN')} + 18% GST = ₹{activePlan?.total.toLocaleString('en-IN')}/month
+              </div>
             )}
           </div>
         </motion.div>
-      ) : null}
+      )}
 
-      {/* Benefits */}
-      <div style={{ marginTop: 28, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-        {benefits.map(b => {
-          const Icon = b.icon
-          return (
-            <motion.div key={b.title} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ background: 'var(--bg-card)', border: '1px solid var(--bg-border)', borderRadius: 16, padding: '18px 20px', boxShadow: 'var(--shadow-card)' }}>
-              <div style={{ width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(135deg,#1d4ed8,#06b6d4)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-                <Icon size={18} color="#fff" />
-              </div>
-              <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 4 }}>{b.title}</div>
-              <div style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>{b.desc}</div>
-            </motion.div>
-          )
-        })}
-      </div>
+      {/* Plan cards */}
+      {(!request || request.status === 'rejected') && !isVerified && (
+        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: 28 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 16 }}>Choose your plan</div>
 
-      {/* CTA */}
-      {!isVerified && !request && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: 24, background: 'var(--bg-card)', border: '1.5px solid #bfdbfe', borderRadius: 20, padding: '28px 32px', boxShadow: 'var(--shadow-card)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-            <div style={{ width: 52, height: 52, borderRadius: 16, background: 'linear-gradient(135deg,#1d4ed8,#06b6d4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <BadgeCheck size={26} color="#fff" />
-            </div>
-            <div>
-              <div style={{ fontWeight: 800, fontSize: 17, color: 'var(--text-primary)' }}>Get Verified for ₹1,999 <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-muted)' }}>+ 18% GST</span></div>
-              <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>Total ₹2,358.82 · One-time fee · Admin KYC review · Badge never expires</div>
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            {PLANS.map(plan => {
+              const isSelected = selectedPlan === plan.id
+              return (
+                <div key={plan.id} onClick={() => setSelectedPlan(plan.id)}
+                  style={{ borderRadius: 20, padding: '24px 22px', cursor: 'pointer', position: 'relative', transition: 'all 0.18s ease',
+                    border: isSelected ? `2px solid ${plan.color}` : '1.5px solid #EBEBEB',
+                    background: isSelected ? plan.bg : '#FFFFFF',
+                    boxShadow: isSelected ? `0 8px 24px ${plan.shadow}` : '0 2px 8px rgba(0,0,0,0.05)' }}>
+
+                  {plan.id === 'pro' && (
+                    <div style={{ position: 'absolute', top: -10, right: 16, background: plan.gradient, color: '#fff', fontSize: 10.5, fontWeight: 800, padding: '3px 10px', borderRadius: 999, letterSpacing: '0.06em' }}>
+                      MOST POPULAR
+                    </div>
+                  )}
+
+                  {/* Plan header */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 12, background: plan.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: `0 4px 12px ${plan.shadow}` }}>
+                      <BadgeCheck size={20} color="#fff" />
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: 16, color: '#111113', fontFamily: "'Outfit', sans-serif" }}>{plan.name}</div>
+                      <div style={{ fontSize: 11, color: plan.color, fontWeight: 600 }}>Verified Creator</div>
+                    </div>
+                  </div>
+
+                  {/* Price */}
+                  <div style={{ marginBottom: 18 }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: '#6B7280' }}>₹</span>
+                      <span style={{ fontSize: 32, fontWeight: 900, color: plan.color, fontFamily: "'Outfit', sans-serif", lineHeight: 1 }}>{plan.price.toLocaleString('en-IN')}</span>
+                      <span style={{ fontSize: 12, color: '#9CA3AF', fontWeight: 500 }}>/month</span>
+                    </div>
+                    <div style={{ fontSize: 11.5, color: '#9CA3AF', marginTop: 3 }}>
+                      + 18% GST = <strong style={{ color: '#6B7280' }}>₹{plan.total.toLocaleString('en-IN')}/month</strong>
+                    </div>
+                  </div>
+
+                  {/* Perks */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 20 }}>
+                    {plan.perks.map((perk, i) => {
+                      const Icon = perk.icon
+                      return (
+                        <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                          <div style={{ width: 20, height: 20, borderRadius: 6, background: isSelected ? `${plan.color}18` : 'rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                            <Icon size={11} color={isSelected ? plan.color : '#9CA3AF'} />
+                          </div>
+                          <span style={{ fontSize: 12.5, color: '#374151', lineHeight: 1.45 }}>{perk.text}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {/* CTA */}
+                  <button
+                    onClick={e => { e.stopPropagation(); applyForVerification(plan.id) }}
+                    disabled={applying !== null}
+                    style={{ width: '100%', padding: '12px', borderRadius: 12, border: 'none',
+                      background: applying === plan.id ? '#D1D5DB' : isSelected ? plan.gradient : '#F3F4F6',
+                      color: isSelected ? '#fff' : '#6B7280',
+                      fontSize: 13.5, fontWeight: 800, cursor: applying !== null ? 'not-allowed' : 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      boxShadow: isSelected ? `0 4px 14px ${plan.shadow}` : 'none',
+                      transition: 'all 0.14s ease', fontFamily: 'inherit' }}>
+                    {applying === plan.id
+                      ? 'Submitting...'
+                      : <><IndianRupee size={14} /> Subscribe ₹{plan.total.toLocaleString('en-IN')}/mo <ChevronRight size={14} /></>}
+                  </button>
+                </div>
+              )
+            })}
           </div>
 
-          <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20, lineHeight: 1.6 }}>
-            After payment, admin will verify your identity against your submitted KYC documents. Once approved, your blue tick badge goes live instantly.
-          </div>
-
-          <button
-            onClick={applyForVerification}
-            disabled={applying}
-            style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: applying ? '#93c5fd' : 'linear-gradient(135deg,#1d4ed8,#06b6d4)', color: '#fff', fontSize: 15, fontWeight: 800, cursor: applying ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 4px 18px rgba(29,78,216,0.25)', fontFamily: 'inherit' }}
-          >
-            {applying ? 'Submitting...' : <><IndianRupee size={16} /> Pay ₹2,358.82 (₹1,999 + GST) & Apply <ChevronRight size={16} /></>}
-          </button>
-          <p style={{ fontSize: 11.5, color: 'var(--text-muted)', textAlign: 'center', marginTop: 10 }}>
-            Payment collected offline / via UPI. Mention your registered email when paying.
+          <p style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center', marginTop: 14, lineHeight: 1.6 }}>
+            Payment collected via UPI / offline. Mention your registered email when paying.<br />
+            Admin verifies your KYC and activates the badge within 24–48 hours.
           </p>
         </motion.div>
       )}
-      {!isVerified && request && request.status !== 'rejected' && (
-        <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 16 }}>
-          Applied on {new Date(request.applied_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })} · Payment: ₹1,999 + 18% GST = ₹2,358.82
-        </p>
+
+      {/* Shield note for verified users */}
+      {isVerified && (
+        <div style={{ marginTop: 28, padding: '14px 18px', borderRadius: 14, background: 'rgba(255,85,51,0.04)', border: '1px solid rgba(255,85,51,0.14)', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Shield size={16} color="#FF5533" />
+          <span style={{ fontSize: 13, color: '#6B7280' }}>Your badge renews monthly. Contact support to upgrade, downgrade, or cancel.</span>
+        </div>
       )}
     </div>
   )
 }
 
-function BadgeCheckIcon({ size, inline }: { size: number; inline?: boolean }) {
+function BadgeCheckIcon({ size, color = '#FF5533', inline }: { size: number; color?: string; inline?: boolean }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ display: inline ? 'inline' : 'block', verticalAlign: inline ? 'middle' : undefined }}>
-      <circle cx="12" cy="12" r="10" fill="#1d4ed8" />
+      <circle cx="12" cy="12" r="10" fill={color} />
       <path d="M8.5 12.5l2.5 2.5 5-5" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
