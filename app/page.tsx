@@ -261,8 +261,14 @@ export default function LandingPage() {
                 <div style={{ fontSize: 11.5, fontWeight: 800, color: '#FF5533', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.10em', display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif" }}>
                   <Briefcase size={12} /> For Brands
                 </div>
-                <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900, fontSize: 52, color: '#111113', letterSpacing: '-2px', lineHeight: 1 }}>₹250</div>
-                <div style={{ color: '#9CA3AF', fontSize: 14, marginBottom: 28, marginTop: 6, fontFamily: "'DM Sans', sans-serif" }}>per Gig posted</div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                  <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900, fontSize: 52, color: '#111113', letterSpacing: '-2px', lineHeight: 1 }}>₹49</div>
+                  <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22, color: '#D1D5DB', letterSpacing: '-0.5px', textDecoration: 'line-through' }}>₹250</div>
+                </div>
+                <div style={{ marginBottom: 28, marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 800, padding: '3px 10px', borderRadius: 999, background: 'rgba(255,85,51,0.10)', color: '#FF5533', border: '1px solid rgba(255,85,51,0.22)', fontFamily: "'DM Sans', sans-serif" }}>🎉 Launch Offer</span>
+                  <span style={{ color: '#9CA3AF', fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>per Gig posted</span>
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
                   {['Unlimited pitches to influencers', 'Escrow payment protection', 'Platform agreement included', 'Full collaboration management'].map((item) => (
                     <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
