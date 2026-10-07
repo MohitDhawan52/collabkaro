@@ -51,15 +51,15 @@ export default function LandingPage() {
   const steps = activeTab === 'brand' ? BRAND_STEPS : INFLUENCER_STEPS
 
   return (
-    <div style={{ background: '#0C0B18', minHeight: '100vh' }}>
+    <div style={{ background: '#FFFFFF', minHeight: '100vh' }}>
 
       {/* Sticky Nav */}
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         padding: '0 24px',
-        background: scrolled ? 'rgba(12,11,24,0.92)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(20px) saturate(1.8)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.07)' : 'none',
+        background: scrolled ? 'rgba(255,255,255,0.94)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(18px)' : 'none',
+        borderBottom: scrolled ? '1px solid #EBEBEB' : 'none',
         transition: 'all 0.28s ease',
       }}>
         <div style={{ maxWidth: 1160, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 68 }}>
@@ -67,12 +67,12 @@ export default function LandingPage() {
             <div style={{ width: 34, height: 34, borderRadius: 9, background: 'linear-gradient(135deg,#FF5533,#FF8A00)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 10px rgba(255,85,51,0.40)' }}>
               <Zap size={16} color="white" fill="white" />
             </div>
-            <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20, color: '#FFFFFF', letterSpacing: '-0.4px' }}>
+            <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20, color: '#111113', letterSpacing: '-0.4px' }}>
               CollabKaro
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Link href="/login" style={{ padding: '8px 16px', fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.55)', textDecoration: 'none', borderRadius: 8, transition: 'color 0.15s' }}>
+            <Link href="/login" style={{ padding: '8px 16px', fontSize: 14, fontWeight: 600, color: '#6B7280', textDecoration: 'none', borderRadius: 8, transition: 'color 0.15s' }}>
               Log in
             </Link>
             <Link href="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', background: '#FF5533', color: '#fff', borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: 'none', boxShadow: '0 3px 14px rgba(255,85,51,0.42)', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.14s' }}>
@@ -87,29 +87,26 @@ export default function LandingPage() {
         minHeight: '100vh',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         textAlign: 'center', padding: '120px 24px 80px', position: 'relative', overflow: 'hidden',
-        background: '#0C0B18',
+        background: '#FFFFFF',
       }}>
-        {/* Animated orbs */}
-        <div style={{ position: 'absolute', top: '5%', left: '5%', width: 560, height: 560, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,85,51,0.20) 0%, transparent 65%)', pointerEvents: 'none', animation: 'orbPulse 5s ease-in-out infinite' }} />
-        <div style={{ position: 'absolute', bottom: '5%', right: '4%', width: 440, height: 440, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 65%)', pointerEvents: 'none', animation: 'orbPulse2 6s ease-in-out infinite' }} />
-        <div style={{ position: 'absolute', top: '40%', right: '10%', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,138,0,0.12) 0%, transparent 65%)', pointerEvents: 'none', animation: 'floatYSlow 8s ease-in-out infinite' }} />
-        {/* Fine grid overlay */}
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px)', backgroundSize: '80px 80px', pointerEvents: 'none' }} />
+        {/* Soft coral orbs on white */}
+        <div style={{ position: 'absolute', top: '5%', left: '5%', width: 560, height: 560, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,85,51,0.07) 0%, transparent 65%)', pointerEvents: 'none', animation: 'orbPulse 5s ease-in-out infinite' }} />
+        <div style={{ position: 'absolute', bottom: '5%', right: '4%', width: 440, height: 440, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,138,0,0.06) 0%, transparent 65%)', pointerEvents: 'none', animation: 'orbPulse2 6s ease-in-out infinite' }} />
 
         {/* Badge */}
-        <div className="anim-fade-up" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,85,51,0.10)', border: '1px solid rgba(255,85,51,0.30)', borderRadius: 100, padding: '6px 15px', marginBottom: 30, fontSize: 12.5, fontWeight: 700, color: '#FF7A5A', fontFamily: "'DM Sans', sans-serif", backdropFilter: 'blur(10px)' }}>
+        <div className="anim-fade-up" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,85,51,0.08)', border: '1px solid rgba(255,85,51,0.20)', borderRadius: 100, padding: '6px 15px', marginBottom: 30, fontSize: 12.5, fontWeight: 700, color: '#FF5533', fontFamily: "'DM Sans', sans-serif" }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#FF5533', display: 'inline-block', animation: 'orbPulse 1.8s ease-in-out infinite' }} />
           India&apos;s Smartest Influencer Platform
         </div>
 
         {/* Headline */}
-        <h1 className="anim-fade-up-d1" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900, fontSize: 'clamp(40px, 5.8vw, 82px)', lineHeight: 1.05, letterSpacing: '-0.04em', color: '#FFFFFF', maxWidth: 900, margin: '0 0 24px' }}>
+        <h1 className="anim-fade-up-d1" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900, fontSize: 'clamp(40px, 5.8vw, 82px)', lineHeight: 1.05, letterSpacing: '-0.04em', color: '#111113', maxWidth: 900, margin: '0 0 24px' }}>
           Where Brands Meet{' '}
           <span className="text-coral-gradient">the Right</span>
           {' '}Creators
         </h1>
 
-        <p className="anim-fade-up-d2" style={{ fontSize: 17.5, color: 'rgba(255,255,255,0.52)', lineHeight: 1.82, maxWidth: 540, margin: '0 0 48px', fontFamily: "'DM Sans', sans-serif" }}>
+        <p className="anim-fade-up-d2" style={{ fontSize: 17.5, color: '#6B7280', lineHeight: 1.82, maxWidth: 540, margin: '0 0 48px', fontFamily: "'DM Sans', sans-serif" }}>
           CollabKaro connects verified Indian brands with top influencers — escrow payments, smart matching, and legally-backed agreements. Zero payment risk.
         </p>
 
@@ -118,27 +115,27 @@ export default function LandingPage() {
           <Link href="/register/brand" className="btn-premium" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 30px', fontSize: 15, fontWeight: 700, background: '#FF5533', color: '#fff', borderRadius: 12, textDecoration: 'none', boxShadow: '0 4px 20px rgba(255,85,51,0.40)', fontFamily: "'DM Sans', sans-serif" }}>
             I&apos;m a Brand <ArrowRight size={15} />
           </Link>
-          <Link href="/register/influencer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 30px', fontSize: 15, fontWeight: 700, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 12, color: '#FFFFFF', textDecoration: 'none', backdropFilter: 'blur(10px)', fontFamily: "'DM Sans', sans-serif', transition: 'all 0.18s" }}>
+          <Link href="/register/influencer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 30px', fontSize: 15, fontWeight: 700, background: '#FFFFFF', border: '1.5px solid #E0DED8', borderRadius: 12, color: '#111113', textDecoration: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', fontFamily: "'DM Sans', sans-serif" }}>
             I&apos;m a Creator <ArrowRight size={15} />
           </Link>
         </div>
 
         {/* Stats row */}
-        <div className="anim-fade-up-d4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, maxWidth: 700, width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 18, backdropFilter: 'blur(16px)', overflow: 'hidden' }}>
+        <div className="anim-fade-up-d4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, maxWidth: 700, width: '100%', background: '#FFFFFF', border: '1.5px solid #EBEBEB', borderRadius: 18, boxShadow: '0 2px 16px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
           {STATS.map((s, i) => (
-            <div key={s.label} style={{ textAlign: 'center', padding: '22px 16px', borderRight: i < 3 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
+            <div key={s.label} style={{ textAlign: 'center', padding: '22px 16px', borderRight: i < 3 ? '1px solid #EBEBEB' : 'none' }}>
               <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900, fontSize: 26, color: s.color, letterSpacing: '-0.5px' }}>{s.value}</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.38)', marginTop: 4, fontWeight: 500, fontFamily: "'DM Sans', sans-serif" }}>{s.label}</div>
+              <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4, fontWeight: 500, fontFamily: "'DM Sans', sans-serif" }}>{s.label}</div>
             </div>
           ))}
         </div>
       </section>
 
       {/* Niche ticker */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '14px 0', overflow: 'hidden', background: 'rgba(255,255,255,0.025)' }}>
+      <div style={{ borderTop: '1px solid #EBEBEB', borderBottom: '1px solid #EBEBEB', padding: '14px 0', overflow: 'hidden', background: '#FAFAF9' }}>
         <div className="marquee-track">
           {[...NICHES, ...NICHES, ...NICHES].map((n, i) => (
-            <span key={i} style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(255,255,255,0.28)', whiteSpace: 'nowrap', letterSpacing: '0.12em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 28, fontFamily: "'DM Sans', sans-serif", padding: '0 28px' }}>
+            <span key={i} style={{ fontSize: 10.5, fontWeight: 800, color: '#ABABAB', whiteSpace: 'nowrap', letterSpacing: '0.12em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 28, fontFamily: "'DM Sans', sans-serif", padding: '0 28px' }}>
               {n}
               <span style={{ display: 'inline-block', width: 3, height: 3, borderRadius: '50%', background: 'rgba(255,85,51,0.50)', flexShrink: 0 }} />
             </span>
@@ -147,28 +144,28 @@ export default function LandingPage() {
       </div>
 
       {/* How It Works */}
-      <section style={{ padding: '100px 24px', background: '#111019' }}>
+      <section style={{ padding: '100px 24px', background: '#F7F6F3' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
           <div style={{ textAlign: 'center', marginBottom: 52 }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,85,51,0.12)', border: '1px solid rgba(255,85,51,0.28)', borderRadius: 100, padding: '5px 14px', marginBottom: 16, fontSize: 11.5, fontWeight: 800, color: '#FF7A5A', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: "'DM Sans', sans-serif" }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,85,51,0.08)', border: '1px solid rgba(255,85,51,0.20)', borderRadius: 100, padding: '5px 14px', marginBottom: 16, fontSize: 11.5, fontWeight: 800, color: '#FF5533', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: "'DM Sans', sans-serif" }}>
               Simple Process
             </div>
-            <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 800, letterSpacing: '-0.03em', color: '#FFFFFF', marginBottom: 14, margin: '0 0 14px' }}>
+            <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 800, letterSpacing: '-0.03em', color: '#111113', marginBottom: 14, margin: '0 0 14px' }}>
               How CollabKaro Works
             </h2>
-            <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.44)', maxWidth: 460, margin: '0 auto 28px', fontFamily: "'DM Sans', sans-serif" }}>
+            <p style={{ fontSize: 16, color: '#6B7280', maxWidth: 460, margin: '0 auto 28px', fontFamily: "'DM Sans', sans-serif" }}>
               Four simple steps to start collaborating. Pick your role below.
             </p>
 
             {/* Tab toggle */}
-            <div style={{ display: 'inline-flex', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: 4, gap: 4 }}>
+            <div style={{ display: 'inline-flex', background: '#FFFFFF', border: '1.5px solid #EBEBEB', borderRadius: 12, padding: 4, gap: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
               {(['brand', 'influencer'] as const).map((tab) => (
                 <button key={tab} onClick={() => setActiveTab(tab)} style={{
                   padding: '9px 22px', borderRadius: 9, border: 'none', cursor: 'pointer',
                   fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 13.5,
                   background: activeTab === tab ? '#FF5533' : 'transparent',
-                  color: activeTab === tab ? '#fff' : 'rgba(255,255,255,0.45)',
+                  color: activeTab === tab ? '#fff' : '#6B7280',
                   transition: 'all 0.18s ease',
                   boxShadow: activeTab === tab ? '0 2px 14px rgba(255,85,51,0.38)' : 'none',
                 }}>
@@ -193,7 +190,7 @@ export default function LandingPage() {
                 return (
                   <div key={s.step} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
                     <div style={{ position: 'relative', marginBottom: 22 }}>
-                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: `2px solid ${s.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 24px ${s.color}20` }}>
+                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#FFFFFF', border: `2px solid ${s.color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 24px ${s.color}16, 0 2px 8px rgba(0,0,0,0.05)` }}>
                         <div style={{ width: 54, height: 54, borderRadius: '50%', background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <Icon size={24} color={s.color} strokeWidth={1.75} />
                         </div>
@@ -209,14 +206,16 @@ export default function LandingPage() {
                       </div>
                     )}
 
-                    <div className="glass-premium glass-premium-hover" style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${s.color}28`, borderRadius: 16, padding: '20px 18px', width: '100%' }}>
+                    <div style={{ background: '#FFFFFF', border: `1px solid ${s.color}20`, borderRadius: 16, padding: '20px 18px', width: '100%', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', transition: 'all 0.2s ease' }}
+                      onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = 'translateY(-3px)'; el.style.boxShadow = `0 10px 28px ${s.color}18`; el.style.borderColor = `${s.color}40` }}
+                      onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = 'none'; el.style.boxShadow = '0 2px 12px rgba(0,0,0,0.05)'; el.style.borderColor = `${s.color}20` }}>
                       <div style={{ fontSize: 11, fontWeight: 800, color: s.color, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, fontFamily: "'DM Sans', sans-serif" }}>
                         Step {s.step}
                       </div>
-                      <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 15, fontWeight: 700, color: '#FFFFFF', marginBottom: 8, lineHeight: 1.3, margin: '0 0 8px' }}>
+                      <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 15, fontWeight: 700, color: '#111113', marginBottom: 8, lineHeight: 1.3, margin: '0 0 8px' }}>
                         {s.title}
                       </h3>
-                      <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.44)', lineHeight: 1.65, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>
+                      <p style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.65, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>
                         {s.desc}
                       </p>
                     </div>
@@ -229,12 +228,12 @@ export default function LandingPage() {
       </section>
 
       {/* Trust strip */}
-      <div style={{ background: 'rgba(255,255,255,0.025)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '18px 24px' }}>
+      <div style={{ background: '#FFFFFF', borderTop: '1px solid #EBEBEB', borderBottom: '1px solid #EBEBEB', padding: '18px 24px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
           {TRUST_POINTS.map((t) => {
             const Icon = t.icon
             return (
-              <div key={t.label} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 15px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 999, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.65)', fontFamily: "'DM Sans', sans-serif", backdropFilter: 'blur(10px)' }}>
+              <div key={t.label} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 15px', background: '#F7F6F3', border: '1px solid #E8E7E3', borderRadius: 999, fontSize: 13, fontWeight: 600, color: '#374151', fontFamily: "'DM Sans', sans-serif" }}>
                 <Icon size={14} color="#FF5533" />
                 {t.label}
               </div>
@@ -244,27 +243,27 @@ export default function LandingPage() {
       </div>
 
       {/* Pricing cards */}
-      <section style={{ padding: '100px 24px', background: '#0C0B18' }}>
+      <section style={{ padding: '100px 24px', background: '#FFFFFF' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 52 }}>
-            <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 800, letterSpacing: '-0.03em', color: '#FFFFFF', marginBottom: 12, margin: '0 0 12px' }}>
+            <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 800, letterSpacing: '-0.03em', color: '#111113', marginBottom: 12, margin: '0 0 12px' }}>
               Simple, transparent pricing
             </h2>
-            <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.44)', maxWidth: 440, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
+            <p style={{ fontSize: 16, color: '#6B7280', maxWidth: 440, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
               Brands pay per gig. Creators join and earn for free.
             </p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, maxWidth: 860, margin: '0 auto' }}>
             {/* Brand card */}
-            <div className="card-3d" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 24, padding: '40px 36px', position: 'relative', overflow: 'hidden', backdropFilter: 'blur(20px)' }}>
+            <div className="card-3d" style={{ background: '#FFFFFF', border: '1.5px solid #EBEBEB', borderRadius: 24, padding: '40px 36px', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
               <div style={{ position: 'absolute', top: -60, right: -60, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,85,51,0.08) 0%, transparent 70%)' }} />
               <div style={{ position: 'relative' }}>
                 <div style={{ fontSize: 11.5, fontWeight: 800, color: '#FF7A5A', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.10em', display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif" }}>
                   <Briefcase size={12} /> For Brands
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-                  <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900, fontSize: 52, color: '#FFFFFF', letterSpacing: '-2px', lineHeight: 1 }}>₹49</div>
+                  <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900, fontSize: 52, color: '#111113', letterSpacing: '-2px', lineHeight: 1 }}>₹49</div>
                   <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22, color: '#D1D5DB', letterSpacing: '-0.5px', textDecoration: 'line-through' }}>₹250</div>
                 </div>
                 <div style={{ marginBottom: 28, marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -275,7 +274,7 @@ export default function LandingPage() {
                   {['Unlimited pitches to influencers', 'Escrow payment protection', 'Platform agreement included', 'Full collaboration management'].map((item) => (
                     <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <CheckCircle size={15} color="#10B981" />
-                      <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.68)', fontFamily: "'DM Sans', sans-serif" }}>{item}</span>
+                      <span style={{ fontSize: 14, color: '#374151', fontFamily: "'DM Sans', sans-serif" }}>{item}</span>
                     </div>
                   ))}
                 </div>
@@ -286,7 +285,7 @@ export default function LandingPage() {
             </div>
 
             {/* Influencer card */}
-            <div className="card-3d" style={{ background: 'linear-gradient(135deg, rgba(255,85,51,0.12) 0%, rgba(139,92,246,0.10) 100%)', border: '1px solid rgba(255,85,51,0.22)', borderRadius: 24, padding: '40px 36px', position: 'relative', overflow: 'hidden' }}>
+            <div className="card-3d" style={{ background: '#111113', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 24, padding: '40px 36px', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.18)' }}>
               <div style={{ position: 'absolute', top: -60, right: -60, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,85,51,0.12) 0%, transparent 70%)' }} />
               <div style={{ position: 'relative' }}>
                 <div style={{ fontSize: 11.5, fontWeight: 800, color: '#FF5533', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.10em', display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif" }}>
