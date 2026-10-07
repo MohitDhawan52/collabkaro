@@ -16,40 +16,33 @@ function prettyStatus(status: string) {
 }
 
 function gigStatusStyle(status: Gig['status']): React.CSSProperties {
-  if (status === 'active') return { background: 'rgba(16,185,129,0.12)', color: '#059669', border: '1px solid rgba(16,185,129,0.25)' }
-  if (status === 'paused') return { background: 'rgba(249,115,22,0.1)', color: '#ea580c', border: '1px solid rgba(249,115,22,0.25)' }
-  if (status === 'completed') return { background: 'rgba(29,78,216,0.1)', color: '#1d4ed8', border: '1px solid rgba(29,78,216,0.2)' }
-  return { background: 'rgba(107,114,128,0.1)', color: '#6b7280', border: '1px solid rgba(107,114,128,0.2)' }
+  if (status === 'active') return { background: 'rgba(16,185,129,0.10)', color: '#059669', border: '1px solid rgba(16,185,129,0.22)' }
+  if (status === 'paused') return { background: 'rgba(245,158,11,0.10)', color: '#B45309', border: '1px solid rgba(245,158,11,0.22)' }
+  if (status === 'completed') return { background: 'rgba(139,92,246,0.08)', color: '#7C3AED', border: '1px solid rgba(139,92,246,0.18)' }
+  return { background: '#F3F2EE', color: '#6B6B78', border: '1px solid #E6E4DE' }
 }
 
 function collabStatusStyle(status: Collaboration['status']): React.CSSProperties {
-  if (status === 'active') return { background: 'rgba(16,185,129,0.12)', color: '#059669', border: '1px solid rgba(16,185,129,0.25)' }
-  if (status === 'completed') return { background: 'rgba(29,78,216,0.1)', color: '#1d4ed8', border: '1px solid rgba(29,78,216,0.2)' }
-  if (['cancelled', 'disputed'].includes(status)) return { background: 'rgba(239,68,68,0.1)', color: '#dc2626', border: '1px solid rgba(239,68,68,0.2)' }
-  return { background: 'rgba(249,115,22,0.1)', color: '#ea580c', border: '1px solid rgba(249,115,22,0.25)' }
+  if (status === 'active') return { background: 'rgba(16,185,129,0.10)', color: '#059669', border: '1px solid rgba(16,185,129,0.22)' }
+  if (status === 'completed') return { background: 'rgba(139,92,246,0.08)', color: '#7C3AED', border: '1px solid rgba(139,92,246,0.18)' }
+  if (['cancelled', 'disputed'].includes(status)) return { background: 'rgba(239,68,68,0.08)', color: '#DC2626', border: '1px solid rgba(239,68,68,0.18)' }
+  return { background: 'rgba(255,85,51,0.08)', color: '#FF5533', border: '1px solid rgba(255,85,51,0.20)' }
 }
 
 const CARD: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.75)',
-  borderRadius: 20, boxShadow: '0 2px 16px rgba(29,78,216,0.08)',
-  backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
-  marginTop: 20, overflow: 'hidden',
+  background: '#fff',
+  border: '1.5px solid #E6E4DE',
+  borderRadius: 16,
+  marginTop: 20,
+  overflow: 'hidden',
 }
 
-const STAT_COLORS = [
-  { gradient: 'linear-gradient(135deg, #1d4ed8 0%, #06b6d4 100%)' },
-  { gradient: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)' },
-  { gradient: 'linear-gradient(135deg, #f97316 0%, #eab308 100%)' },
-  { gradient: 'linear-gradient(135deg, #10b981 0%, #14b8a6 100%)' },
+const STATS_CONFIG = [
+  { color: '#FF5533', bg: 'rgba(255,85,51,0.08)',  border: 'rgba(255,85,51,0.16)'  },
+  { color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.16)' },
+  { color: '#10B981', bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.16)' },
+  { color: '#F59E0B', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.16)' },
 ]
-
-function Badge({ status, styleOverride }: { status: string, styleOverride?: React.CSSProperties }) {
-  return (
-    <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, ...styleOverride }}>
-      {prettyStatus(status)}
-    </span>
-  )
-}
 
 export default function BrandDashboardPage() {
   const [loading, setLoading] = useState(true)
@@ -68,7 +61,7 @@ export default function BrandDashboardPage() {
       const { data: brand } = await supabase.from('brand_profiles').select('id, company_name').eq('user_id', user.id).single()
       if (!brand) { setLoading(false); return }
 
-      setBrandName(brand.company_name)
+      setBrandName((brand as unknown as { company_name?: string }).company_name ?? null)
 
       const [gigsRes, pitchesRes, collabsRes, paymentsRes] = await Promise.all([
         supabase.from('gigs').select('*').eq('brand_id', brand.id).order('created_at', { ascending: false }).limit(5),
@@ -90,76 +83,96 @@ export default function BrandDashboardPage() {
   const activeCollabs = collabs.filter((c) => !['completed', 'cancelled', 'disputed'].includes(c.status)).length
 
   const stats = [
-    { label: 'Active Gigs', value: activeGigs, icon: <Briefcase size={15} />, sub: `${gigs.length} total` },
-    { label: 'New Pitches', value: pitches.length, icon: <Users size={15} />, sub: 'awaiting review' },
-    { label: 'Active Collabs', value: activeCollabs, icon: <TrendingUp size={15} />, sub: `${collabs.length} total` },
-    { label: 'Total Spent', value: formatINR(totalSpent), icon: <Wallet size={15} />, sub: 'all time' },
+    { label: 'Active Gigs',   value: activeGigs,          icon: <Briefcase size={16} />,  sub: `${gigs.length} total` },
+    { label: 'New Pitches',   value: pitches.length,       icon: <Users size={16} />,      sub: 'awaiting review' },
+    { label: 'Active Collabs',value: activeCollabs,        icon: <TrendingUp size={16} />, sub: `${collabs.length} total` },
+    { label: 'Total Spent',   value: formatINR(totalSpent),icon: <Wallet size={16} />,     sub: 'all time' },
   ]
+
+  const firstName = brandName?.split(' ')[0] ?? null
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+      {/* Page header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#0c1445', fontFamily: 'Plus Jakarta Sans,sans-serif', letterSpacing: -0.4 }}>
-            Welcome back{brandName ? `, ${brandName}` : ''} 👋
-          </div>
-          <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>Here's an overview of your campaigns and collaborations.</div>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: '#111113', fontFamily: "'Outfit', sans-serif", letterSpacing: -0.5, margin: 0 }}>
+            {firstName ? `Welcome back, ${firstName}` : 'Dashboard'}
+          </h1>
+          <p style={{ fontSize: 13.5, color: '#6B6B78', marginTop: 5, margin: '5px 0 0', fontFamily: "'DM Sans', sans-serif" }}>
+            Here&apos;s an overview of your campaigns and collaborations.
+          </p>
         </div>
-        <Link href="/brand/gigs/new" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12, background: 'linear-gradient(135deg,#1d4ed8,#06b6d4)', color: '#fff', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 14px rgba(29,78,216,0.3)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+        <Link href="/brand/gigs/new" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 11, background: '#FF5533', color: '#fff', fontWeight: 700, fontSize: 13.5, boxShadow: '0 3px 12px rgba(255,85,51,0.28)', whiteSpace: 'nowrap', flexShrink: 0, fontFamily: "'DM Sans', sans-serif" }}>
           <PlusCircle size={15} /> Post a Gig
         </Link>
       </div>
 
       {/* Gig fee notice */}
-      <div style={{ marginTop: 18, padding: '13px 18px', borderRadius: 14, background: 'rgba(29,78,216,0.05)', border: '1.5px solid rgba(29,78,216,0.15)', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ width: 34, height: 34, borderRadius: 10, background: 'linear-gradient(135deg,#1d4ed8,#06b6d4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <span style={{ color: '#fff', fontSize: 15, fontWeight: 800 }}>₹</span>
-        </div>
+      <div style={{ padding: '13px 18px', borderRadius: 14, background: 'rgba(255,85,51,0.04)', border: '1.5px solid rgba(255,85,51,0.14)', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 4 }}>
+        <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(255,85,51,0.10)', color: '#FF5533', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontWeight: 800, fontSize: 15 }}>₹</div>
         <div style={{ flex: 1, minWidth: 200 }}>
-          <span style={{ fontSize: 13.5, fontWeight: 700, color: '#1d4ed8' }}>₹250 per gig posting fee</span>
-          <span style={{ fontSize: 13, color: '#6b7280', marginLeft: 6 }}>— A flat platform fee of ₹250 is charged each time you publish a new gig. Collaboration budgets are separate.</span>
+          <span style={{ fontSize: 13.5, fontWeight: 700, color: '#FF5533', fontFamily: "'Outfit', sans-serif" }}>₹49 launch offer</span>
+          <span style={{ fontSize: 13, color: '#6B6B78', marginLeft: 6, fontFamily: "'DM Sans', sans-serif" }}>— A flat platform fee per gig posted (regular price ₹250). Collaboration budgets are separate.</span>
         </div>
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginTop: 24 }}>
-        {stats.map((s, i) => (
-          <div key={s.label} style={{ borderRadius: 18, padding: '16px 16px 18px', position: 'relative', overflow: 'hidden', background: STAT_COLORS[i].gradient, boxShadow: '0 4px 20px rgba(0,0,0,0.13)' }}>
-            <div style={{ position: 'absolute', top: -18, right: -18, width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', pointerEvents: 'none' }} />
-            <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 5 }}>{s.icon} {s.label}</div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: '#fff', marginTop: 8, fontFamily: 'Plus Jakarta Sans,sans-serif', letterSpacing: -0.5 }}>{loading ? '—' : s.value}</div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>{s.sub}</div>
-          </div>
-        ))}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginTop: 20 }}>
+        {stats.map((s, i) => {
+          const cfg = STATS_CONFIG[i]
+          return (
+            <div key={s.label} style={{ background: '#fff', border: `1.5px solid ${cfg.border}`, borderRadius: 16, padding: '18px 18px 16px', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: -20, right: -20, width: 70, height: 70, borderRadius: '50%', background: cfg.bg, pointerEvents: 'none' }} />
+              <div style={{ width: 34, height: 34, borderRadius: 9, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+                {s.icon}
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: '#111113', fontFamily: "'Outfit', sans-serif", letterSpacing: -0.5, lineHeight: 1 }}>
+                {loading ? <span style={{ display: 'inline-block', width: 48, height: 28, borderRadius: 6, background: '#F3F2EE' }} /> : s.value}
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#111113', marginTop: 6, fontFamily: "'DM Sans', sans-serif" }}>{s.label}</div>
+              <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2, fontFamily: "'DM Sans', sans-serif" }}>{s.sub}</div>
+            </div>
+          )
+        })}
       </div>
 
       {/* Your Gigs */}
       <div style={CARD}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-          <div style={{ fontWeight: 700, fontSize: 15, color: '#0c1445' }}>Your Gigs</div>
-          <Link href="/brand/gigs" style={{ fontSize: 12.5, color: '#1d4ed8', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>View all <ArrowRight size={13} /></Link>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 20px', borderBottom: '1px solid #F3F2EE' }}>
+          <div style={{ fontWeight: 700, fontSize: 14.5, color: '#111113', fontFamily: "'Outfit', sans-serif" }}>Your Gigs</div>
+          <Link href="/brand/gigs" style={{ fontSize: 12.5, color: '#FF5533', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, fontFamily: "'DM Sans', sans-serif" }}>
+            View all <ArrowRight size={13} />
+          </Link>
         </div>
         <div>
-          {loading ? [1,2,3].map(i => <div key={i} style={{ height: 60, margin: '8px 16px', borderRadius: 10, background: 'rgba(29,78,216,0.05)' }} />) :
+          {loading ? [1,2,3].map(i => <div key={i} style={{ height: 58, margin: '8px 16px', borderRadius: 10, background: '#F8F7F3' }} />) :
           gigs.length === 0 ? (
-            <div style={{ padding: '36px 20px', textAlign: 'center' }}>
-              <div style={{ fontSize: 13, color: '#9ca3af' }}>No gigs posted yet.</div>
-              <Link href="/brand/gigs/new" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 12, padding: '8px 16px', borderRadius: 10, background: 'linear-gradient(135deg,#1d4ed8,#06b6d4)', color: '#fff', fontWeight: 600, fontSize: 13 }}><PlusCircle size={14} /> Post a Gig</Link>
+            <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+              <div style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 12, fontFamily: "'DM Sans', sans-serif" }}>No gigs posted yet.</div>
+              <Link href="/brand/gigs/new" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 10, background: '#FF5533', color: '#fff', fontWeight: 600, fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>
+                <PlusCircle size={14} /> Post a Gig
+              </Link>
             </div>
           ) : gigs.map((gig) => (
-            <Link key={gig.id} href="/brand/gigs" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 14, padding: '13px 20px', borderBottom: '1px solid rgba(0,0,0,0.04)', cursor: 'pointer', transition: 'background 0.12s' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(29,78,216,0.04)')}
+            <Link key={gig.id} href="/brand/gigs"
+              style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 13, padding: '13px 20px', borderBottom: '1px solid #F3F2EE', transition: 'background 0.12s' }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#FAFAF8')}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(29,78,216,0.08)', color: '#1d4ed8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Briefcase size={16} /></div>
+              <div style={{ width: 36, height: 36, borderRadius: 9, background: 'rgba(255,85,51,0.08)', color: '#FF5533', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Briefcase size={15} />
+              </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: 14, color: '#0c1445' }}>{gig.title}</div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{gig.collab_type} · {gig.platforms?.join(', ')}</div>
+                <div style={{ fontWeight: 600, fontSize: 13.5, color: '#111113', fontFamily: "'DM Sans', sans-serif" }}>{gig.title}</div>
+                <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2, fontFamily: "'DM Sans', sans-serif" }}>{gig.collab_type} · {gig.platforms?.join(', ')}</div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: '#0c1445' }}>{formatINR(gig.max_budget)}</div>
-                <span style={{ ...gigStatusStyle(gig.status), fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, marginTop: 4, display: 'inline-block' }}>{prettyStatus(gig.status)}</span>
+                <div style={{ fontWeight: 700, fontSize: 13.5, color: '#111113', fontFamily: "'Outfit', sans-serif" }}>{formatINR(gig.max_budget)}</div>
+                <span style={{ ...gigStatusStyle(gig.status), fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, marginTop: 4, display: 'inline-block', fontFamily: "'DM Sans', sans-serif" }}>
+                  {prettyStatus(gig.status)}
+                </span>
               </div>
-              <ArrowRight size={14} style={{ color: '#9ca3af', flexShrink: 0 }} />
+              <ArrowRight size={14} style={{ color: '#D1D5DB', flexShrink: 0 }} />
             </Link>
           ))}
         </div>
@@ -167,33 +180,36 @@ export default function BrandDashboardPage() {
 
       {/* Pitches waiting */}
       <div style={CARD}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-          <div style={{ fontWeight: 700, fontSize: 15, color: '#0c1445' }}>Pitches Waiting for Review</div>
-          <Link href="/brand/pitches" style={{ fontSize: 12.5, color: '#1d4ed8', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>View all <ArrowRight size={13} /></Link>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 20px', borderBottom: '1px solid #F3F2EE' }}>
+          <div style={{ fontWeight: 700, fontSize: 14.5, color: '#111113', fontFamily: "'Outfit', sans-serif" }}>Pitches Waiting for Review</div>
+          <Link href="/brand/pitches" style={{ fontSize: 12.5, color: '#FF5533', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, fontFamily: "'DM Sans', sans-serif" }}>
+            View all <ArrowRight size={13} />
+          </Link>
         </div>
         <div>
-          {loading ? [1,2].map(i => <div key={i} style={{ height: 60, margin: '8px 16px', borderRadius: 10, background: 'rgba(29,78,216,0.05)' }} />) :
+          {loading ? [1,2].map(i => <div key={i} style={{ height: 58, margin: '8px 16px', borderRadius: 10, background: '#F8F7F3' }} />) :
           pitches.length === 0 ? (
-            <div style={{ padding: '36px 20px', textAlign: 'center' }}>
-              <Inbox size={24} style={{ color: '#d1d5db', margin: '0 auto 10px', display: 'block' }} />
-              <div style={{ fontSize: 13, color: '#9ca3af' }}>No pending pitches right now.</div>
+            <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+              <Inbox size={26} style={{ color: '#D1D5DB', margin: '0 auto 10px', display: 'block' }} />
+              <div style={{ fontSize: 13, color: '#9CA3AF', fontFamily: "'DM Sans', sans-serif" }}>No pending pitches right now.</div>
             </div>
           ) : pitches.map((pitch) => (
-            <Link key={pitch.id} href="/brand/pitches" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 14, padding: '13px 20px', borderBottom: '1px solid rgba(0,0,0,0.04)', cursor: 'pointer' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(29,78,216,0.04)')}
+            <Link key={pitch.id} href="/brand/pitches"
+              style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 13, padding: '13px 20px', borderBottom: '1px solid #F3F2EE', transition: 'background 0.12s' }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#FAFAF8')}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(168,85,247,0.1)', color: '#a855f7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 15, flexShrink: 0 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 9, background: 'rgba(139,92,246,0.10)', color: '#7C3AED', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 15, flexShrink: 0, fontFamily: "'Outfit', sans-serif" }}>
                 {pitch.influencer_profiles?.full_name?.charAt(0)?.toUpperCase() ?? 'I'}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: 14, color: '#0c1445' }}>{pitch.influencer_profiles?.full_name ?? 'Influencer'}</div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{pitch.gigs?.title}</div>
+                <div style={{ fontWeight: 600, fontSize: 13.5, color: '#111113', fontFamily: "'DM Sans', sans-serif" }}>{pitch.influencer_profiles?.full_name ?? 'Influencer'}</div>
+                <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2, fontFamily: "'DM Sans', sans-serif" }}>{pitch.gigs?.title}</div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: 'rgba(249,115,22,0.1)', color: '#ea580c', border: '1px solid rgba(249,115,22,0.25)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: 'rgba(245,158,11,0.10)', color: '#B45309', border: '1px solid rgba(245,158,11,0.22)', display: 'flex', alignItems: 'center', gap: 5, fontFamily: "'DM Sans', sans-serif" }}>
                   <Clock size={10} /> Pending
                 </span>
-                <ArrowRight size={14} style={{ color: '#9ca3af' }} />
+                <ArrowRight size={14} style={{ color: '#D1D5DB' }} />
               </div>
             </Link>
           ))}
@@ -202,31 +218,38 @@ export default function BrandDashboardPage() {
 
       {/* Active Collaborations */}
       <div style={CARD}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-          <div style={{ fontWeight: 700, fontSize: 15, color: '#0c1445' }}>Active Collaborations</div>
-          <Link href="/brand/collabs" style={{ fontSize: 12.5, color: '#1d4ed8', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>View all <ArrowRight size={13} /></Link>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 20px', borderBottom: '1px solid #F3F2EE' }}>
+          <div style={{ fontWeight: 700, fontSize: 14.5, color: '#111113', fontFamily: "'Outfit', sans-serif" }}>Active Collaborations</div>
+          <Link href="/brand/collabs" style={{ fontSize: 12.5, color: '#FF5533', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, fontFamily: "'DM Sans', sans-serif" }}>
+            View all <ArrowRight size={13} />
+          </Link>
         </div>
         <div>
-          {loading ? [1,2].map(i => <div key={i} style={{ height: 60, margin: '8px 16px', borderRadius: 10, background: 'rgba(29,78,216,0.05)' }} />) :
+          {loading ? [1,2].map(i => <div key={i} style={{ height: 58, margin: '8px 16px', borderRadius: 10, background: '#F8F7F3' }} />) :
           collabs.length === 0 ? (
-            <div style={{ padding: '36px 20px', textAlign: 'center' }}>
-              <CheckCircle2 size={24} style={{ color: '#d1d5db', margin: '0 auto 10px', display: 'block' }} />
-              <div style={{ fontSize: 13, color: '#9ca3af' }}>No collaborations yet. Accept a pitch to get started.</div>
+            <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+              <CheckCircle2 size={26} style={{ color: '#D1D5DB', margin: '0 auto 10px', display: 'block' }} />
+              <div style={{ fontSize: 13, color: '#9CA3AF', fontFamily: "'DM Sans', sans-serif" }}>No collaborations yet. Accept a pitch to get started.</div>
             </div>
           ) : collabs.map((collab) => (
-            <Link key={collab.id} href="/brand/collabs" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 14, padding: '13px 20px', borderBottom: '1px solid rgba(0,0,0,0.04)', cursor: 'pointer' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(29,78,216,0.04)')}
+            <Link key={collab.id} href="/brand/collabs"
+              style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 13, padding: '13px 20px', borderBottom: '1px solid #F3F2EE', transition: 'background 0.12s' }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#FAFAF8')}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(16,185,129,0.1)', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><CheckCircle2 size={16} /></div>
+              <div style={{ width: 36, height: 36, borderRadius: 9, background: 'rgba(16,185,129,0.10)', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <CheckCircle2 size={15} />
+              </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: 14, color: '#0c1445' }}>{collab.gigs?.title ?? 'Collaboration'}</div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{collab.influencer_profiles?.full_name ?? 'Influencer'}</div>
+                <div style={{ fontWeight: 600, fontSize: 13.5, color: '#111113', fontFamily: "'DM Sans', sans-serif" }}>{collab.gigs?.title ?? 'Collaboration'}</div>
+                <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2, fontFamily: "'DM Sans', sans-serif" }}>{collab.influencer_profiles?.full_name ?? 'Influencer'}</div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: '#0c1445' }}>{formatINR(collab.agreed_amount)}</div>
-                <span style={{ ...collabStatusStyle(collab.status), fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, marginTop: 4, display: 'inline-block' }}>{prettyStatus(collab.status)}</span>
+                <div style={{ fontWeight: 700, fontSize: 13.5, color: '#111113', fontFamily: "'Outfit', sans-serif" }}>{formatINR(collab.agreed_amount)}</div>
+                <span style={{ ...collabStatusStyle(collab.status), fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, marginTop: 4, display: 'inline-block', fontFamily: "'DM Sans', sans-serif" }}>
+                  {prettyStatus(collab.status)}
+                </span>
               </div>
-              <ArrowRight size={14} style={{ color: '#9ca3af', flexShrink: 0 }} />
+              <ArrowRight size={14} style={{ color: '#D1D5DB', flexShrink: 0 }} />
             </Link>
           ))}
         </div>
