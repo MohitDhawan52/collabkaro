@@ -70,7 +70,7 @@ export default function AgencyRegisterPage() {
 
     // Create profiles row with status=pending (requires admin approval)
     await supabase.from('profiles').upsert(
-      { id: data.user.id, email: form.email, role: 'agency', status: 'pending' },
+      { id: data.user.id, email: form.email, role: 'agency', status: 'approved' },
       { onConflict: 'id' }
     )
 
@@ -89,8 +89,8 @@ export default function AgencyRegisterPage() {
     setLoading(false)
     if (agencyError) { toast.error(agencyError.message); return }
 
-    toast.success('Application submitted! Our team will review and approve your agency within 24–48 hours.')
-    window.location.href = '/agency/pending'
+    toast.success('Agency account created! Welcome to CollabKaro.')
+    window.location.href = '/agency/dashboard'
   }
 
   return (
@@ -119,7 +119,7 @@ export default function AgencyRegisterPage() {
             </div>
             <div>
               <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', margin: 0, letterSpacing: -0.4, fontFamily: "'Outfit', sans-serif" }}>Register as an Agency</h1>
-              <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '3px 0 0' }}>Reviewed &amp; approved within 24–48 hours</p>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '3px 0 0' }}>Instant access — no approval wait</p>
             </div>
           </div>
 
