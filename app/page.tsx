@@ -231,7 +231,7 @@ export default function LandingPage() {
                       </div>
                     )}
 
-                    <div style={{ background: '#FFFFFF', border: `1px solid ${s.color}20`, borderRadius: 16, padding: '20px 18px', width: '100%', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', transition: 'all 0.2s ease' }}
+                    <div style={{ background: '#FFFFFF', border: `1px solid ${s.color}20`, borderRadius: 16, padding: '20px 18px', width: '100%', minHeight: 170, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', transition: 'all 0.2s ease', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}
                       onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = 'translateY(-3px)'; el.style.boxShadow = `0 10px 28px ${s.color}18`; el.style.borderColor = `${s.color}40` }}
                       onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = 'none'; el.style.boxShadow = '0 2px 12px rgba(0,0,0,0.05)'; el.style.borderColor = `${s.color}20` }}>
                       <div style={{ fontSize: 11, fontWeight: 800, color: s.color, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, fontFamily: "'DM Sans', sans-serif" }}>
