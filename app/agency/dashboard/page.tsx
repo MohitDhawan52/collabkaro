@@ -30,29 +30,23 @@ export default function AgencyDashboard() {
     const aid = (agency as unknown as { id: string }).id
     setAgencyId(aid)
 
-    const [clientsRes, gigsRes, collabsRes, rosterRes] = await Promise.all([
-      supabase.from('agency_clients').select('id, brand_profiles(id, company_name, industry)').eq('agency_id', aid),
-      supabase.from('gigs').select('id, status').eq('agency_id', aid),
-      supabase.from('collaborations').select('id, status, agreed_amount').eq('agency_id', aid),
+    const [clientsRes, rosterRes] = await Promise.all([
+      supabase.from('agency_manual_clients').select('id, company_name, industry').eq('agency_id', aid),
       supabase.from('agency_roster').select('id').eq('agency_id', aid),
     ])
 
-    const clients = (clientsRes.data ?? []) as unknown as { id: string; brand_profiles: { id: string; company_name: string; industry: string | null } }[]
-    const gigs = gigsRes.data ?? []
-    const collabs = (collabsRes.data ?? []) as unknown as { id: string; status: string; agreed_amount: number | null }[]
+    const clients = (clientsRes.data ?? []) as { id: string; company_name: string; industry: string | null }[]
     const roster = rosterRes.data ?? []
-
-    const totalSpend = collabs.filter(c => c.status === 'completed').reduce((s, c) => s + (c.agreed_amount ?? 0), 0)
 
     setStats({
       clients: clients.length,
-      activeGigs: gigs.filter(g => (g as unknown as { status: string }).status === 'active').length,
-      activeCollabs: collabs.filter(c => c.status === 'active').length,
+      activeGigs: 0,
+      activeCollabs: 0,
       rosterCount: roster.length,
-      totalSpend,
+      totalSpend: 0,
     })
 
-    setRecentClients(clients.slice(0, 4).map(c => ({ id: c.brand_profiles.id, company_name: c.brand_profiles.company_name, industry: c.brand_profiles.industry })))
+    setRecentClients(clients.slice(0, 4).map(c => ({ id: c.id, company_name: c.company_name, industry: c.industry })))
     setLoading(false)
   }
 
