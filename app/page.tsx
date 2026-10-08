@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import {
   Zap, ArrowRight, CheckCircle, UserCheck, Briefcase,
   Search, FileText, IndianRupee, Star, TrendingUp,
-  Shield, Users, ChevronRight,
+  Shield, Users, ChevronRight, Building2, BarChart2, Package,
 } from 'lucide-react'
 
 const STATS = [
@@ -29,7 +29,25 @@ const INFLUENCER_STEPS = [
   { icon: IndianRupee,  step: '04', title: 'Deliver & Get Paid',   desc: 'Submit deliverables. Payment releases automatically once the brand approves.',            color: '#10B981', bg: 'rgba(16,185,129,0.08)' },
 ]
 
-const NICHES = ['Fashion', 'Beauty', 'Food', 'Travel', 'Fitness', 'Tech', 'Gaming', 'Lifestyle', 'Finance', 'Education']
+const NICHES = [
+  { label: 'Fashion', color: '#FF5533' },
+  { label: 'Beauty', color: '#8B5CF6' },
+  { label: 'Food', color: '#F59E0B' },
+  { label: 'Travel', color: '#10B981' },
+  { label: 'Fitness', color: '#EF4444' },
+  { label: 'Tech', color: '#3B82F6' },
+  { label: 'Gaming', color: '#8B5CF6' },
+  { label: 'Lifestyle', color: '#FF5533' },
+  { label: 'Finance', color: '#10B981' },
+  { label: 'Education', color: '#F59E0B' },
+]
+
+const AGENCY_STEPS = [
+  { icon: Building2,   step: '01', title: 'Register Agency',    desc: 'Submit your agency profile. Our team reviews and approves you within 24–48 hours.',       color: '#7C3AED', bg: 'rgba(124,58,237,0.08)' },
+  { icon: Users,       step: '02', title: 'Link Clients',       desc: 'Connect your brand clients to your agency dashboard — manage them all from one place.',    color: '#FF5533', bg: 'rgba(255,85,51,0.08)' },
+  { icon: Package,     step: '03', title: 'Post Bulk Gigs',     desc: 'Post gigs for any client at 30% off with our bulk pack. More volume, more savings.',        color: '#F59E0B', bg: 'rgba(245,158,11,0.08)' },
+  { icon: BarChart2,   step: '04', title: 'Report & Invoice',   desc: 'Export detailed campaign reports and CSV data. Full transparency for your clients.',         color: '#10B981', bg: 'rgba(16,185,129,0.08)' },
+]
 
 const TRUST_POINTS = [
   { icon: Shield,     label: 'Escrow-protected payments' },
@@ -39,7 +57,7 @@ const TRUST_POINTS = [
 ]
 
 export default function LandingPage() {
-  const [activeTab, setActiveTab] = useState<'brand' | 'influencer'>('brand')
+  const [activeTab, setActiveTab] = useState<'brand' | 'influencer' | 'agency'>('brand')
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -48,7 +66,7 @@ export default function LandingPage() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const steps = activeTab === 'brand' ? BRAND_STEPS : INFLUENCER_STEPS
+  const steps = activeTab === 'brand' ? BRAND_STEPS : activeTab === 'influencer' ? INFLUENCER_STEPS : AGENCY_STEPS
 
   return (
     <div style={{ background: '#FFFFFF', minHeight: '100vh' }}>
@@ -135,12 +153,12 @@ export default function LandingPage() {
       </section>
 
       {/* Niche ticker */}
-      <div style={{ borderTop: '1px solid #EBEBEB', borderBottom: '1px solid #EBEBEB', padding: '14px 0', overflow: 'hidden', background: '#FAFAF9' }}>
+      <div style={{ borderTop: '1px solid #EBEBEB', borderBottom: '1px solid #EBEBEB', padding: '16px 0', overflow: 'hidden', background: '#FAFAF9' }}>
         <div className="marquee-track">
           {[...NICHES, ...NICHES, ...NICHES].map((n, i) => (
-            <span key={i} style={{ fontSize: 10.5, fontWeight: 800, color: '#ABABAB', whiteSpace: 'nowrap', letterSpacing: '0.12em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 28, fontFamily: "'DM Sans', sans-serif", padding: '0 28px' }}>
-              {n}
-              <span style={{ display: 'inline-block', width: 3, height: 3, borderRadius: '50%', background: 'rgba(255,85,51,0.50)', flexShrink: 0 }} />
+            <span key={i} style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 32, padding: '0 32px' }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: n.color, letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: "'DM Sans', sans-serif" }}>{n.label}</span>
+              <span style={{ display: 'inline-block', width: 5, height: 5, borderRadius: '50%', background: n.color, opacity: 0.5, flexShrink: 0 }} />
             </span>
           ))}
         </div>
@@ -163,16 +181,20 @@ export default function LandingPage() {
 
             {/* Tab toggle */}
             <div style={{ display: 'inline-flex', background: '#FFFFFF', border: '1.5px solid #EBEBEB', borderRadius: 12, padding: 4, gap: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-              {(['brand', 'influencer'] as const).map((tab) => (
-                <button key={tab} onClick={() => setActiveTab(tab)} style={{
+              {([
+                { key: 'brand', label: 'For Brands', activeColor: '#FF5533', activeShadow: 'rgba(255,85,51,0.38)' },
+                { key: 'influencer', label: 'For Creators', activeColor: '#111113', activeShadow: 'rgba(0,0,0,0.22)' },
+                { key: 'agency', label: 'For Agencies', activeColor: '#7C3AED', activeShadow: 'rgba(124,58,237,0.38)' },
+              ] as const).map((tab) => (
+                <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
                   padding: '9px 22px', borderRadius: 9, border: 'none', cursor: 'pointer',
                   fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 13.5,
-                  background: activeTab === tab ? '#FF5533' : 'transparent',
-                  color: activeTab === tab ? '#fff' : '#6B7280',
+                  background: activeTab === tab.key ? tab.activeColor : 'transparent',
+                  color: activeTab === tab.key ? '#fff' : '#6B7280',
                   transition: 'all 0.18s ease',
-                  boxShadow: activeTab === tab ? '0 2px 14px rgba(255,85,51,0.38)' : 'none',
+                  boxShadow: activeTab === tab.key ? `0 2px 14px ${tab.activeShadow}` : 'none',
                 }}>
-                  {tab === 'brand' ? '🏢 For Brands' : '⭐ For Creators'}
+                  {tab.label}
                 </button>
               ))}
             </div>
@@ -257,55 +279,83 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, maxWidth: 860, margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, maxWidth: 1060, margin: '0 auto' }}>
             {/* Brand card */}
-            <div className="card-3d" style={{ background: '#FFFFFF', border: '1.5px solid #EBEBEB', borderRadius: 24, padding: '40px 36px', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
+            <div className="card-3d" style={{ background: '#FFFFFF', border: '1.5px solid #EBEBEB', borderRadius: 24, padding: '36px 30px', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
               <div style={{ position: 'absolute', top: -60, right: -60, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,85,51,0.08) 0%, transparent 70%)' }} />
               <div style={{ position: 'relative' }}>
                 <div style={{ fontSize: 11.5, fontWeight: 800, color: '#FF7A5A', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.10em', display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif" }}>
                   <Briefcase size={12} /> For Brands
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-                  <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900, fontSize: 52, color: '#111113', letterSpacing: '-2px', lineHeight: 1 }}>₹49</div>
-                  <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22, color: '#D1D5DB', letterSpacing: '-0.5px', textDecoration: 'line-through' }}>₹250</div>
+                  <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900, fontSize: 48, color: '#111113', letterSpacing: '-2px', lineHeight: 1 }}>₹49</div>
+                  <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 20, color: '#D1D5DB', letterSpacing: '-0.5px', textDecoration: 'line-through' }}>₹250</div>
                 </div>
-                <div style={{ marginBottom: 28, marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 11.5, fontWeight: 800, padding: '3px 10px', borderRadius: 999, background: 'rgba(255,85,51,0.10)', color: '#FF5533', border: '1px solid rgba(255,85,51,0.22)', fontFamily: "'DM Sans', sans-serif" }}>🎉 Launch Offer</span>
-                  <span style={{ color: '#9CA3AF', fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>per Gig posted</span>
+                <div style={{ marginBottom: 24, marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 800, padding: '3px 10px', borderRadius: 999, background: 'rgba(255,85,51,0.10)', color: '#FF5533', border: '1px solid rgba(255,85,51,0.22)', fontFamily: "'DM Sans', sans-serif" }}>Launch Offer</span>
+                  <span style={{ color: '#9CA3AF', fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>per Gig</span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {['Unlimited pitches to influencers', 'Escrow payment protection', 'Platform agreement included', 'Full collaboration management'].map((item) => (
                     <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <CheckCircle size={15} color="#10B981" />
-                      <span style={{ fontSize: 14, color: '#374151', fontFamily: "'DM Sans', sans-serif" }}>{item}</span>
+                      <span style={{ fontSize: 13.5, color: '#374151', fontFamily: "'DM Sans', sans-serif" }}>{item}</span>
                     </div>
                   ))}
                 </div>
-                <Link href="/register/brand" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 28, padding: '12px 20px', background: '#FF5533', color: '#fff', borderRadius: 11, textDecoration: 'none', fontSize: 14, fontWeight: 700, boxShadow: '0 3px 12px rgba(255,85,51,0.28)', fontFamily: "'DM Sans', sans-serif" }}>
+                <Link href="/register/brand" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 24, padding: '12px 20px', background: '#FF5533', color: '#fff', borderRadius: 11, textDecoration: 'none', fontSize: 14, fontWeight: 700, boxShadow: '0 3px 12px rgba(255,85,51,0.28)', fontFamily: "'DM Sans', sans-serif" }}>
                   Start as Brand <ArrowRight size={14} />
                 </Link>
               </div>
             </div>
 
             {/* Influencer card */}
-            <div className="card-3d" style={{ background: '#111113', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 24, padding: '40px 36px', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.18)' }}>
+            <div className="card-3d" style={{ background: '#111113', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 24, padding: '36px 30px', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.18)' }}>
               <div style={{ position: 'absolute', top: -60, right: -60, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,85,51,0.12) 0%, transparent 70%)' }} />
               <div style={{ position: 'relative' }}>
                 <div style={{ fontSize: 11.5, fontWeight: 800, color: '#FF5533', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.10em', display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif" }}>
                   <Star size={12} /> For Creators
                 </div>
-                <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900, fontSize: 52, color: '#FFFFFF', letterSpacing: '-2px', lineHeight: 1 }}>FREE</div>
-                <div style={{ color: 'rgba(255,255,255,0.36)', fontSize: 14, marginBottom: 28, marginTop: 6, fontFamily: "'DM Sans', sans-serif" }}>to join — earn for every collab</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
+                <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900, fontSize: 48, color: '#FFFFFF', letterSpacing: '-2px', lineHeight: 1 }}>FREE</div>
+                <div style={{ color: 'rgba(255,255,255,0.36)', fontSize: 14, marginBottom: 24, marginTop: 6, fontFamily: "'DM Sans', sans-serif" }}>to join — earn for every collab</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {['Free to join & build profile', 'Get discovered by top brands', 'Secure payment guarantee', 'Barter collabs 100% free'].map((item) => (
                     <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <CheckCircle size={15} color="#FF5533" />
-                      <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.70)', fontFamily: "'DM Sans', sans-serif" }}>{item}</span>
+                      <span style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.70)', fontFamily: "'DM Sans', sans-serif" }}>{item}</span>
                     </div>
                   ))}
                 </div>
-                <Link href="/register/influencer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 28, padding: '12px 20px', background: '#FF5533', color: '#fff', borderRadius: 11, textDecoration: 'none', fontSize: 14, fontWeight: 700, boxShadow: '0 3px 12px rgba(255,85,51,0.32)', fontFamily: "'DM Sans', sans-serif" }}>
+                <Link href="/register/influencer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 24, padding: '12px 20px', background: '#FF5533', color: '#fff', borderRadius: 11, textDecoration: 'none', fontSize: 14, fontWeight: 700, boxShadow: '0 3px 12px rgba(255,85,51,0.32)', fontFamily: "'DM Sans', sans-serif" }}>
                   Join as Creator <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+
+            {/* Agency card */}
+            <div className="card-3d" style={{ background: '#2D1B69', border: '1px solid rgba(124,58,237,0.30)', borderRadius: 24, padding: '36px 30px', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 24px rgba(124,58,237,0.22)' }}>
+              <div style={{ position: 'absolute', top: -60, right: -60, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,0.30) 0%, transparent 70%)' }} />
+              <div style={{ position: 'relative' }}>
+                <div style={{ fontSize: 11.5, fontWeight: 800, color: '#A78BFA', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.10em', display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif" }}>
+                  <Building2 size={12} /> For Agencies
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                  <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900, fontSize: 48, color: '#FFFFFF', letterSpacing: '-2px', lineHeight: 1 }}>₹34</div>
+                  <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 18, color: 'rgba(255,255,255,0.35)', letterSpacing: '-0.5px', textDecoration: 'line-through' }}>₹49</div>
+                </div>
+                <div style={{ marginBottom: 24, marginTop: 8 }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 800, padding: '3px 10px', borderRadius: 999, background: 'rgba(124,58,237,0.30)', color: '#C4B5FD', border: '1px solid rgba(124,58,237,0.40)', fontFamily: "'DM Sans', sans-serif" }}>30% off — bulk packs</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {['Manage multiple brand clients', 'Bulk gig packs — 30% off', 'Campaign reports & CSV export', 'Dedicated agency dashboard'].map((item) => (
+                    <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <CheckCircle size={15} color="#A78BFA" />
+                      <span style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.70)', fontFamily: "'DM Sans', sans-serif" }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+                <Link href="/register/agency" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 24, padding: '12px 20px', background: '#7C3AED', color: '#fff', borderRadius: 11, textDecoration: 'none', fontSize: 14, fontWeight: 700, boxShadow: '0 3px 12px rgba(124,58,237,0.40)', fontFamily: "'DM Sans', sans-serif" }}>
+                  Apply as Agency <ArrowRight size={14} />
                 </Link>
               </div>
             </div>
@@ -333,6 +383,9 @@ export default function LandingPage() {
             </Link>
             <Link href="/register/influencer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '13px 28px', fontSize: 15, fontWeight: 700, background: 'rgba(255,255,255,0.08)', color: '#fff', borderRadius: 12, textDecoration: 'none', border: '1px solid rgba(255,255,255,0.14)', fontFamily: "'DM Sans', sans-serif" }}>
               Join as Creator <ArrowRight size={15} />
+            </Link>
+            <Link href="/register/agency" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '13px 28px', fontSize: 15, fontWeight: 700, background: '#7C3AED', color: '#fff', borderRadius: 12, textDecoration: 'none', boxShadow: '0 4px 18px rgba(124,58,237,0.36)', fontFamily: "'DM Sans', sans-serif" }}>
+              Apply as Agency <ArrowRight size={15} />
             </Link>
           </div>
         </div>
