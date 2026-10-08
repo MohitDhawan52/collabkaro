@@ -47,6 +47,7 @@ export default function LoginPage() {
     else if (profile.status === 'rejected') { window.location.href = '/rejected' }
     else if (profile.role === 'brand') { window.location.href = '/brand/dashboard' }
     else if (profile.role === 'influencer') { window.location.href = '/influencer/dashboard' }
+    else if (profile.role === 'agency') { window.location.href = '/agency/dashboard' }
     else { window.location.href = '/' }
   }
 

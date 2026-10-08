@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Briefcase, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react'
+import { Briefcase, Sparkles, Building2, ArrowRight, CheckCircle2 } from 'lucide-react'
 
 const ROLES = [
   {
@@ -26,6 +26,17 @@ const ROLES = [
     iconBg: 'rgba(217, 119, 6, 0.10)',
     borderHover: 'rgba(217, 119, 6, 0.30)',
     perks: ['Get brand collaboration offers', 'Showcase your reach & niche', 'Get paid on time, every time'],
+  },
+  {
+    href: '/register/agency',
+    icon: Building2,
+    tag: 'For Agencies',
+    title: "I'm an Agency",
+    desc: 'Manage multiple brand clients, post bulk gigs at a discount, and run campaigns at scale.',
+    color: '#7C3AED',
+    iconBg: 'rgba(124, 58, 237, 0.10)',
+    borderHover: 'rgba(124, 58, 237, 0.30)',
+    perks: ['Manage multiple brand clients', 'Bulk gig packs — 30% off', 'Campaign reports & CSV export'],
   },
 ]
 
@@ -54,7 +65,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Role cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {ROLES.map((role, i) => {
             const Icon = role.icon
             return (
