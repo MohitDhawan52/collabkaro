@@ -158,7 +158,8 @@ export default function AgencyPostGigPage() {
       toast.success(count > 1 ? `${count} gigs posted!` : 'Gig posted!')
       router.push('/agency/gigs')
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Something went wrong')
+      const msg = (err as { message?: string })?.message ?? String(err)
+      toast.error(msg || 'Something went wrong')
     } finally {
       setSubmitting(false)
     }
