@@ -128,13 +128,20 @@ export default function AgencyPostGigPage() {
     setSubmitting(true)
     try {
       const supabase = createClient()
-      if (deliverables.length === 0) { toast.error('Select at least one deliverable'); return }
-      if (deliverables.some(d => !d.due_date)) { toast.error('Set a due date for every deliverable'); return }
+      if (deliverables.length === 0) { toast.error('Select at least one deliverable'); setSubmitting(false); return }
+      if (deliverables.some(d => !d.due_date)) { toast.error('Set a due date for every deliverable'); setSubmitting(false); return }
+
+      // Re-fetch agency id fresh to ensure it's available
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { toast.error('Not logged in'); setSubmitting(false); return }
+      const { data: agencyRow } = await supabase.from('agency_profiles').select('id').eq('user_id', user.id).single()
+      if (!agencyRow) { toast.error('Agency profile not found'); setSubmitting(false); return }
+      const freshAgencyId = (agencyRow as unknown as { id: string }).id
 
       const selectedClient = clients.find(c => c.id === data.client_brand_id)
       const count = bulkPack ? gigCount : 1
       const gigs = Array.from({ length: count }, (_, i) => ({
-        agency_id: agencyId,
+        agency_id: freshAgencyId,
         manual_client_id: data.client_brand_id || null,
         client_name: selectedClient?.company_name ?? null,
         title: count > 1 ? `${data.title} (${i + 1}/${count})` : data.title,
