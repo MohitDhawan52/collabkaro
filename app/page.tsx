@@ -76,7 +76,7 @@ export default function LandingPage() {
               Log in
             </Link>
             <Link href="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', background: '#FF5533', color: '#fff', borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: 'none', boxShadow: '0 3px 14px rgba(255,85,51,0.42)', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.14s' }}>
-              Join Free <ArrowRight size={14} />
+              Register <ArrowRight size={14} />
             </Link>
           </div>
         </div>
@@ -117,6 +117,9 @@ export default function LandingPage() {
           </Link>
           <Link href="/register/influencer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 30px', fontSize: 15, fontWeight: 700, background: '#FFFFFF', border: '1.5px solid #E0DED8', borderRadius: 12, color: '#111113', textDecoration: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', fontFamily: "'DM Sans', sans-serif" }}>
             I&apos;m a Creator <ArrowRight size={15} />
+          </Link>
+          <Link href="/register/agency" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 30px', fontSize: 15, fontWeight: 700, background: '#7C3AED', color: '#fff', borderRadius: 12, textDecoration: 'none', boxShadow: '0 4px 20px rgba(124,58,237,0.35)', fontFamily: "'DM Sans', sans-serif" }}>
+            I&apos;m an Agency <ArrowRight size={15} />
           </Link>
         </div>
 
