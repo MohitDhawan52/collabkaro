@@ -44,19 +44,19 @@ export default function AgencyCollabsPage() {
 
     const { data } = await supabase
       .from('collaborations')
-      .select('id, status, agreed_amount, created_at, gigs(title, brand_profiles(company_name)), influencer_profiles(full_name, instagram_handle)')
+      .select('id, status, agreed_amount, created_at, gigs(title, client_name), influencer_profiles(full_name, instagram_handle)')
       .eq('agency_id', aid)
       .order('created_at', { ascending: false })
 
     if (data) {
       setCollabs((data as unknown as {
         id: string; status: CollabStatus; agreed_amount: number | null; created_at: string;
-        gigs: { title: string; brand_profiles: { company_name: string } };
+        gigs: { title: string; client_name: string | null };
         influencer_profiles: { full_name: string; instagram_handle: string | null };
       }[]).map(c => ({
         id: c.id, status: c.status, agreed_amount: c.agreed_amount, created_at: c.created_at,
         gig_title: c.gigs?.title ?? '—',
-        company_name: c.gigs?.brand_profiles?.company_name ?? '—',
+        company_name: c.gigs?.client_name ?? '—',
         influencer_name: c.influencer_profiles?.full_name ?? '—',
         instagram_handle: c.influencer_profiles?.instagram_handle ?? null,
       })))

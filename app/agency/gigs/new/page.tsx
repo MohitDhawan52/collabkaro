@@ -43,7 +43,7 @@ const DELIVERABLE_TYPES = [
 ]
 
 interface DeliverableItem { id: string; label: string; emoji: string; qty: number; due_date: string }
-interface Client { id: string; brand_id: string; company_name: string }
+interface Client { id: string; company_name: string }
 
 // Single gig: ₹49 + 18% GST = ₹57.82
 // Bulk pack (10 gigs): 10 × ₹49 × 0.70 = ₹343 base + 18% GST = ₹404.74
@@ -102,10 +102,8 @@ export default function AgencyPostGigPage() {
       if (!agency) return
       const aid = (agency as unknown as { id: string }).id
       setAgencyId(aid)
-      const { data } = await supabase.from('agency_clients').select('id, brand_profiles(id, company_name)').eq('agency_id', aid)
-      if (data) {
-        setClients((data as unknown as { id: string; brand_profiles: { id: string; company_name: string } }[]).map(r => ({ id: r.id, brand_id: r.brand_profiles.id, company_name: r.brand_profiles.company_name })))
-      }
+      const { data } = await supabase.from('agency_manual_clients').select('id, company_name').eq('agency_id', aid).order('company_name')
+      if (data) setClients(data as Client[])
     }
     load()
   }, [])
@@ -133,10 +131,12 @@ export default function AgencyPostGigPage() {
       if (deliverables.length === 0) { toast.error('Select at least one deliverable'); return }
       if (deliverables.some(d => !d.due_date)) { toast.error('Set a due date for every deliverable'); return }
 
+      const selectedClient = clients.find(c => c.id === data.client_brand_id)
       const count = bulkPack ? gigCount : 1
       const gigs = Array.from({ length: count }, (_, i) => ({
-        brand_id: data.client_brand_id,
         agency_id: agencyId,
+        manual_client_id: data.client_brand_id || null,
+        client_name: selectedClient?.company_name ?? null,
         title: count > 1 ? `${data.title} (${i + 1}/${count})` : data.title,
         description: data.description,
         collab_type: data.collab_type,
@@ -231,7 +231,7 @@ export default function AgencyPostGigPage() {
                 <label style={labelStyle}>Client *</label>
                 <select {...register('client_brand_id')} style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid #EBEBEB', fontSize: 14, color: '#111113', background: '#FAFAF9', outline: 'none', fontFamily: 'inherit', cursor: 'pointer' }}>
                   <option value="">Select a client…</option>
-                  {clients.map(c => <option key={c.brand_id} value={c.brand_id}>{c.company_name}</option>)}
+                  {clients.map(c => <option key={c.id} value={c.id}>{c.company_name}</option>)}
                 </select>
                 {errors.client_brand_id && <span style={errStyle}>{errors.client_brand_id.message}</span>}
                 {clients.length === 0 && <div style={{ fontSize: 11.5, color: '#9CA3AF', marginTop: 5 }}>No clients linked yet. <a href="/agency/clients/new" style={{ color: '#7C3AED', fontWeight: 600 }}>Add a client first →</a></div>}

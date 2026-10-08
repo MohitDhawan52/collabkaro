@@ -39,13 +39,13 @@ export default function AgencyGigsPage() {
 
     const { data } = await supabase
       .from('gigs')
-      .select('id, title, status, niche_required, created_at, brand_profiles(company_name)')
+      .select('id, title, status, niche_required, created_at, client_name')
       .eq('agency_id', aid)
       .order('created_at', { ascending: false })
 
     if (data) {
-      setGigs((data as unknown as { id: string; title: string; status: GigStatus; niche_required: string[]; created_at: string; brand_profiles: { company_name: string } }[])
-        .map(g => ({ id: g.id, title: g.title, status: g.status, niche_required: g.niche_required ?? [], company_name: g.brand_profiles?.company_name ?? '—', created_at: g.created_at })))
+      setGigs((data as unknown as { id: string; title: string; status: GigStatus; niche_required: string[]; created_at: string; client_name: string | null }[])
+        .map(g => ({ id: g.id, title: g.title, status: g.status, niche_required: g.niche_required ?? [], company_name: g.client_name ?? '—', created_at: g.created_at })))
     }
     setLoading(false)
   }
