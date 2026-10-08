@@ -743,6 +743,12 @@ textarea.input { resize: vertical; min-height: 80px; }
   box-shadow: 0 8px 28px rgba(255,85,51,0.40), 0 2px 8px rgba(255,85,51,0.20);
 }
 .btn-premium:active { transform: translateY(0) scale(0.98); }
+.btn-creator:hover {
+  box-shadow: 0 8px 28px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08);
+}
+.btn-agency:hover {
+  box-shadow: 0 8px 28px rgba(124,58,237,0.40), 0 2px 8px rgba(124,58,237,0.20);
+}
 
 /* ── Orb decorations ── */
 .orb {

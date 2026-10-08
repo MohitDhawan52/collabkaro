@@ -115,10 +115,10 @@ export default function LandingPage() {
           <Link href="/register/brand" className="btn-premium" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 30px', fontSize: 15, fontWeight: 700, background: '#FF5533', color: '#fff', borderRadius: 12, textDecoration: 'none', boxShadow: '0 4px 20px rgba(255,85,51,0.40)', fontFamily: "'DM Sans', sans-serif" }}>
             I&apos;m a Brand <ArrowRight size={15} />
           </Link>
-          <Link href="/register/influencer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 30px', fontSize: 15, fontWeight: 700, background: '#FFFFFF', border: '1.5px solid #E0DED8', borderRadius: 12, color: '#111113', textDecoration: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', fontFamily: "'DM Sans', sans-serif" }}>
+          <Link href="/register/influencer" className="btn-premium btn-creator" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 30px', fontSize: 15, fontWeight: 700, background: '#FFFFFF', border: '1.5px solid #E0DED8', borderRadius: 12, color: '#111113', textDecoration: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', fontFamily: "'DM Sans', sans-serif" }}>
             I&apos;m a Creator <ArrowRight size={15} />
           </Link>
-          <Link href="/register/agency" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 30px', fontSize: 15, fontWeight: 700, background: '#7C3AED', color: '#fff', borderRadius: 12, textDecoration: 'none', boxShadow: '0 4px 20px rgba(124,58,237,0.35)', fontFamily: "'DM Sans', sans-serif" }}>
+          <Link href="/register/agency" className="btn-premium btn-agency" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 30px', fontSize: 15, fontWeight: 700, background: '#7C3AED', color: '#fff', borderRadius: 12, textDecoration: 'none', boxShadow: '0 4px 20px rgba(124,58,237,0.35)', fontFamily: "'DM Sans', sans-serif" }}>
             I&apos;m an Agency <ArrowRight size={15} />
           </Link>
         </div>
