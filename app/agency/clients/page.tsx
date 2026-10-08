@@ -2,21 +2,19 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Building2, PlusCircle, Briefcase, ArrowRight, Trash2 } from 'lucide-react'
+import { Building2, Plus, Trash2, MapPin, Phone, Mail } from 'lucide-react'
+import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase'
 
 interface Client {
-  id: string
-  brand_id: string
-  company_name: string
-  industry: string | null
-  gig_count: number
+  id: string; company_name: string; contact_name: string | null
+  contact_email: string | null; contact_phone: string | null
+  industry: string | null; city: string | null
 }
 
 export default function AgencyClientsPage() {
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
-  const [agencyId, setAgencyId] = useState<string | null>(null)
 
   useEffect(() => { load() }, [])
 
@@ -26,73 +24,60 @@ export default function AgencyClientsPage() {
     if (!user) return
     const { data: agency } = await supabase.from('agency_profiles').select('id').eq('user_id', user.id).single()
     if (!agency) { setLoading(false); return }
-    const aid = (agency as unknown as { id: string }).id
-    setAgencyId(aid)
-
-    const { data } = await supabase
-      .from('agency_clients')
-      .select('id, brand_profiles(id, company_name, industry)')
-      .eq('agency_id', aid)
-
-    if (data) {
-      const rows = data as unknown as { id: string; brand_profiles: { id: string; company_name: string; industry: string | null } }[]
-      const brandIds = rows.map(r => r.brand_profiles.id)
-      const gigCounts: Record<string, number> = {}
-      if (brandIds.length > 0) {
-        const { data: gigs } = await supabase.from('gigs').select('brand_id').in('brand_id', brandIds)
-        for (const g of gigs ?? []) gigCounts[(g as unknown as { brand_id: string }).brand_id] = (gigCounts[(g as unknown as { brand_id: string }).brand_id] ?? 0) + 1
-      }
-      setClients(rows.map(r => ({ id: r.id, brand_id: r.brand_profiles.id, company_name: r.brand_profiles.company_name, industry: r.brand_profiles.industry, gig_count: gigCounts[r.brand_profiles.id] ?? 0 })))
-    }
+    const { data } = await supabase.from('agency_manual_clients').select('*').eq('agency_id', (agency as unknown as { id: string }).id).order('created_at', { ascending: false })
+    setClients((data ?? []) as Client[])
     setLoading(false)
   }
 
-  async function removeClient(clientRowId: string) {
-    if (!confirm('Remove this client from your agency?')) return
+  async function remove(id: string, name: string) {
+    if (!confirm(`Remove ${name} from your clients?`)) return
     const supabase = createClient()
-    await supabase.from('agency_clients').delete().eq('id', clientRowId)
-    setClients(prev => prev.filter(c => c.id !== clientRowId))
+    await supabase.from('agency_manual_clients').delete().eq('id', id)
+    toast.success(`${name} removed`)
+    setClients(p => p.filter(c => c.id !== id))
   }
 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-        <div className="dash-page-title" style={{ marginBottom: 0 }}>My Clients</div>
-        <Link href="/agency/clients/new" style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: '#7C3AED', color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 13.5, textDecoration: 'none', fontFamily: "'DM Sans', sans-serif" }}>
-          <PlusCircle size={14} /> Add Client
+        <div>
+          <div className="dash-page-title">Clients</div>
+          <div className="dash-page-subtitle">All brand clients you manage.</div>
+        </div>
+        <Link href="/agency/clients/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 18px', background: '#7C3AED', color: '#fff', borderRadius: 10, textDecoration: 'none', fontSize: 13.5, fontWeight: 700, boxShadow: '0 2px 10px rgba(124,58,237,0.28)' }}>
+          <Plus size={14} /> Add Client
         </Link>
       </div>
-      <div className="dash-page-subtitle">Brand accounts you manage on their behalf.</div>
 
       {loading ? (
-        <div style={{ marginTop: 20 }}>{[1,2,3].map(i => <div key={i} className="dash-skel" style={{ height: 72, borderRadius: 14, marginBottom: 10 }} />)}</div>
+        <div style={{ marginTop: 24 }}>{[1,2,3].map(i => <div key={i} className="dash-skel" style={{ height: 72, borderRadius: 14, marginBottom: 10 }} />)}</div>
       ) : clients.length === 0 ? (
-        <div style={{ marginTop: 40, textAlign: 'center' }}>
-          <div style={{ width: 56, height: 56, borderRadius: 16, background: 'rgba(124,58,237,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
-            <Building2 size={24} color="#7C3AED" />
-          </div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#111113', marginBottom: 6 }}>No clients yet</div>
-          <div style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 20 }}>Link brand accounts to start managing campaigns</div>
-          <Link href="/agency/clients/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: '#7C3AED', color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 13.5, textDecoration: 'none' }}>
-            <PlusCircle size={14} /> Add first client
-          </Link>
+        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#9CA3AF' }}>
+          <Building2 size={36} style={{ margin: '0 auto 12px', display: 'block', opacity: 0.3 }} />
+          <div style={{ fontSize: 15, fontWeight: 600, color: '#6B7280', marginBottom: 8 }}>No clients yet</div>
+          <Link href="/agency/clients/new" style={{ color: '#7C3AED', fontWeight: 600, textDecoration: 'none', fontSize: 13.5 }}>Add your first client →</Link>
         </div>
       ) : (
-        <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
           {clients.map(c => (
-            <div key={c.id} style={{ background: '#fff', border: '1.5px solid #EBEBEB', borderRadius: 14, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(124,58,237,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 18, color: '#7C3AED', flexShrink: 0, fontFamily: "'Outfit', sans-serif" }}>
+            <div key={c.id} style={{ background: '#fff', border: '1.5px solid #EBEBEB', borderRadius: 14, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(124,58,237,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 17, color: '#7C3AED', flexShrink: 0, fontFamily: "'Outfit', sans-serif" }}>
                 {c.company_name.charAt(0).toUpperCase()}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 14.5, fontWeight: 700, color: '#111113' }}>{c.company_name}</div>
-                <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{c.industry ?? 'No industry'} · {c.gig_count} gig{c.gig_count !== 1 ? 's' : ''}</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', marginTop: 4 }}>
+                  {c.contact_name && <span style={{ fontSize: 12.5, color: '#6B7280' }}>{c.contact_name}</span>}
+                  {c.industry && <span style={{ fontSize: 12, color: '#9CA3AF', background: '#F3F4F6', padding: '2px 8px', borderRadius: 99 }}>{c.industry}</span>}
+                  {c.city && <span style={{ fontSize: 12.5, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 3 }}><MapPin size={11} />{c.city}</span>}
+                  {c.contact_phone && <span style={{ fontSize: 12.5, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 3 }}><Phone size={11} />{c.contact_phone}</span>}
+                  {c.contact_email && <span style={{ fontSize: 12.5, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 3 }}><Mail size={11} />{c.contact_email}</span>}
+                </div>
               </div>
-              <Link href={`/agency/gigs/new?brand_id=${c.brand_id}`} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', background: 'rgba(255,85,51,0.08)', color: '#FF5533', borderRadius: 8, fontWeight: 600, fontSize: 12.5, textDecoration: 'none' }}>
-                <Briefcase size={12} /> Post Gig
-              </Link>
-              <button onClick={() => removeClient(c.id)} style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(239,68,68,0.07)', border: 'none', color: '#DC2626', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Trash2 size={14} />
+              <button onClick={() => remove(c.id, c.company_name)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#D1D5DB', padding: 6, borderRadius: 8, display: 'flex', transition: 'color 0.15s' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#EF4444')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#D1D5DB')}>
+                <Trash2 size={15} />
               </button>
             </div>
           ))}
