@@ -30,7 +30,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Public routes
-  const publicRoutes = ['/', '/login', '/register', '/register/influencer', '/register/brand']
+  const publicRoutes = ['/', '/login', '/register', '/register/influencer', '/register/brand', '/register/agency', '/agency/pending']
   if (publicRoutes.includes(pathname)) {
     return supabaseResponse
   }
@@ -66,9 +66,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
+  // Agency routes
+  if (pathname.startsWith('/agency') && profile.role !== 'agency') {
+    return NextResponse.redirect(new URL('/', request.url))
+  }
+
   // Pending approval — brands must wait, influencers can browse (pitch is locked in UI)
   if (profile.status === 'pending' && !pathname.includes('/pending')) {
     if (profile.role === 'brand') return NextResponse.redirect(new URL('/brand/pending', request.url))
+    if (profile.role === 'agency') return NextResponse.redirect(new URL('/agency/pending', request.url))
     // Influencers: allow dashboard, gigs, profile — only block pitching/earnings/collabs/kyc actions
     if (profile.role === 'influencer') {
       const blockedWhilePending = ['/influencer/pitches', '/influencer/earnings', '/influencer/collabs', '/influencer/kyc']
