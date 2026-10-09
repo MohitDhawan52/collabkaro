@@ -78,7 +78,7 @@ export default function AgencyGigsPage() {
           {gigs.map(g => {
             const chip = STATUS_CHIP[g.status] ?? STATUS_CHIP.draft
             return (
-              <Link key={g.id} href={`/brand/gigs/${g.id}`} style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fff', border: '1.5px solid #EBEBEB', borderRadius: 14, padding: '13px 18px', textDecoration: 'none' }}>
+              <Link key={g.id} href={`/agency/gigs/${g.id}`} style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fff', border: '1.5px solid #EBEBEB', borderRadius: 14, padding: '13px 18px', textDecoration: 'none' }}>
                 <div style={{ width: 40, height: 40, borderRadius: 11, background: 'rgba(255,85,51,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Briefcase size={17} color="#FF5533" />
                 </div>
