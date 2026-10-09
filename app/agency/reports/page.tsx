@@ -34,7 +34,7 @@ export default function AgencyReportsPage() {
     const aid = (agency as unknown as { id: string }).id
 
     // Fetch gigs + their collaborations
-    const { data: gigs } = await supabase.from('gigs').select('id, title, brand_profiles(company_name)').eq('agency_id', aid)
+    const { data: gigs } = await supabase.from('gigs').select('id, title, client_name').eq('agency_id', aid)
     if (!gigs || gigs.length === 0) { setLoading(false); return }
 
     const gigIds = (gigs as unknown as { id: string }[]).map(g => g.id)
@@ -50,8 +50,8 @@ export default function AgencyReportsPage() {
       if (c.status === 'completed') { collabMap[c.gig_id].completed++; collabMap[c.gig_id].spend += c.agreed_amount ?? 0 }
     }
 
-    const rows = (gigs as unknown as { id: string; title: string; brand_profiles: { company_name: string } }[]).map(g => ({
-      gig_id: g.id, gig_title: g.title, company_name: g.brand_profiles?.company_name ?? '—',
+    const rows = (gigs as unknown as { id: string; title: string; client_name: string | null }[]).map(g => ({
+      gig_id: g.id, gig_title: g.title, company_name: g.client_name ?? '—',
       total_applied: collabMap[g.id]?.applied ?? 0,
       total_active:  collabMap[g.id]?.active ?? 0,
       total_completed: collabMap[g.id]?.completed ?? 0,
